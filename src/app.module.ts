@@ -7,6 +7,7 @@ import configuration from './config/configuration'
 import { LoggerMiddleware } from './shared/utils/logger.middleware'
 import { LogModule } from './shared/logs/log.module'
 import { TerminusModule } from '@nestjs/terminus'
+import { HttpModule } from '@nestjs/axios'
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TerminusModule } from '@nestjs/terminus'
     }),
     LogModule,
     TerminusModule,
+    HttpModule,
   ],
   controllers: [AppController],
   providers: [AppService, LoggerMiddleware],
