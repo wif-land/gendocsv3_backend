@@ -33,16 +33,15 @@ module.exports = {
       'error',
       new RegExp(
         '^[a-z0-9][a-z0-9-]*' +
-          '(.module|.controller|.entity|.dto' +
+          '(.module|.controller|.entity|.dto|' +
           '|.strategy|.guard|.service|.gateway' +
           '|.utils|.interceptor|.pipe|.filter' +
-          '|.schema)?' +
+          '|.schema|.middleware)?' +
           '(.e2e-spec|.spec|.config|.setup)?$' +
           '|^.eslintrc$',
       ),
     ],
     'filenames/match-exported': ['error', 'camel'],
-
     '@typescript-eslint/naming-convention': [
       'error',
       {
@@ -99,6 +98,10 @@ module.exports = {
     'jest/expect-expect': [
       'error',
       { assertFunctionNames: ['expect', 'request.*.expect'] },
+    ],
+    'no-magic-numbers': [
+      'error',
+      { ignore: [0, 1, -1], ignoreArrayIndexes: true, enforceConst: true },
     ],
     'max-classes-per-file': ['error', 2],
     'no-console': 'warn',
