@@ -28,9 +28,6 @@ export class User extends BaseAppEntity {
   phone: string
 
   @Column()
-  regularPhone: string
-
-  @Column()
   password: string
 
   @Column({ type: 'simple-array' })
