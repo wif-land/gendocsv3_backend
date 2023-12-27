@@ -3,6 +3,8 @@ import { Test } from '@nestjs/testing'
 import { AppModule } from './../src/app.module'
 import { INestApplication } from '@nestjs/common'
 
+const OK_STATUS = 200
+
 describe('AppController (e2e)', () => {
   let app: INestApplication
 
@@ -20,5 +22,8 @@ describe('AppController (e2e)', () => {
   })
 
   it('/ (GET)', () =>
-    request(app.getHttpServer()).get('/').expect(200).expect('Hello World!'))
+    request(app.getHttpServer())
+      .get('/')
+      .expect(OK_STATUS)
+      .expect('Hello World!'))
 })
