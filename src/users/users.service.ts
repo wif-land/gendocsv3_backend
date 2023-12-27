@@ -11,6 +11,10 @@ export class UsersService {
   ) {}
 
   async getByEmail(email: string): Promise<User> {
-    return await this.userRepository.findOne({ where: { outlookEmail: email } })
+    return await this.userRepository.findOne({
+      where: {
+        outlookEmail: email,
+      },
+    })
   }
 }
