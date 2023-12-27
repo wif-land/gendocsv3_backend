@@ -41,9 +41,7 @@ import { UsersModule } from './users/users.module'
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(LoggerMiddleware).forRoutes('path/*')
-    consumer.apply(LoggerMiddleware).forRoutes('path-two/*')
-    consumer.apply(LoggerMiddleware).forRoutes('path-three/*')
-    consumer.apply(LoggerMiddleware).forRoutes('path-four/*')
+    consumer.apply(LoggerMiddleware).forRoutes('auth/*')
+    consumer.apply(LoggerMiddleware).forRoutes('users/*')
   }
 }
