@@ -8,6 +8,8 @@ import { LoggerMiddleware } from './shared/utils/logger.middleware'
 import { LogModule } from './shared/logs/log.module'
 import { TerminusModule } from '@nestjs/terminus'
 import { HttpModule } from '@nestjs/axios'
+import { AuthModule } from './auth/auth.module'
+import { UsersModule } from './users/users.module'
 
 @Module({
   imports: [
@@ -31,15 +33,15 @@ import { HttpModule } from '@nestjs/axios'
     LogModule,
     TerminusModule,
     HttpModule,
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService, LoggerMiddleware],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(LoggerMiddleware).forRoutes('path/*')
-    consumer.apply(LoggerMiddleware).forRoutes('path-two/*')
-    consumer.apply(LoggerMiddleware).forRoutes('path-three/*')
-    consumer.apply(LoggerMiddleware).forRoutes('path-four/*')
+    consumer.apply(LoggerMiddleware).forRoutes('auth/*')
+    consumer.apply(LoggerMiddleware).forRoutes('users/*')
   }
 }
