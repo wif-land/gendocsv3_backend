@@ -15,7 +15,7 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<{ accessToken: string }> {
-    const user = await this.usersService.getByUsername(email)
+    const user = await this.usersService.getByEmail(email)
     const validUser = this.validateUser(user, password)
 
     if (!validUser) {
@@ -23,7 +23,7 @@ export class AuthService {
     }
 
     const payload = {
-      username: user.name,
+      username: `${user.firstName} ${user.firstLastName}`,
       sub: user.id,
       roles: user.roles,
       platformPermission: user.platformPermission,

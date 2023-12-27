@@ -10,7 +10,7 @@ export class UsersService {
     private userRepository: Repository<User>,
   ) {}
 
-  async getByUsername(username: string): Promise<User> {
-    return await this.userRepository.findOne({ where: { username } })
+  async getByEmail(email: string): Promise<User> {
+    return await this.userRepository.findOne({ where: { outlookEmail: email } })
   }
 }
