@@ -15,6 +15,21 @@ Usa la versión 18.18.2 de `NodeJS` o superior.
 ```bash
 make up
 ```
+   ***Nota**:
+  Si no se reconoce el comando make puedes instalar el paquete:
+  
+  #### En linux:
+  ```bash
+  sudo apt-get install make
+  ```
+
+  #### En windows:
+  Primero se necesita tener instalado chocolatey, se puede instalar siguiendo el siguiente enlace: https://chocolatey.org/
+  
+  Una vez instalado, se ejecuta el siguiente comando en una consola (con permisos de administrador):
+  ```bash
+  choco install make
+  ```
 
 2. Llena el archivo `.env` con las variables de entorno necesarias
 
