@@ -3,9 +3,6 @@ import { BaseAppEntity } from '../shared/utils/base.entity'
 
 @Entity()
 export class User extends BaseAppEntity {
-  @Column({ unique: true })
-  dni: string
-
   @Column()
   firstName: string
 
@@ -23,9 +20,6 @@ export class User extends BaseAppEntity {
 
   @Column({ unique: true })
   googleEmail: string
-
-  @Column()
-  phone: string
 
   @Column()
   password: string

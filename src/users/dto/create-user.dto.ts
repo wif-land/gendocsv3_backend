@@ -1,9 +1,6 @@
-import { IsEmail, IsNotEmpty, IsPhoneNumber } from 'class-validator'
+import { IsEmail, IsNotEmpty } from 'class-validator'
 
 export class CreateUserDTO {
-  @IsNotEmpty()
-  dni: string
-
   @IsNotEmpty()
   firstName: string
 
@@ -45,11 +42,6 @@ export class CreateUserDTO {
   @IsNotEmpty({
     message: 'password is required',
   })
-  @IsPhoneNumber('EC', {
-    message: 'phone must be a valid Ecuadorian phone number',
-  })
-  phone: string
-
   @IsNotEmpty()
   password: string
 }
