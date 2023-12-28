@@ -15,43 +15,44 @@ Usa la versión 18.18.2 de `NodeJS` o superior.
 ```bash
 make up
 ```
-   ***Nota**:
-  Si no se reconoce el comando make puedes instalar el paquete:
-  
-  #### En linux:
-  ```bash
-  sudo apt-get install make
-  ```
 
-  #### En windows:
-  Primero se necesita tener instalado chocolatey, se puede instalar siguiendo el siguiente enlace: https://chocolatey.org/
-  
-  Una vez instalado, se ejecuta el siguiente comando en una consola (con permisos de administrador):
-  ```bash
-  choco install make
-  ```
+***Nota**: Si no se reconoce el comando make puedes instalar el paquete:
+
+#### En linux:
+
+```bash
+sudo apt-get install make
+```
+
+#### En windows:
+
+Primero se necesita tener instalado chocolatey, se puede instalar siguiendo el siguiente enlace: https://chocolatey.org/
+
+Una vez instalado, se ejecuta el siguiente comando en una consola (con permisos de administrador):
+
+```bash
+choco install make
+```
 
 2. Llena el archivo `.env` con las variables de entorno necesarias
 
-```bash
-# DEVELOPMENT
-NODE_ENV=development
-PORT=3001
-DATABASE_USERNAME=gendocsuser
-DATABASE_PASSWORD=1fsd815
-DATABASE_NAME=gendocsv3
-DATABASE_SYNCHRONIZE=true
-JWT_SECRET=SUPERS$CR3T!
-JWT_EXPIRES_IN=7 days
-```
+Pregunta a un miembro del equipo de desarrollo para que te proporcione las variables de entorno necesarias para el proyecto. O míralas dentro del notion del proyecto.
 
-3. Instala las dependencias
+3. En la carpeta `gcp` del root del proyecto crea un archivo llamado `credentials.json` y pide a un miembro del equipo de desarrollo que te proporcione el archivo.
+
+3. Usa la versión de node correcta
+
+```bash
+nvm use
+```
   
+4. Instala las dependencias
+
 ```bash
 npm install
 ```
 
-4. Inicia el servidor de desarrollo
+5. Inicia el servidor de desarrollo
 
 ```bash
 npm run start
@@ -69,6 +70,6 @@ O si deseas que se reinicie el servidor cada vez que se haga un cambio en el có
 npm run start:debug
 ```
 
-5. Abre el navegador en la dirección `http://localhost:3001`
+6. Abre el navegador en la dirección `http://localhost:3001/api`
 
 
