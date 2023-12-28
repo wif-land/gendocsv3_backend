@@ -14,6 +14,8 @@ import { FilesController } from './files/files.controller'
 import { FilesService } from './files/files.service'
 import { FilesModule } from './files/files.module'
 import { GcpModule } from './gcp/gcp.module'
+import { ModulesModule } from './modules/modules.module'
+import { CareersModule } from './careers/careers.module'
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { GcpModule } from './gcp/gcp.module'
     UsersModule,
     FilesModule,
     GcpModule,
+    ModulesModule,
+    CareersModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],
