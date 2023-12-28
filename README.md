@@ -10,24 +10,39 @@ Este proyecto es creado para la Universidad Técnica de Ambato que se planea sea
 
 Usa la versión 18.18.2 de `NodeJS` o superior.
 
-1. Ejecuta el comando de `docker` para crear la imagen de la base de datos
+1. Ejecuta el comando de `make` para crear la imagen de la base de datos
 
 ```bash
-docker compose up -d
+make up
 ```
+   ***Nota**:
+  Si no se reconoce el comando make puedes instalar el paquete:
+  
+  #### En linux:
+  ```bash
+  sudo apt-get install make
+  ```
+
+  #### En windows:
+  Primero se necesita tener instalado chocolatey, se puede instalar siguiendo el siguiente enlace: https://chocolatey.org/
+  
+  Una vez instalado, se ejecuta el siguiente comando en una consola (con permisos de administrador):
+  ```bash
+  choco install make
+  ```
 
 2. Llena el archivo `.env` con las variables de entorno necesarias
 
 ```bash
 # DEVELOPMENT
 NODE_ENV=development
-PORT=3000
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=postgres
-DATABASE_NAME=postgres
+PORT=3001
+DATABASE_USERNAME=gendocsuser
+DATABASE_PASSWORD=1fsd815
+DATABASE_NAME=gendocsv3
 DATABASE_SYNCHRONIZE=true
+JWT_SECRET=SUPERS$CR3T!
+JWT_EXPIRES_IN=7 days
 ```
 
 3. Instala las dependencias

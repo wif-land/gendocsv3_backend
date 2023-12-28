@@ -1,0 +1,11 @@
+node_modules
+.vscode
+dist
+test/
+.env.example
+.eslintrc.js
+.gitignore
+.prettierrc
+README.md
+Makefile
+.husky
