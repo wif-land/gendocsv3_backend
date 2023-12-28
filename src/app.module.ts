@@ -10,6 +10,10 @@ import { TerminusModule } from '@nestjs/terminus'
 import { HttpModule } from '@nestjs/axios'
 import { AuthModule } from './auth/auth.module'
 import { UsersModule } from './users/users.module'
+import { FilesController } from './files/files.controller'
+import { FilesService } from './files/files.service'
+import { FilesModule } from './files/files.module'
+import { GcpModule } from './gcp/gcp.module'
 
 @Module({
   imports: [
@@ -35,9 +39,11 @@ import { UsersModule } from './users/users.module'
     HttpModule,
     AuthModule,
     UsersModule,
+    FilesModule,
+    GcpModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, LoggerMiddleware],
+  controllers: [AppController, FilesController],
+  providers: [AppService, LoggerMiddleware, FilesService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer): void {

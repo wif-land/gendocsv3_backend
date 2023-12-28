@@ -14,4 +14,8 @@ export default () => ({
     secret: process.env.JWT_SECRET,
     expiresIn: process.env.JWT_EXPIRES_IN,
   },
+  gcp: {
+    credentialsPath: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    rootDriveFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
+  },
 })
