@@ -13,20 +13,24 @@ export class UsersService {
   ) {}
 
   async getByEmail(email: string): Promise<User> {
-    return await this.userRepository.findOne({
+    const result = await this.userRepository.findOne({
       where: {
         outlookEmail: email,
       },
     })
+
+    return result
   }
 
   async create(user: CreateUserDTO): Promise<User> {
     const password = await this.generateSaltPassword(user.password)
 
-    return await this.userRepository.save({
-      ...user,
-      password,
-    })
+    return await this.userRepository
+      .create({
+        ...user,
+        password,
+      })
+      .save()
   }
 
   private async generateSaltPassword(password: string): Promise<string> {
