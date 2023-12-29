@@ -1,5 +1,6 @@
 import { Column, Entity } from 'typeorm'
 import { BaseAppEntity } from '../shared/utils/base.entity'
+import { RolesType } from '../auth/roles-decorator'
 
 @Entity({ name: 'users' })
 export class User extends BaseAppEntity {
@@ -25,7 +26,7 @@ export class User extends BaseAppEntity {
   password: string
 
   @Column({ type: 'simple-array' })
-  roles: string[]
+  roles: RolesType[]
 
   @Column({ type: 'simple-array', nullable: true })
   platformPermission: string[]
