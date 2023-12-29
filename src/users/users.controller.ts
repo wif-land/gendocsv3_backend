@@ -9,9 +9,9 @@ import { UsersService } from './users.service'
 export class UsersController {
   constructor(private userService: UsersService) {}
 
-  @Auth()
+  @Auth('admin')
   @Post()
   async create(@Body() createUserDto: CreateUserDTO) {
-    return this.userService.create(createUserDto)
+    return await this.userService.create(createUserDto)
   }
 }

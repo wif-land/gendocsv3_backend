@@ -1,4 +1,13 @@
-import { IsEmail, IsNotEmpty } from 'class-validator'
+import {
+  IsArray,
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  MinLength,
+} from 'class-validator'
+import { RolesType } from '../../auth/roles-decorator'
+
+const MIN_PASSWORD_LENGTH = 4
 
 export class CreateUserDTO {
   @IsNotEmpty()
@@ -42,6 +51,22 @@ export class CreateUserDTO {
   @IsNotEmpty({
     message: 'password is required',
   })
-  @IsNotEmpty()
+  @MinLength(MIN_PASSWORD_LENGTH, {
+    message: 'password must be at least 4 characters',
+  })
   password: string
+
+  @IsNotEmpty({
+    message: 'roles is required',
+  })
+  @IsArray({
+    message: 'roles must be an array',
+  })
+  roles: RolesType[]
+
+  @IsOptional()
+  @IsArray({
+    message: 'platformPermission must be an array',
+  })
+  platformPermission?: string[]
 }
