@@ -79,6 +79,26 @@ export class UsersService {
     }
   }
 
+  async findAll(): Promise<User[]> {
+    return await this.userRepository.find({
+      where: {
+        isActive: true,
+      },
+      select: {
+        id: true,
+        outlookEmail: true,
+        googleEmail: true,
+        firstName: true,
+        firstLastName: true,
+        secondName: true,
+        secondLastName: true,
+        roles: true,
+        platformPermission: true,
+        isActive: true,
+      },
+    })
+  }
+
   private async generateSaltPassword(password: string): Promise<string> {
     const ROUNDS = 10
     const SALT = await genSalt(ROUNDS)
