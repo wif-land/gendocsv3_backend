@@ -15,12 +15,12 @@ export class UsersController {
     return await this.userService.create(createUserDto)
   }
 
-  @Auth('admin')
+  @Auth('admin', 'api')
   @Put()
   async update(
     @Query('id') id: number,
     @Body() updateUserDto: Partial<CreateUserDTO>,
-  ) {
+  ): Promise<{ accessToken: string }> {
     return await this.userService.update(id, updateUserDto)
   }
 

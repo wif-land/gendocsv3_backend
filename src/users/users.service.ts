@@ -4,12 +4,14 @@ import { Repository } from 'typeorm'
 import { User } from './users.entity'
 import { CreateUserDTO } from './dto/create-user.dto'
 import { genSalt, hash } from 'bcrypt'
+import { JwtService } from '@nestjs/jwt'
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private jwtService: JwtService,
   ) {}
 
   async getByEmail(email: string): Promise<User> {
@@ -34,7 +36,10 @@ export class UsersService {
       .save()
   }
 
-  async update(id: number, user: Partial<CreateUserDTO>): Promise<boolean> {
+  async update(
+    id: number,
+    user: Partial<CreateUserDTO>,
+  ): Promise<{ accessToken: string }> {
     let userToUpdate = user
     let password = ''
     const hasNewPassword = user.password !== undefined
@@ -56,9 +61,16 @@ export class UsersService {
         userToUpdate,
       )
 
-      return true
+      const payload = {
+        username: `${user.firstName} ${user.firstLastName}`,
+        sub: id,
+        roles: user.roles,
+        platformPermission: user.platformPermission,
+      }
+
+      return { accessToken: this.jwtService.sign(payload) }
     } catch (error) {
-      return false
+      throw new Error(error)
     }
   }
 
