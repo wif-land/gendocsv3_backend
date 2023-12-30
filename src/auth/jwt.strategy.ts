@@ -7,12 +7,12 @@ import { AuthUser } from './dto/auth-user.dto'
 interface Payload {
   sub: string
   username: string
-  email: string
+  outlookEmail: string
   emailGmail: string
   iat: string
   roles: string[]
   platformPermission: string[]
-  status?: boolean
+  isActive: boolean
 }
 
 @Injectable()
@@ -27,13 +27,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: Payload): Promise<AuthUser> {
     return {
-      email: payload.email,
-      emailGmail: payload.emailGmail,
       id: payload.sub,
-      name: payload.username,
+      outlookEmail: payload.outlookEmail,
+      gmailEmail: payload.emailGmail,
+      username: payload.username,
       roles: payload.roles,
       platformPermission: payload.platformPermission,
-      status: payload.status,
+      isActive: payload.isActive,
     }
   }
 }

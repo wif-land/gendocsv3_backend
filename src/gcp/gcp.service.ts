@@ -6,8 +6,8 @@ import { drive, drive_v3 } from '@googleapis/drive'
 
 @Injectable()
 export class GcpService {
-  drive: drive_v3.Drive
-  docs: docs_v1.Docs
+  private drive: drive_v3.Drive
+  private docs: docs_v1.Docs
 
   constructor(private configService: ConfigService) {
     const auth: GoogleAuth = new GoogleAuth({

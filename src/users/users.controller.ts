@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Post, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Post, Put, Query } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { Auth } from '../auth/auth-decorator'
 import { CreateUserDTO } from './dto/create-user.dto'
@@ -15,10 +15,10 @@ export class UsersController {
     return await this.userService.create(createUserDto)
   }
 
-  @Auth('admin', 'api')
+  @Auth()
   @Put()
   async update(
-    @Param('id') id: number,
+    @Query('id') id: number,
     @Body() updateUserDto: Partial<CreateUserDTO>,
   ) {
     return await this.userService.update(id, updateUserDto)
@@ -26,7 +26,7 @@ export class UsersController {
 
   @Auth('admin')
   @Delete()
-  async delete(@Param('id') id: number) {
+  async delete(@Query('id') id: number) {
     return await this.userService.delete(id)
   }
 }
