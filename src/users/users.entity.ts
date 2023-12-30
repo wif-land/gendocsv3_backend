@@ -30,4 +30,7 @@ export class User extends BaseAppEntity {
 
   @Column({ type: 'simple-array', nullable: true })
   platformPermission: string[]
+
+  @Column({ default: true })
+  isActive: boolean
 }

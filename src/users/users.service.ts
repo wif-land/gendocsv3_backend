@@ -16,6 +16,7 @@ export class UsersService {
     const result = await this.userRepository.findOne({
       where: {
         outlookEmail: email,
+        isActive: true,
       },
     })
 
@@ -31,6 +32,51 @@ export class UsersService {
         password,
       })
       .save()
+  }
+
+  async update(id: number, user: Partial<CreateUserDTO>): Promise<boolean> {
+    let userToUpdate = user
+    let password = ''
+    const hasNewPassword = user.password !== undefined
+
+    if (hasNewPassword) {
+      password = await this.generateSaltPassword(user.password)
+
+      userToUpdate = {
+        ...user,
+        password,
+      }
+    }
+
+    try {
+      await this.userRepository.update(
+        {
+          id,
+        },
+        userToUpdate,
+      )
+
+      return true
+    } catch (error) {
+      return false
+    }
+  }
+
+  async delete(id: number): Promise<boolean> {
+    try {
+      await this.userRepository.update(
+        {
+          id,
+        },
+        {
+          isActive: false,
+        },
+      )
+
+      return true
+    } catch (error) {
+      return false
+    }
   }
 
   private async generateSaltPassword(password: string): Promise<string> {
