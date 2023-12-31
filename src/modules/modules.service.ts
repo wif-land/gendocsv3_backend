@@ -14,4 +14,8 @@ export class ModulesService {
   async create(module: CreateModuleDTO): Promise<Module> {
     return await this.moduleRepository.create(module).save()
   }
+
+  async findAll(): Promise<Module[]> {
+    return await this.moduleRepository.find()
+  }
 }

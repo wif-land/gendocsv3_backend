@@ -23,7 +23,12 @@ export class AuthService {
     }
 
     const payload = {
-      username: `${user.firstName} ${user.firstLastName}`,
+      firstName: user.firstName,
+      firstLastName: user.firstLastName,
+      secondName: user.secondName,
+      secondLastName: user.secondLastName,
+      outlookEmail: user.outlookEmail,
+      googleEmail: user.googleEmail,
       sub: user.id,
       roles: user.roles,
       platformPermission: user.platformPermission,

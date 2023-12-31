@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common'
+import { Body, Controller, Get, Post } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { ModulesService } from './modules.service'
 import { CreateModuleDTO } from './dto/create-module.dto'
@@ -13,5 +13,11 @@ export class ModulesController {
   @Post()
   async create(@Body() body: CreateModuleDTO) {
     return this.modulesService.create(body)
+  }
+
+  @Auth('admin')
+  @Get()
+  async findAll() {
+    return this.modulesService.findAll()
   }
 }
