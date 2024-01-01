@@ -1,9 +1,9 @@
 export class AuthUser {
   id: string
-  email: string
-  emailGmail: string
-  name: string
+  outlookEmail: string
+  gmailEmail: string
+  username: string
+  isActive: boolean
   roles: string[]
-  status?: boolean
   platformPermission: string[]
 }

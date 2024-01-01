@@ -37,7 +37,7 @@ export class CreateUserDTO {
   @IsEmail(
     {
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      host_blacklist: ['gmail.com'],
+      host_whitelist: ['gmail.com'],
     },
     {
       message: 'email must be a valid Gmail email',
