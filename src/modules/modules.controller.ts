@@ -3,6 +3,7 @@ import { ApiTags } from '@nestjs/swagger'
 import { ModulesService } from './modules.service'
 import { CreateModuleDTO } from './dto/create-module.dto'
 import { Auth } from '../auth/auth-decorator'
+import { BaseResponse } from '../shared/utils/base-response'
 
 @ApiTags('modules')
 @Controller('modules')
@@ -12,7 +13,23 @@ export class ModulesController {
   @Auth('admin')
   @Post()
   async create(@Body() body: CreateModuleDTO) {
-    return this.modulesService.create(body)
+    let response: BaseResponse
+    const { moduleCreated, error } = await this.modulesService.create(body)
+
+    if (error || !moduleCreated) {
+      response = {
+        message: 'Error creating module',
+        error,
+        statusCode: 500,
+      }
+      return response
+    }
+
+    response = {
+      message: 'Module created',
+      data: moduleCreated,
+      statusCode: 201,
+    }
   }
 
   @Auth('admin')
