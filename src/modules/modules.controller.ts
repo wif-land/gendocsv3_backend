@@ -30,9 +30,20 @@ export class ModulesController {
     })
   }
 
-  @Auth('ADMIN')
   @Get()
   async findAll() {
-    return this.modulesService.findAll()
+    const modules = await this.modulesService.findAll()
+
+    if (!modules) {
+      return new BaseResponseEntity({
+        message: 'Modules not found',
+        statusCode: 404,
+      })
+    }
+    return new BaseResponseEntity({
+      message: 'Modules found',
+      data: modules,
+      statusCode: 200,
+    })
   }
 }
