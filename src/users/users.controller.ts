@@ -30,7 +30,6 @@ export class UsersController {
     return await this.userService.delete(id)
   }
 
-  @Auth('ADMIN')
   @Get()
   async findAll() {
     return await this.userService.findAll()
