@@ -23,7 +23,9 @@ export class AuthService {
       throw new UnauthorizedException(`AuthService:login ${email} ********`)
     }
 
-    const accessModulesIds = user.accessModules.map((module: Module) => module.id)
+    const accessModulesIds = user.accessModules.map(
+      (module: Module) => module.id,
+    )
 
     const payload = {
       firstName: user.firstName,

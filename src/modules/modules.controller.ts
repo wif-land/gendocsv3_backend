@@ -45,6 +45,5 @@ export class ModulesController {
       data: modules,
       statusCode: 200,
     })
-    
   }
 }
