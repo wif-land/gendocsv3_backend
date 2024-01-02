@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common'
+import { Controller, Get, Post, Body, Patch, Delete, Param } from '@nestjs/common'
 import { SubmodulesModulesService } from './submodules-modules.service'
 import { CreateSubmodulesModuleDto } from './dto/create-submodules-module.dto'
 import { UpdateSubmodulesModuleDto } from './dto/update-submodules-module.dto'
 import { BaseResponseEntity } from './../shared/utils/base-response'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('submodules-modules')
 @Controller('submodules-modules')
 export class SubmodulesModulesController {
   constructor(
@@ -48,7 +50,7 @@ export class SubmodulesModulesController {
     })
   }
 
-  @Patch(':id')
+  @Patch()
   async update(@Body() updateSubmodulesModuleDto: UpdateSubmodulesModuleDto) {
     const { submodulesModules, error } =
       await this.submodulesModulesService.update(updateSubmodulesModuleDto)
@@ -69,10 +71,29 @@ export class SubmodulesModulesController {
   }
 
   @Delete()
-  async remove(@Body() moduleId: number, @Body() submoduleId: number) {
+  async remove(@Body() data: {moduleId: number, submoduleId: number}) {
     const removed = await this.submodulesModulesService.remove(
+      data.moduleId,
+      data.submoduleId,
+    )
+
+    if (!removed) {
+      return new BaseResponseEntity({
+        message: 'Error removing submodulesModules',
+        statusCode: 500,
+      })
+    }
+
+    return new BaseResponseEntity({
+      message: 'SubmodulesModules removed',
+      statusCode: 200,
+    })
+  }
+
+  @Delete('all-from-module/:moduleId')
+  async removeAllFromModule(@Param('moduleId') moduleId: number) {
+    const removed = await this.submodulesModulesService.removeAll(
       moduleId,
-      submoduleId,
     )
 
     if (!removed) {

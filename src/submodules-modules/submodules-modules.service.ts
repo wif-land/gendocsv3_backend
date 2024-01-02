@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { CreateSubmodulesModuleDto } from './dto/create-submodules-module.dto'
 import { UpdateSubmodulesModuleDto } from './dto/update-submodules-module.dto'
-import { Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import { SubmodulesModule } from './entities/submodules-module.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 
@@ -10,13 +10,15 @@ export class SubmodulesModulesService {
   constructor(
     @InjectRepository(SubmodulesModule)
     private submodulesModulesRepository: Repository<SubmodulesModule>,
+
+    private dataSource: DataSource,
   ) {}
 
   async create(createSubmodulesModuleDto: CreateSubmodulesModuleDto) {
     const { moduleId, submoduleIds } = createSubmodulesModuleDto
 
     let error = undefined
-    const submodulesModules: SubmodulesModule[] | undefined = undefined
+    const submodulesModules: SubmodulesModule[] = [] 
     try {
       for (const submoduleId of submoduleIds) {
         const submodulesModuleCreated = this.submodulesModulesRepository.create(
@@ -31,7 +33,7 @@ export class SubmodulesModulesService {
         submodulesModules.push(submodulesModule)
       }
     } catch (e) {
-      error = e
+      error = e.message
     }
     return {
       submodulesModules,
@@ -47,7 +49,7 @@ export class SubmodulesModulesService {
     const { moduleId, submoduleIds } = updateSubmodulesModuleDto
 
     let error = undefined
-    const submodulesModules: SubmodulesModule[] | undefined = undefined
+    const submodulesModules: SubmodulesModule[] = []
     try {
       await this.submodulesModulesRepository.delete({
         moduleId,
@@ -82,8 +84,17 @@ export class SubmodulesModulesService {
   }
 
   async removeAll(moduleId: number) {
-    return await this.submodulesModulesRepository.delete({
-      moduleId,
-    })
+    console.log(moduleId)
+    try {
+      const qb = await this.dataSource.createQueryBuilder();
+  
+      return await qb.delete().from(SubmodulesModule)
+        .where('module_id = :moduleId', { moduleId })
+        .execute();
+    }
+    catch (e) {
+      console.log(e)
+      return false
+    }
   }
 }

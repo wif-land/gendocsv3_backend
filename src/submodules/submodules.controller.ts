@@ -3,7 +3,9 @@ import { SubmodulesService } from './submodules.service'
 import { CreateSubmoduleDto } from './dto/create-submodule.dto'
 import { HttpCodes } from '../shared/enums/http-codes'
 import { BaseResponseEntity } from '../shared/utils/base-response'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('submodules')
 @Controller('submodules')
 export class SubmodulesController {
   constructor(private readonly submodulesService: SubmodulesService) {}

@@ -15,9 +15,19 @@ export class ModulesService {
     let moduleCreated: Module
     let error = undefined
     try {
+      const findModule = await this.moduleRepository.findOne({
+        where: {
+          code: module.code,
+        },
+      })
+
+      if (findModule) {
+        throw new Error('Module already exists')
+      }
+
       moduleCreated = await this.moduleRepository.create(module).save()
     } catch (e) {
-      error = e
+      error = e.message
     }
 
     return { moduleCreated, error }
