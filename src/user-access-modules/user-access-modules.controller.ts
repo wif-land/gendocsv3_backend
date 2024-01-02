@@ -52,8 +52,11 @@ export class UserAccessModulesController {
   }
 
   @Delete()
-  async remove(@Body() data: {userId: number, moduleId: number}) {
-    const removed = await this.userAccessModulesService.remove(data.userId, data.moduleId)
+  async remove(@Body() data: { userId: number; moduleId: number }) {
+    const removed = await this.userAccessModulesService.remove(
+      data.userId,
+      data.moduleId,
+    )
 
     if (!removed) {
       return new BaseResponseEntity({
@@ -69,8 +72,10 @@ export class UserAccessModulesController {
   }
 
   @Delete('all-from-user')
-  async removeAllFromUser(@Body() data: {userId: number}) {
-    const removed = await this.userAccessModulesService.removeByUserId(data.userId)
+  async removeAllFromUser(@Body() data: { userId: number }) {
+    const removed = await this.userAccessModulesService.removeByUserId(
+      data.userId,
+    )
 
     if (!removed) {
       return new BaseResponseEntity({

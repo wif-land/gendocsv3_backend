@@ -17,7 +17,6 @@ import { GcpModule } from './gcp/gcp.module'
 import { ModulesModule } from './modules/modules.module'
 import { CareersModule } from './careers/careers.module'
 import { SubmodulesModule } from './submodules/submodules.module'
-import { TeachersModule } from './teachers/teachers.module'
 import { SubmodulesModulesModule } from './submodules-modules/submodules-modules.module'
 import { UserAccessModulesModule } from './user-access-modules/user-access-modules.module'
 
@@ -50,7 +49,6 @@ import { UserAccessModulesModule } from './user-access-modules/user-access-modul
     ModulesModule,
     CareersModule,
     SubmodulesModule,
-    TeachersModule,
     SubmodulesModulesModule,
     UserAccessModulesModule,
   ],

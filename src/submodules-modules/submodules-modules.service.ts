@@ -18,7 +18,7 @@ export class SubmodulesModulesService {
     const { moduleId, submoduleIds } = createSubmodulesModuleDto
 
     let error = undefined
-    const submodulesModules: SubmodulesModule[] = [] 
+    const submodulesModules: SubmodulesModule[] = []
     try {
       for (const submoduleId of submoduleIds) {
         const submodulesModuleCreated = this.submodulesModulesRepository.create(
@@ -86,13 +86,14 @@ export class SubmodulesModulesService {
   async removeAll(moduleId: number) {
     console.log(moduleId)
     try {
-      const qb = await this.dataSource.createQueryBuilder();
-  
-      return await qb.delete().from(SubmodulesModule)
+      const qb = await this.dataSource.createQueryBuilder()
+
+      return await qb
+        .delete()
+        .from(SubmodulesModule)
         .where('module_id = :moduleId', { moduleId })
-        .execute();
-    }
-    catch (e) {
+        .execute()
+    } catch (e) {
       console.log(e)
       return false
     }
