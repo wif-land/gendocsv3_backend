@@ -9,13 +9,13 @@ import { UsersService } from './users.service'
 export class UsersController {
   constructor(private userService: UsersService) {}
 
-  @Auth('admin')
+  @Auth('ADMIN')
   @Post()
   async create(@Body() createUserDto: CreateUserDTO) {
     return await this.userService.create(createUserDto)
   }
 
-  @Auth('admin', 'api')
+  @Auth('ADMIN', 'API')
   @Put()
   async update(
     @Query('id') id: number,
@@ -24,13 +24,13 @@ export class UsersController {
     return await this.userService.update(id, updateUserDto)
   }
 
-  @Auth('admin')
+  @Auth('ADMIN')
   @Delete()
   async delete(@Query('id') id: number) {
     return await this.userService.delete(id)
   }
 
-  @Auth('admin')
+  @Auth('ADMIN')
   @Get()
   async findAll() {
     return await this.userService.findAll()

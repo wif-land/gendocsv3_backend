@@ -16,6 +16,9 @@ import { FilesModule } from './files/files.module'
 import { GcpModule } from './gcp/gcp.module'
 import { ModulesModule } from './modules/modules.module'
 import { CareersModule } from './careers/careers.module'
+import { SubmodulesModule } from './submodules/submodules.module'
+import { SubmodulesModulesModule } from './submodules-modules/submodules-modules.module'
+import { UserAccessModulesModule } from './user-access-modules/user-access-modules.module'
 
 @Module({
   imports: [
@@ -45,6 +48,9 @@ import { CareersModule } from './careers/careers.module'
     GcpModule,
     ModulesModule,
     CareersModule,
+    SubmodulesModule,
+    SubmodulesModulesModule,
+    UserAccessModulesModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],

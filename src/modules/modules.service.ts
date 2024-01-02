@@ -11,8 +11,26 @@ export class ModulesService {
     private moduleRepository: Repository<Module>,
   ) {}
 
-  async create(module: CreateModuleDTO): Promise<Module> {
-    return await this.moduleRepository.create(module).save()
+  async create(module: CreateModuleDTO) {
+    let moduleCreated: Module
+    let error = undefined
+    try {
+      const findModule = await this.moduleRepository.findOne({
+        where: {
+          code: module.code,
+        },
+      })
+
+      if (findModule) {
+        throw new Error('Module already exists')
+      }
+
+      moduleCreated = await this.moduleRepository.create(module).save()
+    } catch (e) {
+      error = e.message
+    }
+
+    return { moduleCreated, error }
   }
 
   async findAll(): Promise<Module[]> {
