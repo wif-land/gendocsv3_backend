@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common'
 import { SubmodulesService } from './submodules.service'
 import { CreateSubmoduleDto } from './dto/create-submodule.dto'
 import { HttpCodes } from '../shared/enums/http-codes'
@@ -42,7 +50,7 @@ export class SubmodulesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.submodulesService.remove(+id)
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.submodulesService.remove(id)
   }
 }

@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ConfigService } from '@nestjs/config'
-import { ValidationPipe } from '@nestjs/common'
+import { Logger, ValidationPipe } from '@nestjs/common'
 
 const buildOptions = () =>
   new DocumentBuilder()
@@ -14,19 +14,26 @@ const buildOptions = () =>
 
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule)
-  const options = buildOptions()
-  const document = SwaggerModule.createDocument(app, options)
+  const logger = new Logger('Bootstrap')
 
-  SwaggerModule.setup('api', app, document)
+  app.setGlobalPrefix('api')
   app.useGlobalPipes(
     new ValidationPipe({
-      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
     }),
   )
   app.enableShutdownHooks()
   app.enableCors()
 
+  const options = buildOptions()
+  const document = SwaggerModule.createDocument(app, options)
+  SwaggerModule.setup('api', app, document)
+
   await app.listen(app.get(ConfigService).get('port'))
+  logger.log(
+    `Application listening on port ${app.get(ConfigService).get('port')}`,
+  )
 }
 
 bootstrap()

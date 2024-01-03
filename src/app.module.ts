@@ -18,7 +18,7 @@ import { ModulesModule } from './modules/modules.module'
 import { CareersModule } from './careers/careers.module'
 import { SubmodulesModule } from './submodules/submodules.module'
 import { SubmodulesModulesModule } from './submodules-modules/submodules-modules.module'
-import { UserAccessModulesModule } from './user-access-modules/user-access-modules.module'
+import { UserAccessModulesModule } from './users-access-modules/users-access-modules.module'
 
 @Module({
   imports: [
@@ -33,11 +33,11 @@ import { UserAccessModulesModule } from './user-access-modules/user-access-modul
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
-      entities: [`${__dirname}/**/*.entity{.ts,.js}`],
+      // entities: [`${__dirname}/**/*.entity{.ts,.js}`],
       autoLoadEntities: true,
       keepConnectionAlive: true,
-      migrationsRun: true,
-      migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
+      // migrationsRun: true,
+      // migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
     }),
     LogModule,
     TerminusModule,

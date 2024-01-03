@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { User } from './users.entity'
+import { User } from './entities/users.entity'
 import { CreateUserDTO } from './dto/create-user.dto'
 import { genSalt, hash } from 'bcrypt'
 import { JwtService } from '@nestjs/jwt'

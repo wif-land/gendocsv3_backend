@@ -1,5 +1,5 @@
 import { Controller, Delete, Post, Body, Patch } from '@nestjs/common'
-import { UserAccessModulesService } from './user-access-modules.service'
+import { UserAccessModulesService } from './users-access-modules.service'
 import { CreateUserAccessModuleDto } from './dto/create-user-access-module.dto'
 import { BaseResponseEntity } from '../shared/utils/base-response'
 import { ApiTags } from '@nestjs/swagger'
