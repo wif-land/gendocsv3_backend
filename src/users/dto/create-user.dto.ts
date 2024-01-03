@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsOptional,
@@ -69,4 +70,10 @@ export class CreateUserDTO {
     message: 'platformPermission must be an array',
   })
   platformPermission?: string[]
+
+  @IsOptional()
+  @IsBoolean({
+    message: 'isActive param must be a boolean',
+  })
+  isActive?: boolean
 }

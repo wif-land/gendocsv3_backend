@@ -70,7 +70,7 @@ export class UsersService {
         outlookEmail: user.outlookEmail,
         googleEmail: user.googleEmail,
         roles: user.roles,
-        platformPermission: user.platformPermission,
+        isActive: user.isActive,
       }
 
       return { accessToken: this.jwtService.sign(payload) }
@@ -98,9 +98,6 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     return await this.userRepository.find({
-      where: {
-        isActive: true,
-      },
       select: {
         id: true,
         outlookEmail: true,

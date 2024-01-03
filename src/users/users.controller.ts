@@ -15,7 +15,7 @@ export class UsersController {
     return await this.userService.create(createUserDto)
   }
 
-  @Auth('ADMIN', 'API')
+  @Auth('ADMIN')
   @Put()
   async update(
     @Query('id') id: number,

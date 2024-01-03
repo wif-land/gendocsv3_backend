@@ -1,9 +1,12 @@
 export class AuthUser {
   id: string
   outlookEmail: string
-  gmailEmail: string
-  username: string
+  googleEmail: string
+  firstName: string
+  firstLastName: string
+  secondName: string
+  secondLastName: string
   isActive: boolean
   roles: string[]
-  platformPermission: string[]
+  accessModulesIds: number[]
 }

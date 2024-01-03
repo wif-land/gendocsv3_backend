@@ -6,13 +6,16 @@ import { AuthUser } from './dto/auth-user.dto'
 
 interface Payload {
   sub: string
-  username: string
+  firstName: string
+  secondName: string
+  firstLastName: string
+  secondLastName: string
   outlookEmail: string
-  emailGmail: string
+  googleEmail: string
   iat: string
   roles: string[]
-  platformPermission: string[]
   isActive: boolean
+  accessModulesIds: number[]
 }
 
 @Injectable()
@@ -29,11 +32,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: payload.sub,
       outlookEmail: payload.outlookEmail,
-      gmailEmail: payload.emailGmail,
-      username: payload.username,
+      googleEmail: payload.googleEmail,
+      firstName: payload.firstName,
+      firstLastName: payload.firstLastName,
+      secondName: payload.secondName,
+      secondLastName: payload.secondLastName,
       roles: payload.roles,
-      platformPermission: payload.platformPermission,
       isActive: payload.isActive,
+      accessModulesIds: payload.accessModulesIds,
     }
   }
 }
