@@ -36,8 +36,8 @@ export class AuthService {
       googleEmail: user.googleEmail,
       sub: user.id,
       roles: user.roles,
-      platformPermission: user.platformPermission,
       accessModulesIds,
+      isActive: user.isActive,
     }
 
     return { accessToken: this.jwtService.sign(payload) }
