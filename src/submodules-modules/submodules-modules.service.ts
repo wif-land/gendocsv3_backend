@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { CreateSubmodulesModuleDto } from './dto/create-submodules-module.dto'
-import { UpdateSubmodulesModuleDto } from './dto/update-submodules-module.dto'
+import { CreateSubmodulesModuleDto } from './dto/create-submodule-module.dto'
+import { UpdateSubmodulesModuleDto } from './dto/update-submodule-module.dto'
 import { DataSource, Repository } from 'typeorm'
-import { SubmodulesModule } from './entities/submodules-module.entity'
+import { SubmodulesModule } from './entities/submodule-module.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 
 @Injectable()

@@ -8,9 +8,9 @@ import {
   Param,
 } from '@nestjs/common'
 import { SubmodulesModulesService } from './submodules-modules.service'
-import { CreateSubmodulesModuleDto } from './dto/create-submodules-module.dto'
-import { UpdateSubmodulesModuleDto } from './dto/update-submodules-module.dto'
-import { BaseResponseEntity } from './../shared/utils/base-response'
+import { CreateSubmodulesModuleDto } from './dto/create-submodule-module.dto'
+import { UpdateSubmodulesModuleDto } from './dto/update-submodule-module.dto'
+import { BaseResponseEntity } from '../shared/utils/base-response'
 import { ApiTags } from '@nestjs/swagger'
 
 @ApiTags('submodules-modules')

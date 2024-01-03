@@ -1,38 +1,80 @@
 import { Column, Entity, JoinTable, ManyToMany } from 'typeorm'
-import { BaseAppEntity } from '../../shared/utils/base.entity'
+import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { RolesType } from '../../auth/decorators/roles-decorator'
 import { Module } from '../../modules/entities/modules.entity'
 
-@Entity({ name: 'users' })
+@Entity('users')
 export class User extends BaseAppEntity {
-  @Column()
+  @Column({
+    name: 'first_name',
+    type: 'varchar',
+    length: 50,
+  })
   firstName: string
 
-  @Column()
-  secondName: string
+  @Column({
+    name: 'second_name',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  secondName?: string
 
-  @Column()
+  @Column({
+    name: 'first_last_name',
+    type: 'varchar',
+    length: 50,
+  })
   firstLastName: string
 
-  @Column()
-  secondLastName: string
+  @Column({
+    name: 'second_last_name',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  secondLastName?: string
 
-  @Column({ unique: true })
+  @Column({
+    name: 'outlook_email',
+    unique: true,
+    type: 'varchar',
+    length: 255,
+  })
   outlookEmail: string
 
-  @Column({ unique: true })
+  @Column({
+    name: 'google_email',
+    unique: true,
+    type: 'varchar',
+    length: 255,
+  })
   googleEmail: string
 
-  @Column()
+  @Column({
+    name: 'password',
+    type: 'varchar',
+    length: 255,
+  })
   password: string
 
-  @Column({ type: 'simple-array' })
+  @Column({
+    name: 'roles',
+    type: 'simple-array',
+  })
   roles: RolesType[]
 
-  @Column({ type: 'simple-array', nullable: true })
-  platformPermission: string[]
+  @Column({
+    name: 'platform_permission',
+    type: 'simple-array',
+    nullable: true,
+  })
+  platformPermission?: string[]
 
-  @Column({ default: true })
+  @Column({
+    name: 'is_active',
+    default: true,
+  })
   isActive: boolean
 
   @ManyToMany(() => Module, {
@@ -41,7 +83,7 @@ export class User extends BaseAppEntity {
     onUpdate: 'NO ACTION',
   })
   @JoinTable({
-    name: 'user_access_modules',
+    name: 'users_access_modules',
     joinColumn: { name: 'user_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'module_id', referencedColumnName: 'id' },
   })

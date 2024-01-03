@@ -18,7 +18,7 @@ import { ModulesModule } from './modules/modules.module'
 import { CareersModule } from './careers/careers.module'
 import { SubmodulesModule } from './submodules/submodules.module'
 import { SubmodulesModulesModule } from './submodules-modules/submodules-modules.module'
-import { UserAccessModulesModule } from './user-access-modules/user-access-modules.module'
+import { UserAccessModulesModule } from './users-access-modules/users-access-modules.module'
 
 @Module({
   imports: [
