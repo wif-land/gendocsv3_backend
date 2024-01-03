@@ -84,7 +84,7 @@ export class SubmodulesModulesService {
   }
 
   async removeAll(moduleId: number) {
-    console.log(moduleId)
+    // console.log(moduleId)
     try {
       const qb = await this.dataSource.createQueryBuilder()
 
@@ -94,7 +94,7 @@ export class SubmodulesModulesService {
         .where('module_id = :moduleId', { moduleId })
         .execute()
     } catch (e) {
-      console.log(e)
+      // console.log(e)
       return false
     }
   }

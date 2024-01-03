@@ -1,5 +1,5 @@
-import { Submodule } from '../submodules/entities/submodule.entity'
-import { BaseAppEntity } from '../shared/utils/base.entity'
+import { Submodule } from '../../submodules/entities/submodule.entity'
+import { BaseAppEntity } from '../../shared/utils/base.entity'
 import { Column, Entity, JoinTable, ManyToMany } from 'typeorm'
 
 @Entity({ name: 'modules' })

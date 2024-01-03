@@ -1,5 +1,5 @@
-import { Module } from '../../modules/modules.entity'
-import { User } from '../../users/users.entity'
+import { Module } from '../../modules/entities/modules.entity'
+import { User } from '../../users/entities/users.entity'
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm'
 
 @Entity({ name: 'user_access_modules' })

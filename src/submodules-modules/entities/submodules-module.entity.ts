@@ -1,4 +1,4 @@
-import { Module } from '../../modules/modules.entity'
+import { Module } from '../../modules/entities/modules.entity'
 import { Submodule } from '../../submodules/entities/submodule.entity'
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm'
 

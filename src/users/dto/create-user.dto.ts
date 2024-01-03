@@ -5,7 +5,7 @@ import {
   IsOptional,
   MinLength,
 } from 'class-validator'
-import { RolesType } from '../../auth/roles-decorator'
+import { RolesType } from '../../auth/decorators/roles-decorator'
 
 const MIN_PASSWORD_LENGTH = 4
 

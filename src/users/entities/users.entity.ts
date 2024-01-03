@@ -1,7 +1,7 @@
 import { Column, Entity, JoinTable, ManyToMany } from 'typeorm'
-import { BaseAppEntity } from '../shared/utils/base.entity'
-import { RolesType } from '../auth/roles-decorator'
-import { Module } from '../modules/modules.entity'
+import { BaseAppEntity } from '../../shared/utils/base.entity'
+import { RolesType } from '../../auth/decorators/roles-decorator'
+import { Module } from '../../modules/entities/modules.entity'
 
 @Entity({ name: 'users' })
 export class User extends BaseAppEntity {
