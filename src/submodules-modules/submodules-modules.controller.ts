@@ -41,8 +41,8 @@ export class SubmodulesModulesController {
   }
 
   @Get()
-  findAll() {
-    const submodulesModules = this.submodulesModulesService.findAll()
+  async findAll() {
+    const submodulesModules = await this.submodulesModulesService.findAll()
 
     if (!submodulesModules) {
       return new BaseResponseEntity({
