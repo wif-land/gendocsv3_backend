@@ -9,3 +9,4 @@ test/
 README.md
 Makefile
 .husky
+postgres-data/
