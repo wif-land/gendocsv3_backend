@@ -37,7 +37,7 @@ export class UsersService {
   }
 
   async update(
-    id: number,
+    id: string,
     user: Partial<CreateUserDTO>,
   ): Promise<{ accessToken: string }> {
     let userToUpdate = user
@@ -79,7 +79,7 @@ export class UsersService {
     }
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     try {
       await this.userRepository.update(
         {

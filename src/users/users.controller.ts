@@ -18,7 +18,7 @@ export class UsersController {
   @Auth('ADMIN')
   @Put()
   async update(
-    @Query('id') id: number,
+    @Query('id') id: string,
     @Body() updateUserDto: Partial<CreateUserDTO>,
   ): Promise<{ accessToken: string }> {
     return await this.userService.update(id, updateUserDto)
@@ -26,7 +26,7 @@ export class UsersController {
 
   @Auth('ADMIN')
   @Delete()
-  async delete(@Query('id') id: number) {
+  async delete(@Query('id') id: string) {
     return await this.userService.delete(id)
   }
 

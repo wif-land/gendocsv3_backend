@@ -50,6 +50,14 @@ export class CreateUserDTO {
   googleEmail: string
 
   @IsNotEmpty({
+    message: 'phoneNumber is required',
+  })
+  phoneNumber: string
+
+  @IsOptional()
+  regularPhoneNumber?: string
+
+  @IsNotEmpty({
     message: 'password is required',
   })
   @MinLength(MIN_PASSWORD_LENGTH, {

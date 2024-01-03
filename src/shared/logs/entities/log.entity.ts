@@ -1,8 +1,8 @@
 import { Column, Entity } from 'typeorm'
-import { BaseAppEntity } from '../../entities/base.entity'
+import { BaseApp } from '../../entities/base-app.entity'
 
 @Entity('logs')
-export class Log extends BaseAppEntity {
+export class Log extends BaseApp {
   @Column({
     name: 'body',
     type: 'text',

@@ -31,7 +31,7 @@ export class SubmodulesService {
     return await this.SubmodulesRepository.find()
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     return await this.SubmodulesRepository.findOne({
       where: {
         id,
@@ -39,7 +39,7 @@ export class SubmodulesService {
     })
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     return await this.SubmodulesRepository.delete({
       id,
     })

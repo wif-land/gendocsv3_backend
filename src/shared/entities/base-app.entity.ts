@@ -4,9 +4,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
-export class BaseAppEntity extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number
+export class BaseApp extends BaseEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
   @CreateDateColumn({
     name: 'created_at',

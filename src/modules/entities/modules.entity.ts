@@ -1,13 +1,14 @@
 import { Submodule } from '../../submodules/entities/submodule.entity'
-import { BaseAppEntity } from '../../shared/entities/base.entity'
+import { BaseApp } from '../../shared/entities/base-app.entity'
 import { Column, Entity, JoinTable, ManyToMany } from 'typeorm'
 
 @Entity('modules')
-export class Module extends BaseAppEntity {
+export class Module extends BaseApp {
   @Column({
     name: 'code',
     type: 'varchar',
     length: 10,
+    unique: true,
   })
   code: string
 
