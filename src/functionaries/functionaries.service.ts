@@ -1,26 +1,64 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { CreateFunctionaryDto } from './dto/create-functionary.dto'
 import { UpdateFunctionaryDto } from './dto/update-functionary.dto'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { Functionary } from './entities/functionary.entity'
 
 @Injectable()
 export class FunctionariesService {
-  create(_createFunctionaryDto: CreateFunctionaryDto) {
-    return 'This action adds a new functionary'
+  constructor(
+    @InjectRepository(Functionary)
+    private readonly functionaryRepository: Repository<Functionary>,
+  ) {}
+
+  async create(createFunctionaryDto: CreateFunctionaryDto) {
+    try {
+      const functionary =
+        this.functionaryRepository.create(createFunctionaryDto)
+      return await this.functionaryRepository.save(functionary)
+    } catch (error) {
+      throw new BadRequestException(error.message)
+    }
   }
 
-  findAll() {
-    return `This action returns all functionaries`
+  async findAll(): Promise<Functionary[]> {
+    return await this.functionaryRepository.find()
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} functionary`
+  async findOne(id: string): Promise<Functionary> {
+    const functionary = await this.functionaryRepository.findOneBy({ id })
+
+    if (!functionary) {
+      throw new BadRequestException('Functionary not found')
+    }
+
+    return functionary
   }
 
-  update(id: number, _updateFunctionaryDto: UpdateFunctionaryDto) {
-    return `This action updates a #${id} functionary`
+  async update(
+    id: string,
+    updateFunctionaryDto: UpdateFunctionaryDto,
+  ): Promise<Functionary> {
+    const functionary = await this.functionaryRepository.preload({
+      id,
+      ...updateFunctionaryDto,
+    })
+
+    if (!functionary) {
+      throw new BadRequestException('Functionary not found')
+    }
+
+    return await this.functionaryRepository.save(functionary)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} functionary`
+  async remove(id: string): Promise<boolean> {
+    const functionary = await this.findOne(id)
+
+    functionary.isActive = false
+
+    await this.functionaryRepository.save(functionary)
+
+    return true
   }
 }
