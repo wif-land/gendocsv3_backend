@@ -19,6 +19,7 @@ import { CareersModule } from './careers/careers.module'
 import { SubmodulesModule } from './submodules/submodules.module'
 import { SubmodulesModulesModule } from './submodules-modules/submodules-modules.module'
 import { UserAccessModulesModule } from './users-access-modules/users-access-modules.module'
+import { FunctionariesModule } from './functionaries/functionaries.module'
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { UserAccessModulesModule } from './users-access-modules/users-access-mod
     SubmodulesModule,
     SubmodulesModulesModule,
     UserAccessModulesModule,
+    FunctionariesModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],

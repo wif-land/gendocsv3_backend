@@ -11,6 +11,11 @@ import { RolesType } from '../../auth/decorators/roles-decorator'
 const MIN_PASSWORD_LENGTH = 4
 
 export class CreateUserDTO {
+  @IsNotEmpty({
+    message: 'dni is required',
+  })
+  dni: string
+
   @IsNotEmpty()
   firstName: string
 
@@ -48,6 +53,14 @@ export class CreateUserDTO {
     message: 'googleEmail is required',
   })
   googleEmail: string
+
+  @IsNotEmpty({
+    message: 'phoneNumber is required',
+  })
+  phoneNumber: string
+
+  @IsOptional()
+  regularPhoneNumber?: string
 
   @IsNotEmpty({
     message: 'password is required',

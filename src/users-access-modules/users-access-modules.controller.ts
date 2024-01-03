@@ -4,8 +4,8 @@ import { CreateUserAccessModuleDto } from './dto/create-user-access-module.dto'
 import { BaseResponseEntity } from '../shared/utils/base-response'
 import { ApiTags } from '@nestjs/swagger'
 
-@ApiTags('user-access-modules')
-@Controller('user-access-modules')
+@ApiTags('users-access-modules')
+@Controller('users-access-modules')
 export class UserAccessModulesController {
   constructor(
     private readonly userAccessModulesService: UserAccessModulesService,

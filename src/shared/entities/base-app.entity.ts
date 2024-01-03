@@ -4,7 +4,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
-export class BaseAppEntity extends BaseEntity {
+export class BaseApp extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
 

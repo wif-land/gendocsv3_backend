@@ -124,8 +124,8 @@ INSERT INTO public.submodules_modules ("submodule_id", "module_id") VALUES (9, 3
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: gendocsuser
 --
 
-INSERT INTO public.users ("created_at", "updated_at", "first_name", "second_name", "first_last_name", "second_last_name", "outlook_email", "google_email", "password", "roles", "platform_permission", "is_active")
-VALUES ('2023-06-05', '2023-06-05', 'Daniela', 'Daniela', 'Montenegro', 'Suarez', 'ddlm.montenegro@uta.edu.ec', 'gendocsv2@gmail.com', '$2a$12$NMywRUK4Ontc9.4Y1YYyyeTU2aUfHdv42wH6c3dls8cveUdpGo1n2', 'ADMIN', NULL, true);
+INSERT INTO public.users ("created_at", "updated_at", "dni", "first_name", "second_name", "first_last_name", "second_last_name", "outlook_email", "google_email", "phone_number", "password", "roles", "platform_permission", "is_active")
+VALUES ('2023-06-05', '2023-06-05', '1234567890', 'Daniela', 'Daniela', 'Montenegro', 'Suarez', 'ddlm.montenegro@uta.edu.ec', 'gendocsv2@gmail.com', '0987216712', '$2a$12$NMywRUK4Ontc9.4Y1YYyyeTU2aUfHdv42wH6c3dls8cveUdpGo1n2', 'ADMIN', NULL, true);
 
 
 --
