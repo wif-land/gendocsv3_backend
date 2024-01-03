@@ -5,8 +5,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm'
 export class BaseApp extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
   @CreateDateColumn({
     name: 'created_at',

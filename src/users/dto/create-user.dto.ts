@@ -11,11 +11,6 @@ import { RolesType } from '../../auth/decorators/roles-decorator'
 const MIN_PASSWORD_LENGTH = 4
 
 export class CreateUserDTO {
-  @IsNotEmpty({
-    message: 'dni is required',
-  })
-  dni: string
-
   @IsNotEmpty()
   firstName: string
 

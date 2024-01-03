@@ -3,14 +3,6 @@ import { BaseApp } from './base-app.entity'
 
 export class BasePerson extends BaseApp {
   @Column({
-    name: 'dni',
-    type: 'varchar',
-    length: 10,
-    unique: true,
-  })
-  dni: string
-
-  @Column({
     name: 'first_name',
     type: 'varchar',
     length: 50,
