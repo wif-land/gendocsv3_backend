@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { CreateFunctionaryDto } from './dto/create-functionary.dto'
-import { UpdateFunctionaryDto } from './dto/update-functionary.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Functionary } from './entities/functionary.entity'
@@ -40,7 +39,7 @@ export class FunctionariesService {
 
   async update(
     id: string,
-    updateFunctionaryDto: UpdateFunctionaryDto,
+    updateFunctionaryDto: Partial<CreateFunctionaryDto>,
   ): Promise<Functionary> {
     const functionary = await this.functionaryRepository.preload({
       id,
