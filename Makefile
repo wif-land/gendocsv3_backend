@@ -1,10 +1,18 @@
 # Makefile para construir todos los contenedores definidos en docker-compose.yml
-
 .PHONY: up down clean
+
+IMAGE_NAME=leninner/gendocsv3
+IMAGE_TAG=latest
+VM_IP=$(shell cat .env | grep VIRTUAL_MACHINE_IP | cut -d '=' -f2)
 
 # Levanta todos los contenedores definidos en docker-compose.yml
 up:
 	docker compose --env-file ./.env up -d
+
+deploy-production:
+	ssh root@$(VM_IP) "docker pull $(IMAGE_NAME):$(IMAGE_TAG)"
+	scp ./docker-compose.yml root@$(VM_IP):/root/docker-compose.yml
+	ssh root@$(VM_IP) "docker compose up -d"
 
 # Detiene y elimina todos los contenedores definidos en docker-compose.yml
 down:
