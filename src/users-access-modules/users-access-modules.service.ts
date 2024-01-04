@@ -100,6 +100,17 @@ export class UserAccessModulesService {
     return await this.userAccessModulesRepository.find()
   }
 
+  async findModulesByUserId(userId: string) {
+    const qb = this.dataSource.createQueryBuilder()
+
+    return await qb
+      .select('module')
+      .from(Module, 'module')
+      .innerJoin('users_access_modules', 'uam', 'uam.module_id = module.id')
+      .where('uam.user_id = :userId', { userId })
+      .getMany()
+  }
+
   async remove(userId: string, moduleId: number) {
     return await this.userAccessModulesRepository.delete({
       userId,
