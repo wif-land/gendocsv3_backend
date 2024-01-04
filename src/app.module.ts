@@ -21,6 +21,8 @@ import { SubmodulesModulesModule } from './submodules-modules/submodules-modules
 import { UserAccessModulesModule } from './users-access-modules/users-access-modules.module'
 import { FunctionariesModule } from './functionaries/functionaries.module'
 import { StudentsModule } from './students/students.module'
+import { ProcessesModule } from './processes/processes.module';
+import { TemplatesModule } from './templates/templates.module';
 
 @Module({
   imports: [
@@ -55,6 +57,8 @@ import { StudentsModule } from './students/students.module'
     UserAccessModulesModule,
     FunctionariesModule,
     StudentsModule,
+    ProcessesModule,
+    TemplatesModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],

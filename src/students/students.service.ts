@@ -30,7 +30,13 @@ export class StudentsService {
   }
 
   async findOne(id: string): Promise<Student> {
-    return await this.studentRepository.findOneBy({ id })
+    const student = await this.studentRepository.findOneBy({ id })
+
+    if (!student) {
+      throw new BadRequestException('Student not found')
+    }
+
+    return student
   }
 
   async update(
