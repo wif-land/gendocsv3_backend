@@ -77,17 +77,33 @@ export class UsersService {
     let userToUpdate = user
     let password = ''
     let error = undefined
+    let modulesUpdate = undefined
     const hasNewPassword = user.password !== undefined
+    const hasAccessModules = user.accessModules !== undefined
 
     try {
-      const { modules } = await this.UserAccessModulesService.update({
-        userId: id,
-        modulesIds: user.accessModules,
-      })
+      if (hasAccessModules) {
+        const { modules, error } = await this.UserAccessModulesService.update({
+          userId: id,
+          modulesIds: user.accessModules,
+        })
 
-      if (modules.length === 0) {
-        throw new Error('No se pudo actualizar los modulos del usuario')
+        modulesUpdate = modules
+
+        if (error) {
+          throw new Error(error)
+        }
+
+        if (modules.length === 0) {
+          throw new Error('No se pudo actualizar los modulos del usuario')
+        }
       }
+
+      const userGetted = await this.userRepository.findOne({
+        where: {
+          id,
+        },
+      })
 
       if (hasNewPassword) {
         password = await this.generateSaltPassword(user.password)
@@ -104,7 +120,9 @@ export class UsersService {
         },
         {
           ...userToUpdate,
-          accessModules: undefined,
+          accessModules: modulesUpdate
+            ? modulesUpdate
+            : userGetted.accessModules,
         },
       )
 
