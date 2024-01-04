@@ -12,7 +12,9 @@ export class FunctionariesService {
     private readonly functionaryRepository: Repository<Functionary>,
   ) {}
 
-  async create(createFunctionaryDto: CreateFunctionaryDto) {
+  async create(
+    createFunctionaryDto: CreateFunctionaryDto,
+  ): Promise<Functionary> {
     try {
       const functionary =
         this.functionaryRepository.create(createFunctionaryDto)

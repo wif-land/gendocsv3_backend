@@ -1,8 +1,26 @@
-import { Column } from 'typeorm'
-import { BaseApp } from './base-app.entity'
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm'
 import { ApiProperty } from '@nestjs/swagger'
 
-export class BasePerson extends BaseApp {
+export class BasePerson extends BaseEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string
+
+  @CreateDateColumn({
+    name: 'created_at',
+  })
+  createdAt: Date
+
+  @UpdateDateColumn({
+    name: 'updated_at',
+  })
+  updatedAt: Date
+
   @ApiProperty({
     example: 'Juan',
     description: 'Primer nombre',
