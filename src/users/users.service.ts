@@ -14,7 +14,7 @@ export class UsersService {
     private userRepository: Repository<User>,
     private jwtService: JwtService,
 
-    private readonly UserAccessModulesService: UserAccessModulesService,
+    private readonly userAccessModulesService: UserAccessModulesService,
 
     private readonly dataSource: DataSource,
   ) {}
@@ -45,7 +45,7 @@ export class UsersService {
 
       let userSaved = await this.userRepository.save(userEntity)
 
-      const { modules, error } = await this.UserAccessModulesService.create({
+      const { modules, error } = await this.userAccessModulesService.create({
         userId: userSaved.id,
         modulesIds: user.accessModules,
       })
@@ -78,15 +78,32 @@ export class UsersService {
     let password = ''
     let error = undefined
     const hasNewPassword = user.password !== undefined
+    const hasAccessModules = !!user.accessModules
 
     try {
-      const { modules } = await this.UserAccessModulesService.update({
-        userId: id,
-        modulesIds: user.accessModules,
+      if (hasAccessModules) {
+        const { modules, error } = await this.userAccessModulesService.update({
+          userId: id,
+          modulesIds: user.accessModules,
+        })
+
+        if (error) {
+          throw new Error(error)
+        }
+
+        if (modules.length === 0) {
+          throw new Error('No se pudo actualizar los modulos del usuario')
+        }
+      }
+
+      const userGetted = await this.userRepository.findOne({
+        where: {
+          id,
+        },
       })
 
-      if (modules.length === 0) {
-        throw new Error('No se pudo actualizar los modulos del usuario')
+      if (!userGetted) {
+        throw new Error('No se encontro el usuario')
       }
 
       if (hasNewPassword) {
