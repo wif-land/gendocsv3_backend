@@ -19,13 +19,6 @@ export class User extends BasePerson {
   roles: RolesType[]
 
   @Column({
-    name: 'platform_permission',
-    type: 'simple-array',
-    nullable: true,
-  })
-  platformPermission?: string[]
-
-  @Column({
     name: 'is_active',
     default: true,
   })

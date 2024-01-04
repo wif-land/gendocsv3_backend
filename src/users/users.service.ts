@@ -107,7 +107,6 @@ export class UsersService {
         secondName: true,
         secondLastName: true,
         roles: true,
-        platformPermission: true,
         isActive: true,
       },
     })
