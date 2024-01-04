@@ -30,4 +30,4 @@ jobs:
           context: .
           file: ./Dockerfile.production
           push: true
-          tags: gendocsv3_backend:latest
+          tags: leninner/gendocsv3:latest
