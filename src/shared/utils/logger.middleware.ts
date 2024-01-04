@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { Injectable, NestMiddleware } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { Log } from '../logs/log.entity'
+import { Log } from '../logs/entities/log.entity'
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {

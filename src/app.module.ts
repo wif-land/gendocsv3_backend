@@ -14,6 +14,13 @@ import { FilesController } from './files/files.controller'
 import { FilesService } from './files/files.service'
 import { FilesModule } from './files/files.module'
 import { GcpModule } from './gcp/gcp.module'
+import { ModulesModule } from './modules/modules.module'
+import { CareersModule } from './careers/careers.module'
+import { SubmodulesModule } from './submodules/submodules.module'
+import { SubmodulesModulesModule } from './submodules-modules/submodules-modules.module'
+import { UserAccessModulesModule } from './users-access-modules/users-access-modules.module'
+import { FunctionariesModule } from './functionaries/functionaries.module'
+import { StudentsModule } from './students/students.module'
 
 @Module({
   imports: [
@@ -31,8 +38,8 @@ import { GcpModule } from './gcp/gcp.module'
       entities: [`${__dirname}/**/*.entity{.ts,.js}`],
       autoLoadEntities: true,
       keepConnectionAlive: true,
-      migrationsRun: true,
-      migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
+      // migrationsRun: true,
+      // migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
     }),
     LogModule,
     TerminusModule,
@@ -41,13 +48,24 @@ import { GcpModule } from './gcp/gcp.module'
     UsersModule,
     FilesModule,
     GcpModule,
+    ModulesModule,
+    CareersModule,
+    SubmodulesModule,
+    SubmodulesModulesModule,
+    UserAccessModulesModule,
+    FunctionariesModule,
+    StudentsModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(LoggerMiddleware).forRoutes('auth/*')
-    consumer.apply(LoggerMiddleware).forRoutes('users/*')
+    if (process.env.NODE_ENV === 'production') {
+      consumer.apply(LoggerMiddleware).forRoutes('users/*')
+      consumer.apply(LoggerMiddleware).forRoutes('auth/*')
+      consumer.apply(LoggerMiddleware).forRoutes('careers/*')
+      consumer.apply(LoggerMiddleware).forRoutes('modules/*')
+    }
   }
 }

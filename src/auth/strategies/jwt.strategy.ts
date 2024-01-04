@@ -2,17 +2,20 @@ import { ExtractJwt, Strategy } from 'passport-jwt'
 import { PassportStrategy } from '@nestjs/passport'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { AuthUser } from './dto/auth-user.dto'
+import { AuthUser } from '../dto/auth-user.dto'
 
 interface Payload {
   sub: string
-  username: string
-  email: string
-  emailGmail: string
+  firstName: string
+  secondName: string
+  firstLastName: string
+  secondLastName: string
+  outlookEmail: string
+  googleEmail: string
   iat: string
   roles: string[]
-  platformPermission: string[]
-  status?: boolean
+  isActive: boolean
+  accessModulesIds: number[]
 }
 
 @Injectable()
@@ -27,13 +30,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: Payload): Promise<AuthUser> {
     return {
-      email: payload.email,
-      emailGmail: payload.emailGmail,
       id: payload.sub,
-      name: payload.username,
+      outlookEmail: payload.outlookEmail,
+      googleEmail: payload.googleEmail,
+      firstName: payload.firstName,
+      firstLastName: payload.firstLastName,
+      secondName: payload.secondName,
+      secondLastName: payload.secondLastName,
       roles: payload.roles,
-      platformPermission: payload.platformPermission,
-      status: payload.status,
+      isActive: payload.isActive,
+      accessModulesIds: payload.accessModulesIds,
     }
   }
 }

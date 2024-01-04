@@ -1,8 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { UsersService } from '../users/users.service'
-import { User } from '../users/users.entity'
+import { User } from '../users/entities/users.entity'
 import { JwtService } from '@nestjs/jwt'
 import { compareSync } from 'bcrypt'
+import { Module } from '../modules/entities/modules.entity'
 
 @Injectable()
 export class AuthService {
@@ -22,11 +23,21 @@ export class AuthService {
       throw new UnauthorizedException(`AuthService:login ${email} ********`)
     }
 
+    const accessModulesIds = user.accessModules.map(
+      (module: Module) => module.id,
+    )
+
     const payload = {
-      username: `${user.firstName} ${user.firstLastName}`,
+      firstName: user.firstName,
+      firstLastName: user.firstLastName,
+      secondName: user.secondName,
+      secondLastName: user.secondLastName,
+      outlookEmail: user.outlookEmail,
+      googleEmail: user.googleEmail,
       sub: user.id,
       roles: user.roles,
-      platformPermission: user.platformPermission,
+      accessModulesIds,
+      isActive: user.isActive,
     }
 
     return { accessToken: this.jwtService.sign(payload) }

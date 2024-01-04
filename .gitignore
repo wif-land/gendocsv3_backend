@@ -399,6 +399,7 @@ dist
 .webpack
 .serverless/**/*.zip
 .vscode
+postgres-data/
 
 # Google
 credentials.json
