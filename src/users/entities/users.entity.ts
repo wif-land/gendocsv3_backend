@@ -65,13 +65,6 @@ export class User extends BaseAppEntity {
   roles: RolesType[]
 
   @Column({
-    name: 'platform_permission',
-    type: 'simple-array',
-    nullable: true,
-  })
-  platformPermission?: string[]
-
-  @Column({
     name: 'is_active',
     default: true,
   })

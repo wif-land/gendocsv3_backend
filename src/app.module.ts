@@ -33,7 +33,7 @@ import { UserAccessModulesModule } from './users-access-modules/users-access-mod
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
-      // entities: [`${__dirname}/**/*.entity{.ts,.js}`],
+      entities: [`${__dirname}/**/*.entity{.ts,.js}`],
       autoLoadEntities: true,
       keepConnectionAlive: true,
       // migrationsRun: true,
@@ -57,7 +57,11 @@ import { UserAccessModulesModule } from './users-access-modules/users-access-mod
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(LoggerMiddleware).forRoutes('auth/*')
-    consumer.apply(LoggerMiddleware).forRoutes('users/*')
+    if (process.env.NODE_ENV === 'production') {
+      consumer.apply(LoggerMiddleware).forRoutes('users/*')
+      consumer.apply(LoggerMiddleware).forRoutes('auth/*')
+      consumer.apply(LoggerMiddleware).forRoutes('careers/*')
+      consumer.apply(LoggerMiddleware).forRoutes('modules/*')
+    }
   }
 }
