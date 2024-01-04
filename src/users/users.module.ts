@@ -5,6 +5,7 @@ import { User } from './entities/users.entity'
 import { UsersController } from './users.controller'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { UserAccessModulesModule } from '../users-access-modules/users-access-modules.module'
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
       }),
       inject: [ConfigService],
     }),
+    UserAccessModulesModule,
   ],
   providers: [UsersService],
   exports: [UsersService],

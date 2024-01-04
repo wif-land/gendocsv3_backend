@@ -13,9 +13,9 @@ import {
 export class UserAccessModule {
   @PrimaryColumn({
     name: 'user_id',
-    type: 'int',
+    type: 'uuid',
   })
-  userId: number
+  userId: string
 
   @PrimaryColumn({
     name: 'module_id',
@@ -24,8 +24,8 @@ export class UserAccessModule {
   moduleId: number
 
   @ManyToOne(() => User, {
-    onDelete: 'NO ACTION',
-    onUpdate: 'NO ACTION',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
   @JoinColumn({
     name: 'user_id',
@@ -34,8 +34,8 @@ export class UserAccessModule {
   user: User[]
 
   @ManyToOne(() => Module, {
-    onDelete: 'NO ACTION',
-    onUpdate: 'NO ACTION',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
   @JoinColumn({
     name: 'module_id',

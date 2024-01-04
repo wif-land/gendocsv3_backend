@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { UserAccessModule } from './entities/user-access-module.entity'
 import { DataSource, Repository } from 'typeorm'
 import { CreateUserAccessModuleDto } from './dto/create-user-access-module.dto'
+import { Module } from '../modules/entities/modules.entity'
 
 @Injectable()
 export class UserAccessModulesService {
@@ -18,6 +19,8 @@ export class UserAccessModulesService {
 
     let error = undefined
     const userAccessModules: UserAccessModule[] = []
+    const modules: Module[] = []
+
     try {
       for (const moduleId of modulesIds) {
         const userAccessModuleCreated = this.userAccessModulesRepository.create(
@@ -29,6 +32,15 @@ export class UserAccessModulesService {
         const userAccessModule = await this.userAccessModulesRepository.save(
           userAccessModuleCreated,
         )
+
+        const module = await this.dataSource
+          .createQueryBuilder()
+          .select('module')
+          .from(Module, 'module')
+          .where('module.id = :moduleId', { moduleId })
+          .getOne()
+
+        modules.push(module)
         userAccessModules.push(userAccessModule)
       }
     } catch (e) {
@@ -36,12 +48,14 @@ export class UserAccessModulesService {
     }
     return {
       userAccessModules,
+      modules,
       error,
     }
   }
 
   async update(createUserAccessModuleDto: CreateUserAccessModuleDto) {
     const { userId, modulesIds } = createUserAccessModuleDto
+    const modules: Module[] = []
 
     let error = undefined
     const userAccessModules: UserAccessModule[] = []
@@ -60,6 +74,16 @@ export class UserAccessModulesService {
         const userAccessModule = await this.userAccessModulesRepository.save(
           userAccessModuleCreated,
         )
+
+        const module = await this.dataSource
+          .createQueryBuilder()
+          .select('module')
+          .from(Module, 'module')
+          .where('module.id = :moduleId', { moduleId })
+          .getOne()
+
+        modules.push(module)
+
         userAccessModules.push(userAccessModule)
       }
     } catch (e) {
@@ -67,6 +91,7 @@ export class UserAccessModulesService {
     }
     return {
       userAccessModules,
+      modules,
       error,
     }
   }
@@ -75,14 +100,14 @@ export class UserAccessModulesService {
     return await this.userAccessModulesRepository.find()
   }
 
-  async remove(userId: number, moduleId: number) {
+  async remove(userId: string, moduleId: number) {
     return await this.userAccessModulesRepository.delete({
       userId,
       moduleId,
     })
   }
 
-  async removeByUserId(userId: number) {
+  async removeByUserId(userId: string) {
     const qb = this.dataSource.createQueryBuilder()
     return await qb
       .delete()

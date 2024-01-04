@@ -37,12 +37,12 @@ export class SubmodulesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.submodulesService.findOne(id)
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.submodulesService.remove(id)
   }
 }

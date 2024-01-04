@@ -8,5 +8,6 @@ import { UserAccessModule } from './entities/user-access-module.entity'
   controllers: [UserAccessModulesController],
   providers: [UserAccessModulesService],
   imports: [TypeOrmModule.forFeature([UserAccessModule])],
+  exports: [UserAccessModulesService],
 })
 export class UserAccessModulesModule {}

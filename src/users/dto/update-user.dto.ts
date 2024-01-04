@@ -10,17 +10,17 @@ import { RolesType } from '../../auth/decorators/roles-decorator'
 
 const MIN_PASSWORD_LENGTH = 4
 
-export class CreateUserDTO {
+export class UpdateUserDTO {
   @IsNotEmpty()
   firstName: string
 
-  @IsOptional()
+  @IsNotEmpty()
   secondName: string
 
   @IsNotEmpty()
   firstLastName: string
 
-  @IsOptional()
+  @IsNotEmpty()
   secondLastName: string
 
   @IsEmail(
@@ -34,20 +34,6 @@ export class CreateUserDTO {
   )
   @IsNotEmpty()
   outlookEmail: string
-
-  @IsEmail(
-    {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      host_whitelist: ['gmail.com'],
-    },
-    {
-      message: 'email must be a valid Gmail email',
-    },
-  )
-  @IsNotEmpty({
-    message: 'googleEmail is required',
-  })
-  googleEmail: string
 
   @IsNotEmpty({
     message: 'password is required',
@@ -64,6 +50,12 @@ export class CreateUserDTO {
     message: 'roles must be an array',
   })
   roles: RolesType[]
+
+  @IsOptional()
+  @IsArray({
+    message: 'platformPermission must be an array',
+  })
+  platformPermission?: string[]
 
   @IsOptional()
   @IsBoolean({
