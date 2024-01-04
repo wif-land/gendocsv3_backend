@@ -16,7 +16,11 @@ export class CareersService {
   }
 
   async findAll() {
-    return this.careerRepository.find()
+    return this.careerRepository.find({
+      order: {
+        id: 'ASC',
+      },
+    })
   }
 
   async update(id: number, data: Partial<CreateCareerDto>) {
