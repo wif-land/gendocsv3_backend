@@ -24,6 +24,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
+        name: Build artifacts
+        env:
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+          ENV_FILE_CREDENTIALS: ${{ secrets.ENV_FILE_CREDENTIALS }}
+        run: |
+          echo "$GCP_CREDENTIALS" > ./gcp/credentials.json
+          echo "$ENV_FILE_CREDENTIALS" > ./.env
+  
+      -
         name: Build and push
         uses: docker/build-push-action@v5
         with:
