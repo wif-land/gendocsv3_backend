@@ -20,32 +20,32 @@ export class FunctionariesController {
   constructor(private readonly functionariesService: FunctionariesService) {}
 
   @Post()
-  create(@Body() createFunctionaryDto: CreateFunctionaryDto) {
-    return this.functionariesService.create(createFunctionaryDto)
+  async create(@Body() createFunctionaryDto: CreateFunctionaryDto) {
+    return await this.functionariesService.create(createFunctionaryDto)
   }
 
   @ApiResponse({ isArray: true, type: Functionary })
   @Get()
   async findAll() {
-    return this.functionariesService.findAll()
+    return await this.functionariesService.findAll()
   }
 
   @ApiResponse({ type: Functionary })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.functionariesService.findOne(id)
+  async findOne(@Param('id') id: string) {
+    return await this.functionariesService.findOne(id)
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateFunctionaryDto: UpdateFunctionaryDto,
   ) {
-    return this.functionariesService.update(id, updateFunctionaryDto)
+    return await this.functionariesService.update(id, updateFunctionaryDto)
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.functionariesService.remove(id)
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.functionariesService.remove(id)
   }
 }
