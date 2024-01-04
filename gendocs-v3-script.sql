@@ -5,6 +5,7 @@
 --
 INSERT INTO
   public.users (
+    "id",
     "created_at",
     "updated_at",
     "first_name",
@@ -19,6 +20,7 @@ INSERT INTO
   )
 VALUES
   (
+    'd3201b6d-5a8c-4fb8-87fc-b39c90fd967e'
     '2023-06-05',
     '2023-06-05',
     'Daniela',
@@ -435,59 +437,59 @@ VALUES
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 1);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 1);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 2);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 2);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 3);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 3);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 4);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 4);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 5);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 5);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 6);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 6);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 7);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 7);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 8);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 8);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 9);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 9);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 10);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 10);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 11);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 11);
 
 INSERT INTO
   public.users_access_modules ("user_id", "module_id")
 VALUES
-  (1, 12);
+  ('d3201b6d-5a8c-4fb8-87fc-b39c90fd967e', 12);
