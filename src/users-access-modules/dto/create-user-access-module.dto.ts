@@ -2,7 +2,7 @@ import { IsArray, IsNumber } from 'class-validator'
 
 export class CreateUserAccessModuleDto {
   @IsNumber()
-  userId: number
+  userId: string
 
   @IsArray()
   @IsNumber({}, { each: true })

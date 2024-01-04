@@ -1,9 +1,9 @@
 import { Submodule } from '../../submodules/entities/submodule.entity'
-import { BaseApp } from '../../shared/entities/base-app.entity'
 import { Column, Entity, JoinTable, ManyToMany } from 'typeorm'
+import { BaseAppEntity } from '../../shared/entities/base.entity'
 
 @Entity('modules')
-export class Module extends BaseApp {
+export class Module extends BaseAppEntity {
   @Column({
     name: 'code',
     type: 'varchar',

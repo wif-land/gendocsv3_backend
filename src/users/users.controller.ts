@@ -3,25 +3,55 @@ import { ApiTags } from '@nestjs/swagger'
 import { Auth } from '../auth/decorators/auth-decorator'
 import { CreateUserDTO } from './dto/create-user.dto'
 import { UsersService } from './users.service'
+import { BaseResponseEntity } from '../shared/utils/base-response'
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private userService: UsersService) {}
 
-  @Auth('ADMIN')
   @Post()
   async create(@Body() createUserDto: CreateUserDTO) {
-    return await this.userService.create(createUserDto)
+    const { user, error } = await this.userService.create(createUserDto)
+
+    if (error || !user) {
+      return new BaseResponseEntity({
+        message: 'Error creating user',
+        error,
+        statusCode: 500,
+      })
+    }
+
+    return new BaseResponseEntity({
+      message: 'User created',
+      data: user,
+      statusCode: 201,
+    })
   }
 
-  @Auth('ADMIN')
   @Put()
   async update(
     @Query('id') id: string,
     @Body() updateUserDto: Partial<CreateUserDTO>,
-  ): Promise<{ accessToken: string }> {
-    return await this.userService.update(id, updateUserDto)
+  ) {
+    const { accessToken, error, user } = await this.userService.update(
+      id,
+      updateUserDto,
+    )
+
+    if (error || !user) {
+      return new BaseResponseEntity({
+        message: 'Error updating user',
+        error,
+        statusCode: 500,
+      })
+    }
+
+    return new BaseResponseEntity({
+      message: 'User updated',
+      data: { accessToken, user },
+      statusCode: 200,
+    })
   }
 
   @Auth('ADMIN')
