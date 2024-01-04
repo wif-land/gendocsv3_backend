@@ -6,9 +6,27 @@ on:
       - 'main'
 
 jobs:
-  docker:
+  deploy-production:
     runs-on: ubuntu-latest
     steps:
+      - 
+        name: Checkout
+        uses: actions/checkout@v4
+      - 
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/leninner/gendocsv3            
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha            
       - 
         uses: actions/checkout@v3
       -
@@ -30,4 +48,5 @@ jobs:
           context: .
           file: ./Dockerfile.production
           push: true
-          tags: leninner/gendocsv3:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
