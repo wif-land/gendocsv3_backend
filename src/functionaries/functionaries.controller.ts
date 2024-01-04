@@ -3,14 +3,14 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   ParseUUIDPipe,
+  Put,
+  Query,
 } from '@nestjs/common'
 import { FunctionariesService } from './functionaries.service'
 import { CreateFunctionaryDto } from './dto/create-functionary.dto'
-import { UpdateFunctionaryDto } from './dto/update-functionary.dto'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Functionary } from './entities/functionary.entity'
 
@@ -36,10 +36,10 @@ export class FunctionariesController {
     return await this.functionariesService.findOne(id)
   }
 
-  @Patch(':id')
+  @Put()
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateFunctionaryDto: UpdateFunctionaryDto,
+    @Query('id', ParseUUIDPipe) id: string,
+    @Body() updateFunctionaryDto: Partial<CreateFunctionaryDto>,
   ) {
     return await this.functionariesService.update(id, updateFunctionaryDto)
   }
