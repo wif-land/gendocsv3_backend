@@ -9,6 +9,7 @@ up:
 	docker compose --env-file ./.env up -d
 
 deploy_production: .env docker-compose.yaml Makefile
+		ssh root@$(VM_IP) "cd /root/gendocsv3 && make down && make clean"
 		scp -r ./.env root@$(VM_IP):/root/gendocsv3/
 		scp -r ./docker-compose.production.yaml root@$(VM_IP):/root/gendocsv3/
 		scp -r ./Makefile root@$(VM_IP):/root/gendocsv3/Makefile
