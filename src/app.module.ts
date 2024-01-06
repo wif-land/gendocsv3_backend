@@ -1,3 +1,4 @@
+// eslint-disable-next-line filenames/match-exported
 import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -41,6 +42,7 @@ const config = {
 }
 
 const connectionSource = new DataSource(config as DataSourceOptions)
+export default connectionSource
 
 @Module({
   imports: [
