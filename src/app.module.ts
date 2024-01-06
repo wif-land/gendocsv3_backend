@@ -1,7 +1,7 @@
 import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { TypeOrmModule } from '@nestjs/typeorm'
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
 import { ConfigModule } from '@nestjs/config'
 import configuration from './config/configuration'
 import { LoggerMiddleware } from './shared/utils/logger.middleware'
@@ -49,20 +49,9 @@ const connectionSource = new DataSource(config as DataSourceOptions)
       load: [configuration],
     }),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DATABASE_HOST,
-      port: Number(process.env.DATABASE_PORT),
-      username: process.env.DATABASE_USERNAME,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-      synchronize: !!process.env.DATABASE_SYNCHRONIZE,
-      entities: [`${__dirname}/**/*.entity{.ts,.js}`],
-      keepConnectionAlive: true,
-      migrationsRun: false,
-      migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
-      migrationsTransactionMode: 'each',
-      dropSchema: true,
-    }),
+      ...config,
+      dropSchema: process.env.NODE_ENV === 'development',
+    } as TypeOrmModuleOptions),
     LogModule,
     TerminusModule,
     HttpModule,
