@@ -33,7 +33,7 @@ module.exports = {
       'error',
       new RegExp(
         '^[a-z0-9][a-z0-9-]*' +
-          '(.module|.controller|.entity|.dto|' +
+          '(.module|.controller|.entity|.dto' +
           '|.strategy|.guard|.service|.gateway' +
           '|.utils|.interceptor|.interface|.pipe|.filter' +
           '|.schema|.middleware)?' +
