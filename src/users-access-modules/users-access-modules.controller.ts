@@ -52,7 +52,7 @@ export class UserAccessModulesController {
   }
 
   @Delete()
-  async remove(@Body() data: { userId: string; moduleId: number }) {
+  async remove(@Body() data: { userId: number; moduleId: number }) {
     const removed = await this.userAccessModulesService.remove(
       data.userId,
       data.moduleId,

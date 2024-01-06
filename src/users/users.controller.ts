@@ -31,7 +31,7 @@ export class UsersController {
 
   @Put()
   async update(
-    @Query('id') id: string,
+    @Query('id') id: number,
     @Body() updateUserDto: Partial<CreateUserDTO>,
   ) {
     const { accessToken, error, user } = await this.userService.update(
@@ -56,7 +56,7 @@ export class UsersController {
 
   @Auth('ADMIN')
   @Delete()
-  async delete(@Query('id') id: string) {
+  async delete(@Query('id') id: number) {
     return await this.userService.delete(id)
   }
 

@@ -73,7 +73,7 @@ export class UsersService {
     }
   }
 
-  async update(id: string, user: Partial<CreateUserDTO>) {
+  async update(id: number, user: Partial<CreateUserDTO>) {
     let userToUpdate = user
     let password = ''
     let error = undefined
@@ -151,7 +151,7 @@ export class UsersService {
     }
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: number): Promise<boolean> {
     try {
       await this.userRepository.update(
         {

@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { TypeOrmModule } from '@nestjs/typeorm'
@@ -21,10 +21,31 @@ import { SubmodulesModulesModule } from './submodules-modules/submodules-modules
 import { UserAccessModulesModule } from './users-access-modules/users-access-modules.module'
 import { FunctionariesModule } from './functionaries/functionaries.module'
 import { StudentsModule } from './students/students.module'
+import { DataSource, DataSourceOptions } from 'typeorm'
+import { config as dotenvConfig } from 'dotenv'
+
+dotenvConfig({ path: '.env' })
+
+const config = {
+  type: 'postgres',
+  host: process.env.DATABASE_HOST,
+  port: Number(process.env.DATABASE_PORT),
+  username: process.env.DATABASE_USERNAME,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_NAME,
+  synchronize: !!process.env.DATABASE_SYNCHRONIZE,
+  entities: [`${__dirname}/**/*.entity{.ts,.js}`],
+  keepConnectionAlive: true,
+  migrationsRun: false,
+  migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
+}
+
+const connectionSource = new DataSource(config as DataSourceOptions)
 
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true,
       load: [configuration],
     }),
     TypeOrmModule.forRoot({
@@ -34,12 +55,13 @@ import { StudentsModule } from './students/students.module'
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
+      synchronize: !!process.env.DATABASE_SYNCHRONIZE,
       entities: [`${__dirname}/**/*.entity{.ts,.js}`],
-      autoLoadEntities: true,
       keepConnectionAlive: true,
-      // migrationsRun: true,
-      // migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
+      migrationsRun: false,
+      migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
+      migrationsTransactionMode: 'each',
+      dropSchema: true,
     }),
     LogModule,
     TerminusModule,
@@ -59,7 +81,14 @@ import { StudentsModule } from './students/students.module'
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],
 })
-export class AppModule {
+export class AppModule implements OnModuleInit {
+  async onModuleInit() {
+    await connectionSource.initialize()
+    await connectionSource.runMigrations({
+      transaction: 'each',
+    })
+  }
+
   configure(consumer: MiddlewareConsumer): void {
     if (process.env.NODE_ENV === 'production') {
       consumer.apply(LoggerMiddleware).forRoutes('users/*')
