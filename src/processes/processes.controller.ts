@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  ParseUUIDPipe,
 } from '@nestjs/common'
 import { ProcessesService } from './processes.service'
 import { CreateProcessDto } from './dto/create-process.dto'
@@ -32,20 +31,20 @@ export class ProcessesController {
 
   @ApiResponse({ type: Process })
   @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id') id: number) {
     return await this.processesService.findOne(id)
   }
 
   @Patch(':id')
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: number,
     @Body() updateProcessDto: UpdateProcessDto,
   ) {
     return await this.processesService.update(id, updateProcessDto)
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(@Param('id') id: number) {
     return await this.processesService.remove(id)
   }
 }

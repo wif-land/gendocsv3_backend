@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  ParseUUIDPipe,
 } from '@nestjs/common'
 import { TemplatesService } from './templates.service'
 import { CreateTemplateDto } from './dto/create-template.dto'
@@ -27,20 +26,20 @@ export class TemplatesController {
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id') id: number) {
     return await this.templatesService.findOne(id)
   }
 
   @Patch(':id')
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: number,
     @Body() updateTemplateDto: UpdateTemplateDto,
   ) {
     return await this.templatesService.update(id, updateTemplateDto)
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(@Param('id') id: number) {
     return await this.templatesService.remove(id)
   }
 }

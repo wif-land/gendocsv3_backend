@@ -4,7 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUUID,
+  IsNumber,
 } from 'class-validator'
 
 export class CreateTemplateDto {
@@ -43,7 +43,6 @@ export class CreateTemplateDto {
     description: 'Proceso asociado a la plantilla',
   })
   @IsNotEmpty()
-  @IsString()
-  @IsUUID()
-  processId: string
+  @IsNumber()
+  processId: number
 }
