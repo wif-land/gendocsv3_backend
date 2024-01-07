@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { CreateFunctionaryDto } from './dto/create-functionary.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -17,49 +23,84 @@ export class FunctionariesService {
     try {
       const functionary =
         this.functionaryRepository.create(createFunctionaryDto)
+
+      if (!functionary) {
+        throw new BadRequestException('Functionary not created')
+      }
+
       return await this.functionaryRepository.save(functionary)
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
   async findAll(): Promise<Functionary[]> {
-    return await this.functionaryRepository.find()
+    try {
+      const functionaries = await this.functionaryRepository.find({
+        order: {
+          id: 'ASC',
+        },
+      })
+
+      if (!functionaries) {
+        throw new NotFoundException('Functionaries not found')
+      }
+
+      return functionaries
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
   async findOne(id: string): Promise<Functionary> {
-    const functionary = await this.functionaryRepository.findOneBy({ id })
+    try {
+      const functionary = await this.functionaryRepository.findOneBy({ id })
 
-    if (!functionary) {
-      throw new BadRequestException('Functionary not found')
+      if (!functionary) {
+        throw new NotFoundException('Functionary not found')
+      }
+
+      return functionary
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
-
-    return functionary
   }
 
   async update(
     id: string,
     updateFunctionaryDto: Partial<CreateFunctionaryDto>,
   ): Promise<Functionary> {
-    const functionary = await this.functionaryRepository.preload({
-      id,
-      ...updateFunctionaryDto,
-    })
+    try {
+      const functionary = await this.functionaryRepository.preload({
+        id,
+        ...updateFunctionaryDto,
+      })
 
-    if (!functionary) {
-      throw new BadRequestException('Functionary not found')
+      if (!functionary) {
+        throw new NotFoundException('Functionary not found')
+      }
+
+      return await this.functionaryRepository.save(functionary)
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
-
-    return await this.functionaryRepository.save(functionary)
   }
 
   async remove(id: string): Promise<boolean> {
-    const functionary = await this.findOne(id)
+    try {
+      const functionary = await this.findOne(id)
 
-    functionary.isActive = false
+      if (!functionary) {
+        throw new NotFoundException('Functionary not found')
+      }
 
-    await this.functionaryRepository.save(functionary)
+      functionary.isActive = false
 
-    return true
+      await this.functionaryRepository.save(functionary)
+
+      return true
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 }

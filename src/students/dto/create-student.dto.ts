@@ -114,6 +114,7 @@ export class CreateStudentDto {
   gender: string
 
   @ApiProperty({
+    example: '1999-12-31',
     description: 'Fecha de nacimiento',
   })
   @IsDate({

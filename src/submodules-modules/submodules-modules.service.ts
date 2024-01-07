@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { CreateSubmodulesModuleDto } from './dto/create-submodule-module.dto'
 import { UpdateSubmodulesModuleDto } from './dto/update-submodule-module.dto'
 import { DataSource, Repository } from 'typeorm'
@@ -15,11 +15,10 @@ export class SubmodulesModulesService {
   ) {}
 
   async create(createSubmodulesModuleDto: CreateSubmodulesModuleDto) {
-    const { moduleId, submoduleIds } = createSubmodulesModuleDto
-
-    let error = undefined
-    const submodulesModules: SubmodulesModule[] = []
     try {
+      const { moduleId, submoduleIds } = createSubmodulesModuleDto
+      const submodulesModules: SubmodulesModule[] = []
+
       for (const submoduleId of submoduleIds) {
         const submodulesModuleCreated = this.submodulesModulesRepository.create(
           {
@@ -30,27 +29,45 @@ export class SubmodulesModulesService {
         const submodulesModule = await this.submodulesModulesRepository.save(
           submodulesModuleCreated,
         )
+
         submodulesModules.push(submodulesModule)
+
+        if (!submodulesModule) {
+          throw new HttpException(
+            'SubmodulesModule not created',
+            HttpStatus.CONFLICT,
+          )
+        }
       }
+
+      return submodulesModules
     } catch (e) {
-      error = e.message
-    }
-    return {
-      submodulesModules,
-      error,
+      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
   async findAll() {
-    return await this.submodulesModulesRepository.find()
+    try {
+      const submodulesModules = await this.submodulesModulesRepository.find()
+
+      if (!submodulesModules) {
+        throw new HttpException(
+          'SubmodulesModules not found',
+          HttpStatus.NOT_FOUND,
+        )
+      }
+
+      return submodulesModules
+    } catch (e) {
+      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
   async update(updateSubmodulesModuleDto: UpdateSubmodulesModuleDto) {
-    const { moduleId, submoduleIds } = updateSubmodulesModuleDto
-
-    let error = undefined
-    const submodulesModules: SubmodulesModule[] = []
     try {
+      const { moduleId, submoduleIds } = updateSubmodulesModuleDto
+
+      const submodulesModules: SubmodulesModule[] = []
       await this.submodulesModulesRepository.delete({
         moduleId,
       })
@@ -65,37 +82,60 @@ export class SubmodulesModulesService {
         const submodulesModule = await this.submodulesModulesRepository.save(
           submodulesModuleCreated,
         )
+
+        if (!submodulesModule) {
+          throw new HttpException(
+            'SubmodulesModule not created',
+            HttpStatus.CONFLICT,
+          )
+        }
+
         submodulesModules.push(submodulesModule)
       }
+
+      return submodulesModules
     } catch (e) {
-      error = e
-    }
-    return {
-      submodulesModules,
-      error,
+      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async remove(moduleId: number, submoduleId: number) {
-    return await this.submodulesModulesRepository.delete({
-      moduleId,
-      submoduleId,
-    })
+  async remove(moduleId: number, submoduleId: number): Promise<boolean> {
+    try {
+      const submodulesModule = await this.submodulesModulesRepository.findOne({
+        where: {
+          moduleId,
+          submoduleId,
+        },
+      })
+
+      if (!submodulesModule) {
+        throw new HttpException(
+          'SubmodulesModule not found',
+          HttpStatus.NOT_FOUND,
+        )
+      }
+
+      await this.submodulesModulesRepository.remove(submodulesModule)
+
+      return true
+    } catch (e) {
+      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
-  async removeAll(moduleId: number) {
-    // console.log(moduleId)
+  async removeAll(moduleId: number): Promise<boolean> {
     try {
       const qb = await this.dataSource.createQueryBuilder()
 
-      return await qb
+      await qb
         .delete()
         .from(SubmodulesModule)
         .where('module_id = :moduleId', { moduleId })
         .execute()
+
+      return true
     } catch (e) {
-      // console.log(e)
-      return false
+      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 }

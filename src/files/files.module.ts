@@ -7,5 +7,6 @@ import { GcpModule } from '../gcp/gcp.module'
   controllers: [FilesController],
   providers: [FilesService],
   imports: [GcpModule],
+  exports: [FilesService],
 })
 export class FilesModule {}

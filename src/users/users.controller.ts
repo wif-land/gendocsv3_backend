@@ -3,7 +3,6 @@ import { ApiTags } from '@nestjs/swagger'
 import { Auth } from '../auth/decorators/auth-decorator'
 import { CreateUserDTO } from './dto/create-user.dto'
 import { UsersService } from './users.service'
-import { BaseResponseEntity } from '../shared/utils/base-response'
 
 @ApiTags('users')
 @Controller('users')
@@ -12,21 +11,7 @@ export class UsersController {
 
   @Post()
   async create(@Body() createUserDto: CreateUserDTO) {
-    const { user, error } = await this.userService.create(createUserDto)
-
-    if (error || !user) {
-      return new BaseResponseEntity({
-        message: 'Error creating user',
-        error,
-        statusCode: 500,
-      })
-    }
-
-    return new BaseResponseEntity({
-      message: 'User created',
-      data: user,
-      statusCode: 201,
-    })
+    return await this.userService.create(createUserDto)
   }
 
   @Put()
@@ -34,24 +19,7 @@ export class UsersController {
     @Query('id') id: number,
     @Body() updateUserDto: Partial<CreateUserDTO>,
   ) {
-    const { accessToken, error, user } = await this.userService.update(
-      id,
-      updateUserDto,
-    )
-
-    if (error || !user) {
-      return new BaseResponseEntity({
-        message: 'Error updating user',
-        error,
-        statusCode: 500,
-      })
-    }
-
-    return new BaseResponseEntity({
-      message: 'User updated',
-      data: { accessToken, user },
-      statusCode: 200,
-    })
+    return await this.userService.update(id, updateUserDto)
   }
 
   @Auth('ADMIN')
