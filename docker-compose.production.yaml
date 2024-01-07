@@ -18,9 +18,7 @@ services:
 
   backend:
     container_name: gendocsv3_backend
-    build:
-      context: .
-      dockerfile: Dockerfile.production
+    image: ${BACKEND_DOCKER_IMAGE}
     restart: always
     environment:
       - DATABASE_HOST=postgres
@@ -29,7 +27,7 @@ services:
       - DATABASE_USERNAME=${DATABASE_USERNAME}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
     ports:
-      - 8000:8000
+      - ${APP_PORT}:${APP_PORT}
     depends_on:
       - postgres
     networks:

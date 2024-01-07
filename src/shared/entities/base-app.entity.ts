@@ -7,12 +7,12 @@ import {
 } from 'typeorm'
 export class BaseApp extends BaseEntity {
   @ApiProperty({
-    example: 'd3201b6d-5a8c-4fb8-87fc-b39c90fd967e',
+    example: '1',
     description: 'Identificador único',
     uniqueItems: true,
   })
-  @PrimaryGeneratedColumn('uuid')
-  id: string
+  @PrimaryGeneratedColumn()
+  id: number
 
   @ApiProperty({
     example: '2021-09-01T00:00:00.000Z',

@@ -33,7 +33,7 @@ export class ProcessesService {
     return await this.processRepository.find()
   }
 
-  async findOne(id: string): Promise<Process> {
+  async findOne(id: number): Promise<Process> {
     const process = await this.processRepository.findOneBy({ id })
 
     if (!process) {
@@ -44,7 +44,7 @@ export class ProcessesService {
   }
 
   async update(
-    id: string,
+    id: number,
     updateProcessDto: UpdateProcessDto,
   ): Promise<Process> {
     const process = await this.processRepository.preload({
@@ -61,7 +61,7 @@ export class ProcessesService {
     return await this.processRepository.save(process)
   }
 
-  async remove(id: string): Promise<boolean> {
+  async remove(id: number): Promise<boolean> {
     const process = await this.findOne(id)
 
     process.isActive = false

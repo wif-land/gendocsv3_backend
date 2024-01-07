@@ -28,7 +28,7 @@ export class TemplatesService {
     return await this.templateRepository.find()
   }
 
-  async findOne(id: string): Promise<Template> {
+  async findOne(id: number): Promise<Template> {
     const template = await this.templateRepository.findOneBy({ id })
 
     if (!template) {
@@ -39,7 +39,7 @@ export class TemplatesService {
   }
 
   async update(
-    id: string,
+    id: number,
     updateTemplateDto: UpdateTemplateDto,
   ): Promise<Template> {
     const template = await this.templateRepository.preload({
@@ -55,7 +55,7 @@ export class TemplatesService {
     return await this.templateRepository.save(template)
   }
 
-  async remove(id: string): Promise<boolean> {
+  async remove(id: number): Promise<boolean> {
     const template = await this.findOne(id)
 
     template.isActive = false

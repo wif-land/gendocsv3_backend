@@ -111,7 +111,7 @@ export class UserAccessModulesService {
       .getMany()
   }
 
-  async remove(userId: string, moduleId: number) {
+  async remove(userId: number, moduleId: number) {
     return await this.userAccessModulesRepository.delete({
       userId,
       moduleId,

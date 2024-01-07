@@ -1,7 +1,8 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common'
+// eslint-disable-next-line filenames/match-exported
+import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { TypeOrmModule } from '@nestjs/typeorm'
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
 import { ConfigModule } from '@nestjs/config'
 import configuration from './config/configuration'
 import { LoggerMiddleware } from './shared/utils/logger.middleware'
@@ -21,28 +22,40 @@ import { SubmodulesModulesModule } from './submodules-modules/submodules-modules
 import { UserAccessModulesModule } from './users-access-modules/users-access-modules.module'
 import { FunctionariesModule } from './functionaries/functionaries.module'
 import { StudentsModule } from './students/students.module'
-import { ProcessesModule } from './processes/processes.module';
-import { TemplatesModule } from './templates/templates.module';
+import { DataSource, DataSourceOptions } from 'typeorm'
+import { config as dotenvConfig } from 'dotenv'
+import { ProcessesModule } from './processes/processes.module'
+import { TemplatesModule } from './templates/templates.module'
+
+dotenvConfig({ path: '.env' })
+
+const config = {
+  type: 'postgres',
+  host: process.env.DATABASE_HOST,
+  port: Number(process.env.DATABASE_PORT),
+  username: process.env.DATABASE_USERNAME,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_NAME,
+  synchronize: !!process.env.DATABASE_SYNCHRONIZE,
+  entities: [`${__dirname}/**/*.entity{.ts,.js}`],
+  keepConnectionAlive: true,
+  migrationsRun: false,
+  migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
+}
+
+const connectionSource = new DataSource(config as DataSourceOptions)
+export default connectionSource
 
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true,
       load: [configuration],
     }),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DATABASE_HOST,
-      port: Number(process.env.DATABASE_PORT),
-      username: process.env.DATABASE_USERNAME,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-      synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
-      entities: [`${__dirname}/**/*.entity{.ts,.js}`],
-      autoLoadEntities: true,
-      keepConnectionAlive: true,
-      // migrationsRun: true,
-      // migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
-    }),
+      ...config,
+      dropSchema: process.env.NODE_ENV === 'development',
+    } as TypeOrmModuleOptions),
     LogModule,
     TerminusModule,
     HttpModule,
@@ -63,7 +76,14 @@ import { TemplatesModule } from './templates/templates.module';
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],
 })
-export class AppModule {
+export class AppModule implements OnModuleInit {
+  async onModuleInit() {
+    await connectionSource.initialize()
+    await connectionSource.runMigrations({
+      transaction: 'each',
+    })
+  }
+
   configure(consumer: MiddlewareConsumer): void {
     if (process.env.NODE_ENV === 'production') {
       consumer.apply(LoggerMiddleware).forRoutes('users/*')

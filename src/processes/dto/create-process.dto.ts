@@ -46,7 +46,7 @@ export class CreateProcessDto {
   @IsNotEmpty()
   @IsString()
   @IsUUID()
-  userId: string
+  userId: number
 
   @ApiProperty({
     description: 'Módulo asociado al proceso',

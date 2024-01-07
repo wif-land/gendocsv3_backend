@@ -1,10 +1,10 @@
 import { Column, Entity, JoinTable, ManyToMany } from 'typeorm'
 import { RolesType } from '../../auth/decorators/roles-decorator'
 import { Module } from '../../modules/entities/modules.entity'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base.entity'
 
 @Entity('users')
-export class User extends BaseApp {
+export class User extends BaseAppEntity {
   @Column({
     name: 'first_name',
     type: 'varchar',

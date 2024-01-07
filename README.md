@@ -72,4 +72,24 @@ npm run start:debug
 
 6. Abre el navegador en la dirección `http://localhost:3001/api`
 
+## Uso
 
+### Migraciones
+
+Para crear una nueva migración ejecuta el siguiente comando:
+
+```bash
+npm run migration:create --name=<nombre de la migración en snake-case>
+```
+
+Para ejecutar las migraciones ejecuta el siguiente comando:
+
+```bash
+npm run migration:run
+```
+
+Para revertir las migraciones ejecuta el siguiente comando:
+
+```bash
+npm run migration:revert
+```

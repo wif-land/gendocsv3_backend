@@ -13,13 +13,11 @@ import {
 export class UserAccessModule {
   @PrimaryColumn({
     name: 'user_id',
-    type: 'uuid',
   })
-  userId: string
+  userId: number
 
   @PrimaryColumn({
     name: 'module_id',
-    type: 'int',
   })
   moduleId: number
 
