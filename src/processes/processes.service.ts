@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { CreateProcessDto } from './dto/create-process.dto'
 import { UpdateProcessDto } from './dto/update-process.dto'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -23,50 +29,83 @@ export class ProcessesService {
         user: { id: createProcessDto.userId },
       })
 
+      if (!process) {
+        throw new BadRequestException('Process not created')
+      }
+
       return await this.processRepository.save(process)
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
   async findAll(): Promise<Process[]> {
-    return await this.processRepository.find()
+    try {
+      const processes = await this.processRepository.find({
+        order: {
+          id: 'ASC',
+        },
+      })
+
+      if (!processes) {
+        throw new NotFoundException('Processes not found')
+      }
+
+      return processes
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
   async findOne(id: number): Promise<Process> {
-    const process = await this.processRepository.findOneBy({ id })
+    try {
+      const process = await this.processRepository.findOneBy({ id })
 
-    if (!process) {
-      throw new BadRequestException('Process not found')
+      if (!process) {
+        throw new NotFoundException('Process not found')
+      }
+
+      return process
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
-
-    return process
   }
 
   async update(
     id: number,
     updateProcessDto: UpdateProcessDto,
   ): Promise<Process> {
-    const process = await this.processRepository.preload({
-      id,
-      ...updateProcessDto,
-      module: { id: updateProcessDto.moduleId },
-      user: { id: updateProcessDto.userId },
-    })
+    try {
+      const process = await this.processRepository.preload({
+        id,
+        ...updateProcessDto,
+        module: { id: updateProcessDto.moduleId },
+        user: { id: updateProcessDto.userId },
+      })
 
-    if (!process) {
-      throw new BadRequestException('Process not found')
+      if (!process) {
+        throw new NotFoundException('Process not found')
+      }
+
+      return await this.processRepository.save(process)
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
-
-    return await this.processRepository.save(process)
   }
 
   async remove(id: number): Promise<boolean> {
-    const process = await this.findOne(id)
+    try {
+      const process = await this.findOne(id)
 
-    process.isActive = false
-    await this.processRepository.save(process)
+      if (!process) {
+        throw new NotFoundException('Process not found')
+      }
 
-    return true
+      await this.processRepository.delete(id)
+
+      return true
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 }

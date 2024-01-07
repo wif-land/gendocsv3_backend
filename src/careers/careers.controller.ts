@@ -3,8 +3,6 @@ import { ApiTags } from '@nestjs/swagger'
 import { Auth } from '../auth/decorators/auth-decorator'
 import { CareersService } from './careers.service'
 import { CreateCareerDto } from './dto/create-career.dto'
-import { BaseResponseEntity } from '../shared/utils/base-response'
-
 @ApiTags('Careers')
 @Controller('careers')
 export class CareersController {
@@ -28,12 +26,6 @@ export class CareersController {
     @Query('id') id: number,
     @Body() data: Partial<CreateCareerDto>,
   ) {
-    const result = await this.careersService.update(id, data)
-
-    return new BaseResponseEntity({
-      message: 'Career updated',
-      data: result,
-      statusCode: 201,
-    })
+    return await this.careersService.update(id, data)
   }
 }

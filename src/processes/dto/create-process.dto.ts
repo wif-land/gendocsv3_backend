@@ -5,7 +5,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
 } from 'class-validator'
 
 export class CreateProcessDto {
@@ -45,7 +44,6 @@ export class CreateProcessDto {
   })
   @IsNotEmpty()
   @IsString()
-  @IsUUID()
   userId: number
 
   @ApiProperty({
