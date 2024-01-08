@@ -23,9 +23,7 @@ export class AuthService {
       throw new UnauthorizedException(`AuthService:login ${email} ********`)
     }
 
-    const accessModulesIds = user.accessModules.map(
-      (module: Module) => module.id,
-    )
+    const accessModules = user.accessModules.map((module: Module) => module.id)
 
     const payload = {
       firstName: user.firstName,
@@ -36,7 +34,7 @@ export class AuthService {
       googleEmail: user.googleEmail,
       sub: user.id,
       roles: user.roles,
-      accessModulesIds,
+      accessModules,
       isActive: user.isActive,
     }
 

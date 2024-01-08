@@ -90,7 +90,10 @@ export class UsersService {
         )
       }
 
-      return userSaved
+      return {
+        ...userSaved,
+        accessModules: userSaved.accessModules.map((module) => module.id),
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -198,7 +201,7 @@ export class UsersService {
     }
   }
 
-  async findAll(): Promise<User[]> {
+  async findAll() {
     try {
       const users = await this.userRepository.find({
         select: {
@@ -214,11 +217,16 @@ export class UsersService {
         },
       })
 
+      const usersFound = users.map((user) => ({
+        ...user,
+        accessModules: user.accessModules.map((module) => module.id),
+      }))
+
       if (!users) {
         throw new HttpException('Usuarios no encontrados', HttpStatus.NOT_FOUND)
       }
 
-      return users
+      return usersFound
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
