@@ -3,15 +3,15 @@ import { CreateTemplateDto } from './dto/create-template.dto'
 import { UpdateTemplateDto } from './dto/update-template.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { Template } from './entities/template.entity'
+import { TemplateProcess } from './entities/template-processes.entity'
 
 @Injectable()
 export class TemplatesService {
   constructor(
-    @InjectRepository(Template)
-    private readonly templateRepository: Repository<Template>,
+    @InjectRepository(TemplateProcess)
+    private readonly templateRepository: Repository<TemplateProcess>,
   ) {}
-  async create(createTemplateDto: CreateTemplateDto): Promise<Template> {
+  async create(createTemplateDto: CreateTemplateDto): Promise<TemplateProcess> {
     try {
       const template = this.templateRepository.create({
         ...createTemplateDto,
@@ -24,11 +24,11 @@ export class TemplatesService {
     }
   }
 
-  async findAll(): Promise<Template[]> {
+  async findAll(): Promise<TemplateProcess[]> {
     return await this.templateRepository.find()
   }
 
-  async findOne(id: number): Promise<Template> {
+  async findOne(id: number): Promise<TemplateProcess> {
     const template = await this.templateRepository.findOneBy({ id })
 
     if (!template) {
@@ -41,7 +41,7 @@ export class TemplatesService {
   async update(
     id: number,
     updateTemplateDto: UpdateTemplateDto,
-  ): Promise<Template> {
+  ): Promise<TemplateProcess> {
     const template = await this.templateRepository.preload({
       id,
       ...updateTemplateDto,

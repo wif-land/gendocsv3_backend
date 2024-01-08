@@ -16,13 +16,6 @@ export class CreateProcessDto {
   name: string
 
   @ApiProperty({
-    description: 'Estado del proceso',
-  })
-  @IsNotEmpty()
-  @IsString()
-  state: string
-
-  @ApiProperty({
     description: 'Identificador único del drive',
   })
   @IsNotEmpty()
