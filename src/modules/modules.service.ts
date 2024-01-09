@@ -4,6 +4,7 @@ import { Repository } from 'typeorm'
 import { Module } from './entities/modules.entity'
 import { CreateModuleDTO } from './dto/create-module.dto'
 import { GcpService } from '../gcp/gcp.service'
+import { YearModuleService } from '../year-module/year-module.service'
 
 @Injectable()
 export class ModulesService {
@@ -11,7 +12,8 @@ export class ModulesService {
     @InjectRepository(Module)
     private moduleRepository: Repository<Module>,
 
-    private gcpService: GcpService,
+    private readonly gcpService: GcpService,
+    private readonly yearModuleService: YearModuleService,
   ) {}
 
   async create(module: CreateModuleDTO): Promise<Module> {
@@ -48,7 +50,12 @@ export class ModulesService {
 
   async setFolders() {
     try {
-      const modules = await this.moduleRepository.find()
+      const modules = await this.moduleRepository.find({
+        where: {
+          hasDocuments: true,
+          isActive: true,
+        },
+      })
 
       if (!modules) {
         throw new HttpException('Modules not found', HttpStatus.NOT_FOUND)
@@ -69,9 +76,23 @@ export class ModulesService {
 
           module.driveId = folderId
 
-          await this.moduleRepository.save(module)
+          const auxModule = await this.moduleRepository.save(module)
+
+          if (!auxModule) {
+            throw new HttpException(
+              'Error saving module',
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            )
+          }
+
+          await this.yearModuleService.create({
+            year: 2023,
+            module: auxModule,
+          })
         }
       }
+
+      return 'Folders created successfully'
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

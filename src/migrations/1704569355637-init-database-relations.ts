@@ -20,6 +20,10 @@ export class InitDatabaseRelations1704569355637 implements MigrationInterface {
       { submoduleId: 2, moduleId: 2 },
       { submoduleId: 3, moduleId: 2 },
       { submoduleId: 4, moduleId: 2 },
+      { submoduleId: 1, moduleId: 3 },
+      { submoduleId: 2, moduleId: 3 },
+      { submoduleId: 3, moduleId: 3 },
+      { submoduleId: 4, moduleId: 3 },
       { submoduleId: 1, moduleId: 4 },
       { submoduleId: 2, moduleId: 4 },
       { submoduleId: 3, moduleId: 4 },
@@ -53,7 +57,7 @@ export class InitDatabaseRelations1704569355637 implements MigrationInterface {
       { submoduleId: 7, moduleId: 11 },
       { submoduleId: 8, moduleId: 11 },
       { submoduleId: 11, moduleId: 11 },
-      { submoduleId: 9, moduleId: 3 },
+      { submoduleId: 9, moduleId: 12 },
     ]
 
     const userAccessModuleToInsert = [
