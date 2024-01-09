@@ -28,6 +28,7 @@ import { ProcessesModule } from './processes/processes.module'
 import { TemplatesModule } from './templates/templates.module'
 import { YearModuleModule } from './year-module/year-module.module'
 import { VariablesModule } from './variables/variables.module'
+import { PositionsModule } from './positions/positions.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -76,6 +77,7 @@ export default connectionSource
     TemplatesModule,
     YearModuleModule,
     VariablesModule,
+    PositionsModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],

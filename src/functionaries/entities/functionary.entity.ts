@@ -1,6 +1,7 @@
-import { Column, Entity } from 'typeorm'
+import { Column, Entity, OneToMany } from 'typeorm'
 import { BasePerson } from '../../shared/entities/base-person.entity'
 import { ApiProperty } from '@nestjs/swagger'
+import { Position } from '../../positions/entities/position.entity'
 
 @Entity('functionaries')
 export class Functionary extends BasePerson {
@@ -60,4 +61,11 @@ export class Functionary extends BasePerson {
     default: true,
   })
   isActive: boolean
+
+  @ApiProperty({
+    type: () => Position,
+    isArray: true,
+  })
+  @OneToMany(() => Position, (position) => position.functionary)
+  positions: Position[]
 }
