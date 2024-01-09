@@ -17,20 +17,6 @@ export class CreateTemplateDto {
 
   @ApiProperty({
     description: 'Estado de la plantilla',
-  })
-  @IsNotEmpty()
-  @IsString()
-  state: string
-
-  @ApiProperty({
-    description: 'Identificador único del drive',
-  })
-  @IsNotEmpty()
-  @IsString()
-  driveId: string
-
-  @ApiProperty({
-    description: 'Estado de la plantilla',
     required: false,
   })
   @IsBoolean({
@@ -40,9 +26,32 @@ export class CreateTemplateDto {
   isActive?: boolean
 
   @ApiProperty({
+    description: 'Indica si la plantilla tiene estudiantes',
+  })
+  @IsBoolean({
+    message: 'hasStudent is required',
+  })
+  hasStudent: boolean
+
+  @ApiProperty({
+    description: 'Indica si la plantilla tiene funcionarios',
+  })
+  @IsBoolean({
+    message: ' hasFunctionary is required',
+  })
+  hasFunctionary: boolean
+
+  @ApiProperty({
     description: 'Proceso asociado a la plantilla',
   })
   @IsNotEmpty()
   @IsNumber()
   processId: number
+
+  @ApiProperty({
+    description: 'Usuario asociado a la plantilla',
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  userId: number
 }

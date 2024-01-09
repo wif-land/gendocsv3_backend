@@ -33,7 +33,7 @@ export class CouncilAttendanceEntity
   })
   role: CouncilAttendanceRole
 
-  @ManyToOne(() => CouncilEntity, {
+  @ManyToOne(() => CouncilEntity, (council) => council.attendance, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
     nullable: false,

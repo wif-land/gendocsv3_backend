@@ -2,7 +2,7 @@ import { Submodule } from '../../submodules/entities/submodule.entity'
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { ApiProperty } from '@nestjs/swagger'
-import { YearModule } from '../../year-module/entities/year-module.entity'
+import { YearModuleEntity } from '../../year-module/entities/year-module.entity'
 import { Process } from '../../processes/entities/process.entity'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 
@@ -88,8 +88,8 @@ export class ModuleEntity extends BaseAppEntity {
   })
   submodules?: Submodule[]
 
-  @OneToMany(() => YearModule, (yearModule) => yearModule.module)
-  yearModules: YearModule[]
+  @OneToMany(() => YearModuleEntity, (yearModule) => yearModule.module)
+  yearModules: YearModuleEntity[]
 
   @OneToMany(() => Process, (process) => process.module)
   processes: Process[]

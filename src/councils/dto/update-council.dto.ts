@@ -5,9 +5,9 @@ import { IsBoolean, IsOptional } from 'class-validator'
 export class UpdateCouncilDto extends PartialType(CreateCouncilDto) {
   @IsOptional()
   @IsBoolean()
-  isActive: boolean
+  isActive?: boolean
 
   @IsOptional()
   @IsBoolean()
-  isArchived: boolean
+  isArchived?: boolean
 }

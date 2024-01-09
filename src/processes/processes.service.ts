@@ -8,9 +8,13 @@ import {
 import { CreateProcessDto } from './dto/create-process.dto'
 import { UpdateProcessDto } from './dto/update-process.dto'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { Repository, DataSource } from 'typeorm'
 import { Process } from './entities/process.entity'
 import { FilesService } from '../files/files.service'
+import { YearModuleEntity } from '../year-module/entities/year-module.entity'
+import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
+import { SubmodulesNames } from '../shared/enums/submodules-names'
+import { ResponseProcessDto } from './dto/response-process.dto'
 
 @Injectable()
 export class ProcessesService {
@@ -18,76 +22,184 @@ export class ProcessesService {
     @InjectRepository(Process)
     private readonly processRepository: Repository<Process>,
 
+    @InjectRepository(YearModuleEntity)
+    private readonly yearModuleRepository: Repository<YearModuleEntity>,
+
+    @InjectRepository(SubmoduleYearModuleEntity)
+    private readonly submoduleYearModuleRepository: Repository<SubmoduleYearModuleEntity>,
+
+    private readonly dataSource: DataSource,
+
     private readonly fileService: FilesService,
   ) {}
 
-  async create(createProcessDto: CreateProcessDto): Promise<Process> {
+  async create(createProcessDto: CreateProcessDto) {
     try {
+      const year = new Date().getFullYear()
+
+      const yearModule = await this.yearModuleRepository.findOneBy({
+        year,
+        module: { id: createProcessDto.moduleId },
+      })
+
+      if (!yearModule) {
+        throw new NotFoundException('Year module not found')
+      }
+
+      const submoduleYearModule =
+        await this.submoduleYearModuleRepository.findOneBy({
+          name: SubmodulesNames.PROCESSES,
+          yearModule: { id: yearModule.id },
+        })
+
+      if (!submoduleYearModule) {
+        throw new NotFoundException('Submodule year module not found')
+      }
+
       const process = this.processRepository.create({
         ...createProcessDto,
         module: { id: createProcessDto.moduleId },
         user: { id: createProcessDto.userId },
+        submoduleYearModule: { id: submoduleYearModule.id },
       })
 
       if (!process) {
         throw new BadRequestException('Process not created')
       }
 
-      return await this.processRepository.save(process)
+      const processFolderId = await this.fileService.createFolderByParentId(
+        process.name,
+        submoduleYearModule.driveId,
+      )
+
+      if (!processFolderId) {
+        throw new BadRequestException('Process folder not created')
+      }
+
+      process.driveId = processFolderId
+
+      const processRespon = await this.processRepository.save(process)
+
+      return new ResponseProcessDto(processRespon)
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(): Promise<Process[]> {
+  async findAll() {
     try {
-      const processes = await this.processRepository.find({
-        order: {
-          id: 'ASC',
-        },
-      })
+      const qb = this.dataSource
+        .createQueryBuilder(Process, 'processes')
+        .leftJoinAndSelect('processes.user', 'user')
+        .leftJoinAndSelect('processes.module', 'module')
+        .leftJoinAndSelect(
+          'processes.submoduleYearModule',
+          'submoduleYearModule',
+        )
+        .orderBy('processes.createdAt', 'DESC')
+
+      const processes = await qb.getMany()
 
       if (!processes) {
         throw new NotFoundException('Processes not found')
       }
 
-      return processes
+      return processes.map((process) => new ResponseProcessDto(process))
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findOne(id: number): Promise<Process> {
+  async getProcessesByModuleCode(moduleCode: string) {
     try {
-      const process = await this.processRepository.findOneBy({ id })
+      const qb = this.dataSource
+        .createQueryBuilder(Process, 'processes')
+        .leftJoinAndSelect('processes.user', 'user')
+        .leftJoinAndSelect('processes.module', 'module')
+        .leftJoinAndSelect(
+          'processes.submoduleYearModule',
+          'submoduleYearModule',
+        )
+        .where('module.code = :moduleCode', { moduleCode })
+        .orderBy('processes.createdAt', 'DESC')
+
+      const processes = await qb.getMany()
+
+      if (!processes) {
+        throw new HttpException('Processes not found', HttpStatus.NOT_FOUND)
+      }
+
+      const processesResponse = await processes.map(
+        (process) => new ResponseProcessDto(process),
+      )
+
+      return processesResponse
+    } catch (e) {
+      new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async findOne(id: number) {
+    try {
+      const qb = this.dataSource
+        .createQueryBuilder(Process, 'processes')
+        .leftJoinAndSelect('processes.user', 'user')
+        .leftJoinAndSelect('processes.module', 'module')
+        .leftJoinAndSelect(
+          'processes.submoduleYearModule',
+          'submoduleYearModule',
+        )
+        .where('processes.id = :id', { id })
+
+      const process = await qb.getOne()
 
       if (!process) {
         throw new NotFoundException('Process not found')
       }
 
-      return process
+      return new ResponseProcessDto(process)
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async update(
-    id: number,
-    updateProcessDto: UpdateProcessDto,
-  ): Promise<Process> {
+  async update(id: number, updateProcessDto: UpdateProcessDto) {
     try {
-      const process = await this.processRepository.preload({
-        id,
-        ...updateProcessDto,
-        module: { id: updateProcessDto.moduleId },
-        user: { id: updateProcessDto.userId },
-      })
+      const qb = this.dataSource
+        .createQueryBuilder(Process, 'processes')
+        .leftJoinAndSelect('processes.user', 'user')
+        .leftJoinAndSelect('processes.module', 'module')
+        .leftJoinAndSelect(
+          'processes.submoduleYearModule',
+          'submoduleYearModule',
+        )
+        .where('processes.id = :id', { id })
+
+      const process = await qb.getOne()
 
       if (!process) {
         throw new NotFoundException('Process not found')
       }
 
-      return await this.processRepository.save(process)
+      const updatedProcess = this.processRepository.merge(
+        process,
+        updateProcessDto,
+      )
+
+      if (!updatedProcess) {
+        throw new BadRequestException('Process not updated')
+      }
+
+      if (updateProcessDto.name) {
+        await this.fileService.renameAsset(
+          updatedProcess.driveId,
+          updateProcessDto.name,
+        )
+      }
+
+      const responseProcess = await this.processRepository.save(updatedProcess)
+
+      return new ResponseProcessDto(responseProcess)
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

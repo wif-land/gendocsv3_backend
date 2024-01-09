@@ -2,19 +2,19 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { CreateYearModuleDto } from './dto/create-year-module.dto'
 import { UpdateYearModuleDto } from './dto/update-year-module.dto'
 import { InjectRepository } from '@nestjs/typeorm'
-import { YearModule } from './entities/year-module.entity'
+import { YearModuleEntity } from './entities/year-module.entity'
 import { Repository } from 'typeorm'
 import { GcpService } from '../gcp/gcp.service'
-import { SubmoduleYearModule } from './entities/submodule-year-module.entity'
+import { SubmoduleYearModuleEntity } from './entities/submodule-year-module.entity'
 
 @Injectable()
 export class YearModuleService {
   constructor(
-    @InjectRepository(YearModule)
-    private yearModuleRepository: Repository<YearModule>,
+    @InjectRepository(YearModuleEntity)
+    private yearModuleRepository: Repository<YearModuleEntity>,
 
-    @InjectRepository(SubmoduleYearModule)
-    private submoduleYearModuleRepository: Repository<SubmoduleYearModule>,
+    @InjectRepository(SubmoduleYearModuleEntity)
+    private submoduleYearModuleRepository: Repository<SubmoduleYearModuleEntity>,
 
     private gcpService: GcpService,
   ) {}

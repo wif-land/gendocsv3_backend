@@ -1,10 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { CouncilType, ICouncil } from '../interfaces/council.interface'
 import { ApiProperty } from '@nestjs/swagger'
 import { ModuleEntity } from '../../modules/entities/modules.entity'
-import { SubmoduleYearModule } from '../../year-module/entities/submodule-year-module.entity'
 import { User } from '../../users/entities/users.entity'
+import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
+import { CouncilAttendanceEntity } from './council-attendance.entity'
 
 @Entity('councils')
 export class CouncilEntity extends BaseAppEntity implements ICouncil {
@@ -77,9 +78,16 @@ export class CouncilEntity extends BaseAppEntity implements ICouncil {
     example: '2',
     description:
       'submodule_year_module al que pertenece el consejo para obtener el directorio padre de drive',
-    type: () => SubmoduleYearModule,
+    type: () => SubmoduleYearModuleEntity,
   })
-  @ManyToOne(() => SubmoduleYearModule, { nullable: false })
+  @ManyToOne(() => SubmoduleYearModuleEntity, { nullable: false })
   @JoinColumn({ name: 'submodule_year_module_id' })
-  submoduleYearModule: SubmoduleYearModule
+  submoduleYearModule: SubmoduleYearModuleEntity
+
+  @OneToMany(
+    () => CouncilAttendanceEntity,
+    (councilAttendance) => councilAttendance.council,
+    { eager: true },
+  )
+  attendance: CouncilAttendanceEntity[]
 }

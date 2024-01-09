@@ -1,11 +1,21 @@
-import { Inject, Injectable } from '@nestjs/common'
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { CreateCouncilDto } from './dto/create-council.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CouncilEntity } from './entities/council.entity'
-import { Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import { CouncilAttendanceEntity } from './entities/council-attendance.entity'
 import { FilesService } from '../files/files.service'
-import { ModuleEntity } from '../modules/entities/modules.entity'
+import { YearModuleEntity } from '../year-module/entities/year-module.entity'
+import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
+import { SubmodulesNames } from '../shared/enums/submodules-names'
+import { ResponseCouncilsDto } from './dto/response-councils.dto'
+import { UpdateCouncilDto } from './dto/update-council.dto'
 
 @Injectable()
 export class CouncilsService {
@@ -14,10 +24,13 @@ export class CouncilsService {
     private readonly councilRepository: Repository<CouncilEntity>,
     @InjectRepository(CouncilAttendanceEntity)
     private readonly councilAttendanceRepository: Repository<CouncilAttendanceEntity>,
-    @InjectRepository(ModuleEntity)
-    private readonly moduleRepository: Repository<ModuleEntity>,
+    @InjectRepository(YearModuleEntity)
+    private readonly yearModuleRepository: Repository<YearModuleEntity>,
+    @InjectRepository(SubmoduleYearModuleEntity)
+    private readonly submoduleYearModuleRepository: Repository<SubmoduleYearModuleEntity>,
     @Inject(FilesService)
     private readonly filesService: FilesService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createCouncilDto: CreateCouncilDto) {
@@ -25,22 +38,40 @@ export class CouncilsService {
     const hasAttendance = attendance.length > 0
 
     try {
-      const { driveId: moduleFolderId } = await this.moduleRepository.findOne({
-        where: { id: createCouncilDto.moduleId },
-        select: ['driveId'],
+      const year = new Date().getFullYear()
+
+      const yearModule = await this.yearModuleRepository.findOneBy({
+        year,
+        module: { id: createCouncilDto.moduleId },
       })
 
-      const driveId = await this.filesService.createFolder(councilData.name, [
-        moduleFolderId,
-      ])
+      if (!yearModule) {
+        throw new NotFoundException('Year module not found')
+      }
+
+      const submoduleYearModule =
+        await this.submoduleYearModuleRepository.findOneBy({
+          name: SubmodulesNames.COUNCILS,
+          yearModule: { id: yearModule.id },
+        })
+
+      if (!submoduleYearModule) {
+        throw new NotFoundException('Submodule year module not found')
+      }
+
+      const driveId = await this.filesService.createFolderByParentId(
+        councilData.name,
+        submoduleYearModule.driveId,
+      )
 
       const council = this.councilRepository.create({
         ...councilData,
         driveId,
         module: { id: createCouncilDto.moduleId },
         user: { id: createCouncilDto.userId },
-        submoduleYearModule: { id: createCouncilDto.submoduleYearModuleId },
+        submoduleYearModule: { id: submoduleYearModule.id },
       })
+
       const councilInserted = await this.councilRepository.save(council)
 
       if (!hasAttendance) {
@@ -64,24 +95,78 @@ export class CouncilsService {
         attendance: attendanceResult,
       }
     } catch (error) {
-      console.log({ error })
       throw error
     }
   }
 
-  findAll() {
-    return `This action returns all councils`
+  async findAll() {
+    try {
+      const queryBuilder = this.dataSource.createQueryBuilder(
+        CouncilEntity,
+        'councils',
+      )
+      queryBuilder.leftJoinAndSelect('councils.user', 'user')
+      queryBuilder.leftJoinAndSelect('councils.module', 'module')
+      queryBuilder.leftJoinAndSelect(
+        'councils.submoduleYearModule',
+        'submoduleYearModule',
+      )
+      queryBuilder.leftJoinAndSelect('councils.attendance', 'attendance')
+      queryBuilder.leftJoinAndSelect('attendance.functionary', 'functionary')
+      queryBuilder.orderBy('councils.createdAt', 'DESC')
+
+      const councils = await queryBuilder.getMany()
+
+      return councils.map((council) => new ResponseCouncilsDto(council))
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} council`
+  async findOne(id: number) {
+    const queryBuilder = this.dataSource.createQueryBuilder(
+      CouncilEntity,
+      'councils',
+    )
+    queryBuilder.leftJoinAndSelect('councils.user', 'user')
+    queryBuilder.leftJoinAndSelect('councils.module', 'module')
+    queryBuilder.leftJoinAndSelect(
+      'councils.submoduleYearModule',
+      'submoduleYearModule',
+    )
+    queryBuilder.leftJoinAndSelect('councils.attendance', 'attendance')
+    queryBuilder.leftJoinAndSelect('attendance.functionary', 'functionary')
+    queryBuilder.orderBy('councils.createdAt', 'DESC')
+    queryBuilder.where('councils.id = :id', { id })
+
+    const council = await queryBuilder.getOne()
+
+    if (!council) {
+      throw new NotFoundException('Council not found')
+    }
+
+    return new ResponseCouncilsDto(council)
   }
 
-  update(id: number, updateCouncilDto: Partial<CreateCouncilDto>) {
-    return `This action updates a #${id} council${updateCouncilDto}`
-  }
+  async update(id: number, updateCouncilDto: UpdateCouncilDto) {
+    const queryBuilder = this.dataSource.createQueryBuilder(
+      CouncilEntity,
+      'councils',
+    )
+    const hasNameChanged = updateCouncilDto.name !== undefined
 
-  remove(id: number) {
-    return `This action removes a #${id} council`
+    if (hasNameChanged) {
+      queryBuilder.where('councils.id = :id', { id })
+
+      const { driveId } = await queryBuilder.getOne()
+
+      if (!driveId) {
+        throw new NotFoundException('Council not found')
+      }
+
+      await this.filesService.renameAsset(driveId, updateCouncilDto.name)
+    }
+
+    return await this.councilRepository.update(id, updateCouncilDto)
   }
 }

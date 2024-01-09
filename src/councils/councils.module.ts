@@ -5,7 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { CouncilEntity } from './entities/council.entity'
 import { CouncilAttendanceEntity } from './entities/council-attendance.entity'
 import { FilesModule } from '../files/files.module'
-import { ModuleEntity } from '../modules/entities/modules.entity'
+import { YearModuleEntity } from '../year-module/entities/year-module.entity'
+import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { ModuleEntity } from '../modules/entities/modules.entity'
     TypeOrmModule.forFeature([
       CouncilEntity,
       CouncilAttendanceEntity,
-      ModuleEntity,
+      YearModuleEntity,
+      SubmoduleYearModuleEntity,
     ]),
   ],
   controllers: [CouncilsController],

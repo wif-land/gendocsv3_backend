@@ -57,7 +57,7 @@ export default connectionSource
     }),
     TypeOrmModule.forRoot({
       ...config,
-      dropSchema: true,
+      dropSchema: false,
     } as TypeOrmModuleOptions),
     LogModule,
     TerminusModule,

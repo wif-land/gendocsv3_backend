@@ -1,10 +1,10 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
 import { BaseApp } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
-import { YearModule } from './year-module.entity'
+import { YearModuleEntity } from './year-module.entity'
 
 @Entity('submodule_year_module')
-export class SubmoduleYearModule extends BaseApp {
+export class SubmoduleYearModuleEntity extends BaseApp {
   @ApiProperty({
     example: 'procesos',
     description: 'Nombre del directorio',
@@ -28,9 +28,9 @@ export class SubmoduleYearModule extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Id del year_module',
-    type: () => YearModule,
+    type: () => YearModuleEntity,
   })
-  @ManyToOne(() => YearModule, { eager: true, nullable: false })
+  @ManyToOne(() => YearModuleEntity, { eager: true, nullable: false })
   @JoinColumn({ name: 'year_module_id' })
-  yearModule: YearModule
+  yearModule: YearModuleEntity
 }

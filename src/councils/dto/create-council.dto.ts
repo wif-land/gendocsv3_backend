@@ -45,14 +45,6 @@ export class CreateCouncilDto implements ICouncil {
   @IsNotEmpty({ message: 'userId field is required' })
   userId: number
 
-  @ApiProperty({
-    description:
-      'submodule_year_module al que pertenece el consejo para obtener el directorio padre de drive',
-    example: '2',
-  })
-  @IsNotEmpty({ message: 'submoduleYearModuleId field is required' })
-  submoduleYearModuleId: number
-
   @IsOptional()
   attendance?: CreateAttendanceDto[]
 }
