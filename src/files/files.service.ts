@@ -18,4 +18,18 @@ export class FilesService {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
+
+  async createFolder(title: string, parents: string[]): Promise<string> {
+    try {
+      const folder = await this.gcpService.createFolder(title, parents)
+
+      if (!folder) {
+        throw new HttpException('Error creating folder', HttpStatus.CONFLICT)
+      }
+
+      return folder
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
 }

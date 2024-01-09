@@ -1,6 +1,6 @@
-import { Module } from '../../modules/entities/modules.entity'
+import { ModuleEntity } from '../../modules/entities/modules.entity'
 
 export class CreateYearModuleDto {
   year: number
-  module: Module
+  module: ModuleEntity
 }

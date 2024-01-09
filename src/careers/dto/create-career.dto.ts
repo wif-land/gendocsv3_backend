@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsBoolean, IsNotEmpty, IsString } from 'class-validator'
 import { ICareer } from '../interfaces/career.interface'
+
 export class CreateCareerDto implements ICareer {
   @ApiProperty()
   @IsNotEmpty({ message: 'internshipHours is required' })

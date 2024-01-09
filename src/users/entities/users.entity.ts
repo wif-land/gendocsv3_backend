@@ -1,9 +1,10 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { RolesType } from '../../auth/decorators/roles-decorator'
-import { Module } from '../../modules/entities/modules.entity'
+import { ModuleEntity } from '../../modules/entities/modules.entity'
 import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { Process } from '../../processes/entities/process.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
+import { CouncilEntity } from '../../councils/entities/council.entity'
 
 @Entity('users')
 export class User extends BaseAppEntity {
@@ -72,7 +73,7 @@ export class User extends BaseAppEntity {
   })
   isActive: boolean
 
-  @ManyToMany(() => Module, {
+  @ManyToMany(() => ModuleEntity, {
     eager: true,
     onDelete: 'NO ACTION',
     onUpdate: 'NO ACTION',
@@ -82,11 +83,14 @@ export class User extends BaseAppEntity {
     joinColumn: { name: 'user_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'module_id', referencedColumnName: 'id' },
   })
-  accessModules?: Module[]
+  accessModules?: ModuleEntity[]
 
   @OneToMany(() => Process, (process) => process.user)
   processes: Process[]
 
   @OneToMany(() => TemplateProcess, (templateProcess) => templateProcess.user)
   templateProcesses: TemplateProcess[]
+
+  @OneToMany(() => CouncilEntity, (council) => council.user)
+  councils: CouncilEntity[]
 }

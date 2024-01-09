@@ -1,9 +1,10 @@
-import { Column, Entity } from 'typeorm'
+import { Column, Entity, OneToMany } from 'typeorm'
 import { BasePerson } from '../../shared/entities/base-person.entity'
 import { ApiProperty } from '@nestjs/swagger'
+import { CouncilAttendanceEntity } from '../../councils/entities/council-attendance.entity'
 
 @Entity('functionaries')
-export class Functionary extends BasePerson {
+export class FunctionaryEntity extends BasePerson {
   @ApiProperty({
     example: '070747643',
     description: 'Cédula de identidad',
@@ -60,4 +61,10 @@ export class Functionary extends BasePerson {
     default: true,
   })
   isActive: boolean
+
+  @OneToMany(
+    () => CouncilAttendanceEntity,
+    (councilAttendance) => councilAttendance.functionary,
+  )
+  councilAttendance: CouncilAttendanceEntity[]
 }

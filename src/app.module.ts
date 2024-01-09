@@ -28,7 +28,7 @@ import { ProcessesModule } from './processes/processes.module'
 import { TemplatesModule } from './templates/templates.module'
 import { YearModuleModule } from './year-module/year-module.module'
 import { VariablesModule } from './variables/variables.module'
-import { CouncilsModule } from './councils/councils.module';
+import { CouncilsModule } from './councils/councils.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -57,7 +57,7 @@ export default connectionSource
     }),
     TypeOrmModule.forRoot({
       ...config,
-      dropSchema: process.env.NODE_ENV === 'development',
+      dropSchema: true,
     } as TypeOrmModuleOptions),
     LogModule,
     TerminusModule,

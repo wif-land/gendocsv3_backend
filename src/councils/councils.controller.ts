@@ -10,18 +10,23 @@ import {
 import { CouncilsService } from './councils.service'
 import { CreateCouncilDto } from './dto/create-council.dto'
 import { Auth } from '../auth/decorators/auth-decorator'
+import { ApiResponse, ApiTags } from '@nestjs/swagger'
+import { CouncilEntity } from './entities/council.entity'
 
+@ApiTags('Councils')
 @Controller('councils')
 export class CouncilsController {
   constructor(private readonly councilsService: CouncilsService) {}
 
   @Auth('ADMIN')
+  @ApiResponse({ type: CouncilEntity })
   @Post()
   create(@Body() createCouncilDto: CreateCouncilDto) {
     return this.councilsService.create(createCouncilDto)
   }
 
   @Auth('ADMIN')
+  @ApiResponse({ isArray: true, type: CouncilEntity })
   @Get()
   findAll() {
     return this.councilsService.findAll()

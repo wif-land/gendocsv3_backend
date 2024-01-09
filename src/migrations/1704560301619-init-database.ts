@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 import { User } from '../users/entities/users.entity'
-import { Module } from '../modules/entities/modules.entity'
+import { ModuleEntity } from '../modules/entities/modules.entity'
 import { Submodule } from '../submodules/entities/submodule.entity'
 import { SubmodulesModule } from '../submodules-modules/entities/submodule-module.entity'
 import { UserAccessModule } from '../users-access-modules/entities/user-access-module.entity'
@@ -10,7 +10,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     const connection = queryRunner.connection
 
     const userRepository = connection.getRepository(User)
-    const moduleRepository = connection.getRepository(Module)
+    const moduleRepository = connection.getRepository(ModuleEntity)
     const submoduleRepository = connection.getRepository(Submodule)
 
     const adminUser = [
@@ -160,7 +160,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     const connection = queryRunner.connection
 
     const userRepository = connection.getRepository(User)
-    const moduleRepository = connection.getRepository(Module)
+    const moduleRepository = connection.getRepository(ModuleEntity)
     const submoduleRepository = connection.getRepository(Submodule)
     const submodulesModuleRepository =
       connection.getRepository(SubmodulesModule)

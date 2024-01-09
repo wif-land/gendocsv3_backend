@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { UserAccessModule } from './entities/user-access-module.entity'
 import { DataSource, Repository } from 'typeorm'
 import { CreateUserAccessModuleDto } from './dto/create-user-access-module.dto'
-import { Module } from '../modules/entities/modules.entity'
+import { ModuleEntity } from '../modules/entities/modules.entity'
 
 @Injectable()
 export class UserAccessModulesService {
@@ -19,7 +19,7 @@ export class UserAccessModulesService {
       const { userId, modulesIds } = createUserAccessModuleDto
 
       const userAccessModules: UserAccessModule[] = []
-      const modules: Module[] = []
+      const modules: ModuleEntity[] = []
 
       for (const moduleId of modulesIds) {
         const userAccessModuleCreated = this.userAccessModulesRepository.create(
@@ -43,7 +43,7 @@ export class UserAccessModulesService {
         const module = await this.dataSource
           .createQueryBuilder()
           .select('module')
-          .from(Module, 'module')
+          .from(ModuleEntity, 'module')
           .where('module.id = :moduleId', { moduleId })
           .getOne()
 
@@ -69,7 +69,7 @@ export class UserAccessModulesService {
 
   async update(createUserAccessModuleDto: CreateUserAccessModuleDto) {
     const { userId, modulesIds } = createUserAccessModuleDto
-    const modules: Module[] = []
+    const modules: ModuleEntity[] = []
 
     const userAccessModules: UserAccessModule[] = []
     try {
@@ -110,7 +110,7 @@ export class UserAccessModulesService {
         const module = await this.dataSource
           .createQueryBuilder()
           .select('module')
-          .from(Module, 'module')
+          .from(ModuleEntity, 'module')
           .where('module.id = :moduleId', { moduleId })
           .getOne()
 
@@ -157,7 +157,7 @@ export class UserAccessModulesService {
       const userAccessModules = await this.dataSource
         .createQueryBuilder()
         .select('module')
-        .from(Module, 'module')
+        .from(ModuleEntity, 'module')
         .innerJoin('users_access_modules', 'uam', 'uam.module_id = module.id')
         .where('uam.user_id = :userId', { userId })
         .getMany()
