@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common'
 import { ProcessesService } from './processes.service'
 import { CreateProcessDto } from './dto/create-process.dto'
@@ -31,8 +32,8 @@ export class ProcessesController {
   }
 
   @ApiResponse({ isArray: true, type: ResponseProcessDto })
-  @Get('get-processes')
-  async getProcesses(@Param('module-code') moduleCode: string) {
+  @Get('get-processes?')
+  async getProcesses(@Query('module-code') moduleCode: string) {
     return await this.processesService.getProcessesByModuleCode(moduleCode)
   }
 
