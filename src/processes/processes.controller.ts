@@ -32,7 +32,7 @@ export class ProcessesController {
   }
 
   @ApiResponse({ isArray: true, type: ResponseProcessDto })
-  @Get('get-processes?')
+  @Get('get-by-module?')
   async getProcesses(@Query('module-code') moduleCode: string) {
     return await this.processesService.getProcessesByModuleCode(moduleCode)
   }

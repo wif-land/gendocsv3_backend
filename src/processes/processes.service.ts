@@ -33,7 +33,7 @@ export class ProcessesService {
     private readonly fileService: FilesService,
   ) {}
 
-  async create(createProcessDto: CreateProcessDto): Promise<Process> {
+  async create(createProcessDto: CreateProcessDto) {
     try {
       const year = new Date().getFullYear()
 
@@ -78,7 +78,9 @@ export class ProcessesService {
 
       process.driveId = processFolderId
 
-      return await this.processRepository.save(process)
+      const processRespon = await this.processRepository.save(process)
+
+      return new ResponseProcessDto(processRespon)
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
