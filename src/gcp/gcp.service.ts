@@ -52,4 +52,19 @@ export class GcpService {
 
     return data.id
   }
+
+  async createFolderByParentId(
+    title: string,
+    parentId: string,
+  ): Promise<string> {
+    const { data } = await this.drive.files.create({
+      requestBody: {
+        name: title,
+        mimeType: 'application/vnd.google-apps.folder',
+        parents: [parentId],
+      },
+    })
+
+    return data.id
+  }
 }
