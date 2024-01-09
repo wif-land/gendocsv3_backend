@@ -108,6 +108,35 @@ export class ProcessesService {
     }
   }
 
+  async getProcessesByModuleCode(moduleCode: string) {
+    try {
+      const qb = this.dataSource
+        .createQueryBuilder(Process, 'processes')
+        .leftJoinAndSelect('processes.user', 'user')
+        .leftJoinAndSelect('processes.module', 'module')
+        .leftJoinAndSelect(
+          'processes.submoduleYearModule',
+          'submoduleYearModule',
+        )
+        .where('module.code = :moduleCode', { moduleCode })
+        .orderBy('processes.createdAt', 'DESC')
+
+      const processes = await qb.getMany()
+
+      if (!processes) {
+        throw new HttpException('Processes not found', HttpStatus.NOT_FOUND)
+      }
+
+      const processesResponse = await processes.map(
+        (process) => new ResponseProcessDto(process),
+      )
+
+      return processesResponse
+    } catch (e) {
+      new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
   async findOne(id: number) {
     try {
       const qb = this.dataSource

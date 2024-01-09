@@ -36,7 +36,11 @@ export class ModulesService {
 
   async findAll(): Promise<Module[]> {
     try {
-      const modules = await this.moduleRepository.find()
+      const modules = await this.moduleRepository.find({
+        where: {
+          isActive: true,
+        },
+      })
 
       if (!modules) {
         throw new HttpException('Modules not found', HttpStatus.NOT_FOUND)
