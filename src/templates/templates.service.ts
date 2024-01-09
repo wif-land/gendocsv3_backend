@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common'
 import { CreateTemplateDto } from './dto/create-template.dto'
 import { UpdateTemplateDto } from './dto/update-template.dto'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -30,14 +34,17 @@ export class TemplatesService {
 
       const qb = this.dataSource
         .createQueryBuilder(Process, 'process')
+        .leftJoinAndSelect('process.module', 'module')
         .where('process.id = :id', { id: createTemplateDto.processId })
 
       const process = await qb.getOne()
 
-      const templateId = await this.filesService.createDocumentByParentId(
-        createTemplateDto.name,
-        process.driveId,
-      )
+      const templateId =
+        await this.filesService.createDocumentByParentIdAndCopy(
+          createTemplateDto.name,
+          process.driveId,
+          process.module.defaultTemplateDriveId,
+        )
 
       template.driveId = templateId
 
@@ -45,12 +52,26 @@ export class TemplatesService {
 
       return new ResponseTemplateDto(savedTemplate)
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new InternalServerErrorException(error.message)
     }
   }
 
-  async findAll(): Promise<TemplateProcess[]> {
-    return await this.templateRepository.find()
+  async findAll(): Promise<ResponseTemplateDto[]> {
+    try {
+      const templates = await this.templateRepository.find()
+
+      if (!templates) {
+        throw new BadRequestException('Templates not found')
+      }
+
+      const responseTemplates = templates.map(
+        (template) => new ResponseTemplateDto(template),
+      )
+
+      return responseTemplates
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
   }
 
   async findOne(id: number): Promise<TemplateProcess> {

@@ -37,9 +37,9 @@ export class CreateTemplateDto {
     description: 'Indica si la plantilla tiene funcionarios',
   })
   @IsBoolean({
-    message: ' hasFuntionary is required',
+    message: ' hasFunctionary is required',
   })
-  hasFuntionary: boolean
+  hasFunctionary: boolean
 
   @ApiProperty({
     description: 'Proceso asociado a la plantilla',

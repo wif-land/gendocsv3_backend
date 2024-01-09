@@ -39,6 +39,28 @@ export class FilesService {
     }
   }
 
+  async createDocumentByParentIdAndCopy(
+    title: string,
+    parentId: string,
+    documentId: string,
+  ): Promise<string> {
+    try {
+      const document = await this.gcpService.createDocumentByParentIdAndCopy(
+        title,
+        parentId,
+        documentId,
+      )
+
+      if (!document) {
+        throw new HttpException('Error creating document', HttpStatus.CONFLICT)
+      }
+
+      return document
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
   async renameDocument(documentId: string, title: string): Promise<string> {
     try {
       const document = await this.gcpService.renameDocument(documentId, title)

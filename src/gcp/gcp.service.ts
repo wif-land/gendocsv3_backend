@@ -56,6 +56,21 @@ export class GcpService {
     return data.id
   }
 
+  async createDocumentByParentIdAndCopy(
+    title: string,
+    parentId: string,
+    documentId: string,
+  ): Promise<string> {
+    const { data } = await this.drive.files.copy({
+      fileId: documentId,
+      requestBody: {
+        name: title,
+        parents: [parentId],
+      },
+    })
+    return data.id
+  }
+
   async renameDocument(documentId: string, title: string): Promise<string> {
     const { data } = await this.drive.files.update({
       fileId: documentId,
