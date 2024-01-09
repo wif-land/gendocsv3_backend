@@ -18,4 +18,38 @@ export class FilesService {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
+
+  async createFolderByParentId(
+    title: string,
+    parentId: string,
+  ): Promise<string> {
+    try {
+      const folder = await this.gcpService.createFolderByParentId(
+        title,
+        parentId,
+      )
+
+      if (!folder) {
+        throw new HttpException('Error creating folder', HttpStatus.CONFLICT)
+      }
+
+      return folder
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async renameFolder(folderId: string, title: string): Promise<string> {
+    try {
+      const folder = await this.gcpService.renameFolder(folderId, title)
+
+      if (!folder) {
+        throw new HttpException('Error renaming folder', HttpStatus.CONFLICT)
+      }
+
+      return folder
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
-import { YearModule } from '../year-module/entities/year-module.entity'
-import { SubmoduleYearModule } from '../year-module/entities/submodule-year-module.entity'
+import { YearModuleEntity } from '../year-module/entities/year-module.entity'
+import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
 
 export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
   name?: string
@@ -8,9 +8,10 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const connection = queryRunner.connection
 
-    const yearModuleRepository = connection.getRepository(YearModule)
-    const submoduleYearModuleRepository =
-      connection.getRepository(SubmoduleYearModule)
+    const yearModuleRepository = connection.getRepository(YearModuleEntity)
+    const submoduleYearModuleRepository = connection.getRepository(
+      SubmoduleYearModuleEntity,
+    )
 
     const yearModuleData = [
       {
@@ -219,9 +220,10 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     const connection = queryRunner.connection
 
-    const yearModuleRepository = connection.getRepository(YearModule)
-    const submoduleYearModuleRepository =
-      connection.getRepository(SubmoduleYearModule)
+    const yearModuleRepository = connection.getRepository(YearModuleEntity)
+    const submoduleYearModuleRepository = connection.getRepository(
+      SubmoduleYearModuleEntity,
+    )
 
     await yearModuleRepository.delete({})
     await submoduleYearModuleRepository.delete({})

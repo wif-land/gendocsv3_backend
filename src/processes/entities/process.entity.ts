@@ -3,7 +3,7 @@ import { BaseApp } from '../../shared/entities/base-app.entity'
 import { User } from '../../users/entities/users.entity'
 import { Module } from '../../modules/entities/modules.entity'
 import { ApiProperty } from '@nestjs/swagger'
-import { SubmoduleYearModule } from '../../year-module/entities/submodule-year-module.entity'
+import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 
 @Entity('processes')
@@ -61,11 +61,11 @@ export class Process extends BaseApp {
     example: '2',
     description:
       'submodule_year_module al que pertenece proceso para obtener el directorio padre de drive',
-    type: () => SubmoduleYearModule,
+    type: () => SubmoduleYearModuleEntity,
   })
-  @ManyToOne(() => SubmoduleYearModule, { nullable: false })
+  @ManyToOne(() => SubmoduleYearModuleEntity, { nullable: false })
   @JoinColumn({ name: 'submodule_year_module_id' })
-  submoduleYearModule: SubmoduleYearModule
+  submoduleYearModule: SubmoduleYearModuleEntity
 
   @OneToMany(
     () => TemplateProcess,

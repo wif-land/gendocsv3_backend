@@ -67,4 +67,15 @@ export class GcpService {
 
     return data.id
   }
+
+  async renameFolder(folderId: string, title: string): Promise<string> {
+    const { data } = await this.drive.files.update({
+      fileId: folderId,
+      requestBody: {
+        name: title,
+      },
+    })
+
+    return data.id
+  }
 }
