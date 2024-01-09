@@ -43,9 +43,9 @@ export class ProcessesController {
     return await this.processesService.findOne(id)
   }
 
-  @Patch(':id')
+  @Patch('?')
   async update(
-    @Param('id') id: number,
+    @Query('id') id: number,
     @Body() updateProcessDto: UpdateProcessDto,
   ) {
     return await this.processesService.update(id, updateProcessDto)

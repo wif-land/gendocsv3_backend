@@ -19,6 +19,40 @@ export class FilesService {
     }
   }
 
+  async createDocumentByParentId(
+    title: string,
+    parentId: string,
+  ): Promise<string> {
+    try {
+      const document = await this.gcpService.createDocumentByParentId(
+        title,
+        parentId,
+      )
+
+      if (!document) {
+        throw new HttpException('Error creating document', HttpStatus.CONFLICT)
+      }
+
+      return document
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async renameDocument(documentId: string, title: string): Promise<string> {
+    try {
+      const document = await this.gcpService.renameDocument(documentId, title)
+
+      if (!document) {
+        throw new HttpException('Error renaming document', HttpStatus.CONFLICT)
+      }
+
+      return document
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
   async createFolderByParentId(
     title: string,
     parentId: string,
