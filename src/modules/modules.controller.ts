@@ -19,4 +19,9 @@ export class ModulesController {
   async findAll() {
     return await this.modulesService.findAll()
   }
+
+  @Get('set-folders')
+  async setFolders() {
+    return await this.modulesService.setFolders()
+  }
 }

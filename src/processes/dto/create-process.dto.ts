@@ -16,20 +16,6 @@ export class CreateProcessDto {
   name: string
 
   @ApiProperty({
-    description: 'Estado del proceso',
-  })
-  @IsNotEmpty()
-  @IsString()
-  state: string
-
-  @ApiProperty({
-    description: 'Identificador único del drive',
-  })
-  @IsNotEmpty()
-  @IsString()
-  driveId: string
-
-  @ApiProperty({
     description: 'Estado de proceso',
     required: false,
   })
@@ -43,7 +29,7 @@ export class CreateProcessDto {
     description: 'Usuario asociado al proceso',
   })
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
   userId: number
 
   @ApiProperty({

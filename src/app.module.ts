@@ -26,6 +26,8 @@ import { DataSource, DataSourceOptions } from 'typeorm'
 import { config as dotenvConfig } from 'dotenv'
 import { ProcessesModule } from './processes/processes.module'
 import { TemplatesModule } from './templates/templates.module'
+import { YearModuleModule } from './year-module/year-module.module'
+import { VariablesModule } from './variables/variables.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -72,6 +74,8 @@ export default connectionSource
     StudentsModule,
     ProcessesModule,
     TemplatesModule,
+    YearModuleModule,
+    VariablesModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],

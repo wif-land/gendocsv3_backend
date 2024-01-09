@@ -1,8 +1,10 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { BaseApp } from '../../shared/entities/base-app.entity'
 import { User } from '../../users/entities/users.entity'
 import { Module } from '../../modules/entities/modules.entity'
 import { ApiProperty } from '@nestjs/swagger'
+import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
+import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 
 @Entity('processes')
 export class Process extends BaseApp {
@@ -17,26 +19,6 @@ export class Process extends BaseApp {
   name: string
 
   @ApiProperty({
-    example: 'En proceso',
-    description: 'Estado del proceso',
-  })
-  @Column({
-    name: 'state',
-    type: 'varchar',
-  })
-  state: string
-
-  @ApiProperty({
-    example: 'Id del drive',
-    description: 'Identificador único del drive',
-  })
-  @Column({
-    name: 'drive_id',
-    type: 'varchar',
-  })
-  driveId: string
-
-  @ApiProperty({
     example: true,
     description: 'Estado del proceso',
     default: true,
@@ -48,7 +30,18 @@ export class Process extends BaseApp {
   isActive: boolean
 
   @ApiProperty({
-    description: 'Usuario asociado al proceso',
+    example: 'asdfasdfasdfawefargadg',
+    description: 'Identificador único del directorio del proceso en drive',
+  })
+  @Column({
+    name: 'drive_id',
+    type: 'varchar',
+  })
+  driveId: string
+
+  @ApiProperty({
+    example: '1',
+    description: 'Usuario que creó el proceso',
     type: () => User,
   })
   @ManyToOne(() => User, { eager: true, nullable: false })
@@ -56,10 +49,27 @@ export class Process extends BaseApp {
   user: User
 
   @ApiProperty({
+    example: '1',
     description: 'Módulo asociado al proceso',
     type: () => Module,
   })
   @ManyToOne(() => Module, { eager: true, nullable: false })
   @JoinColumn({ name: 'module_id' })
   module: Module
+
+  @ApiProperty({
+    example: '2',
+    description:
+      'submodule_year_module al que pertenece proceso para obtener el directorio padre de drive',
+    type: () => SubmoduleYearModuleEntity,
+  })
+  @ManyToOne(() => SubmoduleYearModuleEntity, { nullable: false })
+  @JoinColumn({ name: 'submodule_year_module_id' })
+  submoduleYearModule: SubmoduleYearModuleEntity
+
+  @OneToMany(
+    () => TemplateProcess,
+    (templateProcess) => templateProcess.process,
+  )
+  templateProcesses: TemplateProcess[]
 }

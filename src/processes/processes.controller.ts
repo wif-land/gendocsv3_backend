@@ -6,12 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common'
 import { ProcessesService } from './processes.service'
 import { CreateProcessDto } from './dto/create-process.dto'
 import { UpdateProcessDto } from './dto/update-process.dto'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Process } from './entities/process.entity'
+import { ResponseProcessDto } from './dto/response-process.dto'
 
 @ApiTags('Processes')
 @Controller('processes')
@@ -23,10 +25,16 @@ export class ProcessesController {
     return await this.processesService.create(createProcessDto)
   }
 
-  @ApiResponse({ isArray: true, type: Process })
+  @ApiResponse({ isArray: true, type: ResponseProcessDto })
   @Get()
   async findAll() {
     return await this.processesService.findAll()
+  }
+
+  @ApiResponse({ isArray: true, type: ResponseProcessDto })
+  @Get('get-by-module?')
+  async getProcesses(@Query('module-code') moduleCode: string) {
+    return await this.processesService.getProcessesByModuleCode(moduleCode)
   }
 
   @ApiResponse({ type: Process })
@@ -35,9 +43,9 @@ export class ProcessesController {
     return await this.processesService.findOne(id)
   }
 
-  @Patch(':id')
+  @Patch('?')
   async update(
-    @Param('id') id: number,
+    @Query('id') id: number,
     @Body() updateProcessDto: UpdateProcessDto,
   ) {
     return await this.processesService.update(id, updateProcessDto)

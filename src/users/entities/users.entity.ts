@@ -1,7 +1,9 @@
-import { Column, Entity, JoinTable, ManyToMany } from 'typeorm'
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { RolesType } from '../../auth/decorators/roles-decorator'
 import { Module } from '../../modules/entities/modules.entity'
 import { BaseAppEntity } from '../../shared/entities/base.entity'
+import { Process } from '../../processes/entities/process.entity'
+import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 
 @Entity('users')
 export class User extends BaseAppEntity {
@@ -81,4 +83,10 @@ export class User extends BaseAppEntity {
     inverseJoinColumn: { name: 'module_id', referencedColumnName: 'id' },
   })
   accessModules?: Module[]
+
+  @OneToMany(() => Process, (process) => process.user)
+  processes: Process[]
+
+  @OneToMany(() => TemplateProcess, (templateProcess) => templateProcess.user)
+  templateProcesses: TemplateProcess[]
 }
