@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common'
 import { ProcessesService } from './processes.service'
 import { CreateProcessDto } from './dto/create-process.dto'
@@ -29,9 +30,15 @@ export class ProcessesController {
     return await this.processesService.findAll()
   }
 
-  @ApiResponse({ isArray: true, type: ResponseProcessDto })
+  @ApiResponse({ type: ResponseProcessDto })
   @Get(':id')
-  async getProcesses(@Param('id') moduleId: number) {
+  async findOne(@Param('id') id: number) {
+    return await this.processesService.findOne(id)
+  }
+
+  @ApiResponse({ isArray: true, type: ResponseProcessDto })
+  @Get()
+  async getProcesses(@Query('moduleId') moduleId: number) {
     return await this.processesService.getProcessesByModuleId(moduleId)
   }
 
