@@ -31,8 +31,8 @@ export class ProcessesController {
 
   @ApiResponse({ isArray: true, type: ResponseProcessDto })
   @Get(':id')
-  async getProcesses(@Param('id') moduleCode: string) {
-    return await this.processesService.getProcessesByModuleCode(moduleCode)
+  async getProcesses(@Param('id') moduleId: number) {
+    return await this.processesService.getProcessesByModuleId(moduleId)
   }
 
   @Patch(':id')
