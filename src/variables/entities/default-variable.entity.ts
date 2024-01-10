@@ -6,6 +6,16 @@ import { ApiProperty } from '@nestjs/swagger'
 export class DefaultVariable extends BaseApp {
   @ApiProperty({
     example: '{{ESTU_UP}}',
+    description: 'Variable',
+  })
+  @Column({
+    name: 'variable',
+    type: 'varchar',
+  })
+  variable: string
+
+  @ApiProperty({
+    example: 'Nombre del estudiante en mayúscula',
     description: 'Nombre de la variable',
   })
   @Column({
@@ -13,14 +23,4 @@ export class DefaultVariable extends BaseApp {
     type: 'varchar',
   })
   name: string
-
-  @ApiProperty({
-    example: 'Nombre del estudiante en mayúscula',
-    description: 'Descripción de la variable',
-  })
-  @Column({
-    name: 'description',
-    type: 'varchar',
-  })
-  description: string
 }

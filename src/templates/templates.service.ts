@@ -58,7 +58,12 @@ export class TemplatesService {
 
   async findAll(): Promise<ResponseTemplateDto[]> {
     try {
-      const templates = await this.templateRepository.find()
+      const qb = this.dataSource
+        .createQueryBuilder(TemplateProcess, 'template')
+        .leftJoinAndSelect('template.user', 'user')
+        .leftJoinAndSelect('template.process', 'process')
+
+      const templates = await qb.getMany()
 
       if (!templates) {
         throw new BadRequestException('Templates not found')
@@ -74,45 +79,85 @@ export class TemplatesService {
     }
   }
 
-  async findOne(id: number): Promise<TemplateProcess> {
-    const template = await this.templateRepository.findOneBy({ id })
+  async findOne(id: number): Promise<ResponseTemplateDto> {
+    const qb = this.dataSource
+      .createQueryBuilder(TemplateProcess, 'template')
+      .leftJoinAndSelect('template.user', 'user')
+      .leftJoinAndSelect('template.process', 'process')
+      .where('template.id = :id', { id })
+
+    const template = await qb.getOne()
 
     if (!template) {
       throw new BadRequestException('Template not found')
     }
 
-    return template
+    return new ResponseTemplateDto(template)
   }
 
   async update(
     id: number,
     updateTemplateDto: UpdateTemplateDto,
   ): Promise<ResponseTemplateDto> {
-    const template = await this.templateRepository.findOneBy({ id })
+    try {
+      const qb = this.dataSource
+        .createQueryBuilder(TemplateProcess, 'template')
+        .leftJoinAndSelect('template.user', 'user')
+        .leftJoinAndSelect('template.process', 'process')
+        .where('template.id = :id', { id })
 
-    if (!template) {
-      throw new BadRequestException('Template not found')
-    }
+      const template = await qb.getOne()
 
-    const updatedTemplate = this.templateRepository.merge(
-      template,
-      updateTemplateDto,
-    )
+      if (!template) {
+        throw new BadRequestException('Template not found')
+      }
 
-    if (!updatedTemplate) {
-      throw new BadRequestException('Template not updated')
-    }
-
-    if (updateTemplateDto.name) {
-      await this.filesService.renameAsset(
-        updatedTemplate.driveId,
-        updateTemplateDto.name,
+      const updatedTemplate = this.templateRepository.merge(
+        template,
+        updateTemplateDto,
       )
+
+      if (!updatedTemplate) {
+        throw new BadRequestException('Template not updated')
+      }
+
+      if (
+        updateTemplateDto.processId &&
+        updateTemplateDto.processId !== template.process.id
+      ) {
+        const qb = this.dataSource
+          .createQueryBuilder(Process, 'process')
+          .leftJoinAndSelect('process.module', 'module')
+          .where('process.id = :id', { id: updateTemplateDto.processId })
+
+        const process = await qb.getOne()
+
+        if (!process) {
+          throw new BadRequestException('Process not found')
+        }
+
+        const templateId = await this.filesService.moveAsset(
+          template.driveId,
+          process.driveId,
+        )
+        template.driveId = templateId
+
+        updatedTemplate.process = process
+      }
+
+      if (updateTemplateDto.name) {
+        await this.filesService.renameAsset(
+          updatedTemplate.driveId,
+          updateTemplateDto.name,
+        )
+      }
+
+      const savedTemplate = await this.templateRepository.save(updatedTemplate)
+
+      return new ResponseTemplateDto(savedTemplate)
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
     }
-
-    const savedTemplate = await this.templateRepository.save(template)
-
-    return new ResponseTemplateDto(savedTemplate)
   }
 
   async remove(id: number): Promise<boolean> {
