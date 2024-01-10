@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Query,
+} from '@nestjs/common'
 import { CouncilsService } from './councils.service'
 import { CreateCouncilDto } from './dto/create-council.dto'
 import { Auth } from '../auth/decorators/auth-decorator'
@@ -21,8 +29,8 @@ export class CouncilsController {
   @Auth('ADMIN')
   @ApiResponse({ isArray: true, type: CouncilEntity })
   @Get()
-  async findAll() {
-    return this.councilsService.findAll()
+  async findAll(@Query('moduleId') moduleId?: string) {
+    return this.councilsService.findAll(moduleId)
   }
 
   @Auth('ADMIN')

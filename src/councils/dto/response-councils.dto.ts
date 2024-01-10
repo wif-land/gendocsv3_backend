@@ -1,5 +1,6 @@
 import { CouncilAttendanceEntity } from '../entities/council-attendance.entity'
 import { CouncilEntity } from '../entities/council.entity'
+import { CouncilType } from '../interfaces/council.interface'
 
 export class ResponseCouncilsDto {
   id: number
@@ -11,6 +12,9 @@ export class ResponseCouncilsDto {
   createdAt: Date
   updatedAt: Date
   attendance: number[]
+  isActive: boolean
+  isArchived: boolean
+  type: CouncilType
 
   constructor(council: CouncilEntity) {
     this.id = council.id
@@ -21,8 +25,11 @@ export class ResponseCouncilsDto {
     this.driveId = council.driveId
     this.createdAt = council.createdAt
     this.updatedAt = council.updatedAt
+    this.isActive = council.isActive
+    this.isArchived = council.isArchived
     this.attendance = council.attendance.map(
       (item: CouncilAttendanceEntity) => item.id,
     )
+    this.type = council.type
   }
 }

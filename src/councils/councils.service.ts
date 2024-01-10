@@ -99,7 +99,7 @@ export class CouncilsService {
     }
   }
 
-  async findAll() {
+  async findAll(moduleId?: string) {
     try {
       const queryBuilder = this.dataSource.createQueryBuilder(
         CouncilEntity,
@@ -113,6 +113,7 @@ export class CouncilsService {
       )
       queryBuilder.leftJoinAndSelect('councils.attendance', 'attendance')
       queryBuilder.leftJoinAndSelect('attendance.functionary', 'functionary')
+      queryBuilder.where('module.id = :moduleId', { moduleId })
       queryBuilder.orderBy('councils.createdAt', 'DESC')
 
       const councils = await queryBuilder.getMany()
