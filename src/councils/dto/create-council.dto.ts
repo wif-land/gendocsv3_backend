@@ -1,4 +1,10 @@
-import { IsEnum, IsISO8601, IsNotEmpty, IsOptional } from 'class-validator'
+import {
+  IsBoolean,
+  IsEnum,
+  IsISO8601,
+  IsNotEmpty,
+  IsOptional,
+} from 'class-validator'
 import { CouncilType, ICouncil } from '../interfaces/council.interface'
 import { ApiProperty } from '@nestjs/swagger'
 import { CreateAttendanceDto } from './create-attendance.dto'
@@ -47,4 +53,12 @@ export class CreateCouncilDto implements ICouncil {
 
   @IsOptional()
   attendance?: CreateAttendanceDto[]
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean
+
+  @IsOptional()
+  @IsBoolean()
+  isArchived?: boolean
 }

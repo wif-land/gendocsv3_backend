@@ -12,7 +12,6 @@ import { CreateCouncilDto } from './dto/create-council.dto'
 import { Auth } from '../auth/decorators/auth-decorator'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { CouncilEntity } from './entities/council.entity'
-import { UpdateCouncilDto } from './dto/update-council.dto'
 
 @ApiTags('Councils')
 @Controller('councils')
@@ -43,7 +42,7 @@ export class CouncilsController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateCouncilDto: UpdateCouncilDto,
+    @Body() updateCouncilDto: Partial<CreateCouncilDto>,
   ) {
     return this.councilsService.update(+id, updateCouncilDto)
   }
