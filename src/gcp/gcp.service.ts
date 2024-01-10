@@ -82,6 +82,16 @@ export class GcpService {
     return data.id
   }
 
+  async moveAsset(assetId: string, parentId: string): Promise<string> {
+    const { data } = await this.drive.files.update({
+      fileId: assetId,
+      addParents: parentId,
+      removeParents: this.configService.get('gcp.rootDriveFolderId'),
+    })
+
+    return data.id
+  }
+
   async createFolder(title: string): Promise<string> {
     const { data } = await this.drive.files.create({
       requestBody: {

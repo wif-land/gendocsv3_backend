@@ -110,7 +110,7 @@ export class ProcessesService {
     }
   }
 
-  async getProcessesByModuleCode(moduleCode: string) {
+  async getProcessesByModuleId(moduleId: number) {
     try {
       const qb = this.dataSource
         .createQueryBuilder(Process, 'processes')
@@ -120,7 +120,7 @@ export class ProcessesService {
           'processes.submoduleYearModule',
           'submoduleYearModule',
         )
-        .where('module.code = :moduleCode', { moduleCode })
+        .where('module.id = :moduleId', { moduleId })
         .orderBy('processes.createdAt', 'DESC')
 
       const processes = await qb.getMany()

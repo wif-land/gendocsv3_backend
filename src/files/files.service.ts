@@ -75,6 +75,20 @@ export class FilesService {
     }
   }
 
+  async moveAsset(documentId: string, parentId: string): Promise<string> {
+    try {
+      const document = await this.gcpService.moveAsset(documentId, parentId)
+
+      if (!document) {
+        throw new HttpException('Error moving document', HttpStatus.CONFLICT)
+      }
+
+      return document
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
   async createFolderByParentId(
     title: string,
     parentId: string,

@@ -15,7 +15,6 @@ import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
 import { SubmodulesNames } from '../shared/enums/submodules-names'
 import { ResponseCouncilsDto } from './dto/response-councils.dto'
-import { UpdateCouncilDto } from './dto/update-council.dto'
 
 @Injectable()
 export class CouncilsService {
@@ -149,7 +148,7 @@ export class CouncilsService {
     return new ResponseCouncilsDto(council)
   }
 
-  async update(id: number, updateCouncilDto: UpdateCouncilDto) {
+  async update(id: number, updateCouncilDto: Partial<CreateCouncilDto>) {
     const queryBuilder = this.dataSource.createQueryBuilder(
       CouncilEntity,
       'councils',
