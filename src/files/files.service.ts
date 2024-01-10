@@ -61,9 +61,9 @@ export class FilesService {
     }
   }
 
-  async renameDocument(documentId: string, title: string): Promise<string> {
+  async renameAsset(documentId: string, title: string): Promise<string> {
     try {
-      const document = await this.gcpService.renameDocument(documentId, title)
+      const document = await this.gcpService.renameAsset(documentId, title)
 
       if (!document) {
         throw new HttpException('Error renaming document', HttpStatus.CONFLICT)
@@ -87,20 +87,6 @@ export class FilesService {
 
       if (!folder) {
         throw new HttpException('Error creating folder', HttpStatus.CONFLICT)
-      }
-
-      return folder
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
-    }
-  }
-
-  async renameFolder(folderId: string, title: string): Promise<string> {
-    try {
-      const folder = await this.gcpService.renameFolder(folderId, title)
-
-      if (!folder) {
-        throw new HttpException('Error renaming folder', HttpStatus.CONFLICT)
       }
 
       return folder

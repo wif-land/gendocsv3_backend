@@ -4,9 +4,10 @@ import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { YearModuleEntity } from '../../year-module/entities/year-module.entity'
 import { Process } from '../../processes/entities/process.entity'
+import { CouncilEntity } from '../../councils/entities/council.entity'
 
 @Entity('modules')
-export class Module extends BaseAppEntity {
+export class ModuleEntity extends BaseAppEntity {
   @ApiProperty({
     example: 'FACU',
     description: 'Código del módulo',
@@ -92,4 +93,7 @@ export class Module extends BaseAppEntity {
 
   @OneToMany(() => Process, (process) => process.module)
   processes: Process[]
+
+  @OneToMany(() => CouncilEntity, (council) => council.module)
+  councils: CouncilEntity[]
 }

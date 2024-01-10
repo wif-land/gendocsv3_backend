@@ -71,9 +71,9 @@ export class GcpService {
     return data.id
   }
 
-  async renameDocument(documentId: string, title: string): Promise<string> {
+  async renameAsset(assetId: string, title: string): Promise<string> {
     const { data } = await this.drive.files.update({
-      fileId: documentId,
+      fileId: assetId,
       requestBody: {
         name: title,
       },
@@ -103,17 +103,6 @@ export class GcpService {
         name: title,
         mimeType: 'application/vnd.google-apps.folder',
         parents: [parentId],
-      },
-    })
-
-    return data.id
-  }
-
-  async renameFolder(folderId: string, title: string): Promise<string> {
-    const { data } = await this.drive.files.update({
-      fileId: folderId,
-      requestBody: {
-        name: title,
       },
     })
 

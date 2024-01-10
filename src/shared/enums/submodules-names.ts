@@ -1,5 +1,5 @@
 export enum SubmodulesNames {
-  COUNSILS = 'Consejos',
+  COUNCILS = 'Consejos',
   PROCESSES = 'Procesos',
   DEGREE_CERTIFICATES = 'Actas de grado',
 }

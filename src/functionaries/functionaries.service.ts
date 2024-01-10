@@ -8,18 +8,18 @@ import {
 import { CreateFunctionaryDto } from './dto/create-functionary.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { Functionary } from './entities/functionary.entity'
+import { FunctionaryEntity } from './entities/functionary.entity'
 
 @Injectable()
 export class FunctionariesService {
   constructor(
-    @InjectRepository(Functionary)
-    private readonly functionaryRepository: Repository<Functionary>,
+    @InjectRepository(FunctionaryEntity)
+    private readonly functionaryRepository: Repository<FunctionaryEntity>,
   ) {}
 
   async create(
     createFunctionaryDto: CreateFunctionaryDto,
-  ): Promise<Functionary> {
+  ): Promise<FunctionaryEntity> {
     try {
       const functionary =
         this.functionaryRepository.create(createFunctionaryDto)
@@ -34,7 +34,7 @@ export class FunctionariesService {
     }
   }
 
-  async findAll(): Promise<Functionary[]> {
+  async findAll(): Promise<FunctionaryEntity[]> {
     try {
       const functionaries = await this.functionaryRepository.find({
         order: {
@@ -52,7 +52,7 @@ export class FunctionariesService {
     }
   }
 
-  async findOne(id: string): Promise<Functionary> {
+  async findOne(id: string): Promise<FunctionaryEntity> {
     try {
       const functionary = await this.functionaryRepository.findOneBy({ id })
 
@@ -69,7 +69,7 @@ export class FunctionariesService {
   async update(
     id: string,
     updateFunctionaryDto: Partial<CreateFunctionaryDto>,
-  ): Promise<Functionary> {
+  ): Promise<FunctionaryEntity> {
     try {
       const functionary = await this.functionaryRepository.preload({
         id,

@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { Module } from './entities/modules.entity'
+import { ModuleEntity } from './entities/modules.entity'
 import { CreateModuleDTO } from './dto/create-module.dto'
 import { GcpService } from '../gcp/gcp.service'
 import { YearModuleService } from '../year-module/year-module.service'
@@ -9,14 +9,14 @@ import { YearModuleService } from '../year-module/year-module.service'
 @Injectable()
 export class ModulesService {
   constructor(
-    @InjectRepository(Module)
-    private moduleRepository: Repository<Module>,
+    @InjectRepository(ModuleEntity)
+    private moduleRepository: Repository<ModuleEntity>,
 
     private readonly gcpService: GcpService,
     private readonly yearModuleService: YearModuleService,
   ) {}
 
-  async create(module: CreateModuleDTO): Promise<Module> {
+  async create(module: CreateModuleDTO): Promise<ModuleEntity> {
     try {
       const findModule = await this.moduleRepository.findOne({
         where: {
@@ -34,7 +34,7 @@ export class ModulesService {
     }
   }
 
-  async findAll(): Promise<Module[]> {
+  async findAll(): Promise<ModuleEntity[]> {
     try {
       const modules = await this.moduleRepository.find({
         where: {

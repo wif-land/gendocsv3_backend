@@ -104,7 +104,7 @@ export class TemplatesService {
     }
 
     if (updateTemplateDto.name) {
-      await this.filesService.renameDocument(
+      await this.filesService.renameAsset(
         updatedTemplate.driveId,
         updateTemplateDto.name,
       )

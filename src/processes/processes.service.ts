@@ -191,7 +191,7 @@ export class ProcessesService {
       }
 
       if (updateProcessDto.name) {
-        await this.fileService.renameFolder(
+        await this.fileService.renameAsset(
           updatedProcess.driveId,
           updateProcessDto.name,
         )
