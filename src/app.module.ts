@@ -29,6 +29,7 @@ import { TemplatesModule } from './templates/templates.module'
 import { YearModuleModule } from './year-module/year-module.module'
 import { VariablesModule } from './variables/variables.module'
 import { CouncilsModule } from './councils/councils.module'
+import { NumerationDocumentModule } from './numeration-document/numeration-document.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -78,6 +79,7 @@ export default connectionSource
     YearModuleModule,
     VariablesModule,
     CouncilsModule,
+    NumerationDocumentModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],
