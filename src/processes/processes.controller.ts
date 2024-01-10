@@ -24,12 +24,6 @@ export class ProcessesController {
     return await this.processesService.create(createProcessDto)
   }
 
-  @ApiResponse({ isArray: true, type: ResponseProcessDto })
-  @Get()
-  async findAll() {
-    return await this.processesService.findAll()
-  }
-
   @ApiResponse({ type: ResponseProcessDto })
   @Get(':id')
   async findOne(@Param('id') id: number) {
