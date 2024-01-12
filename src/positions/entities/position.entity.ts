@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
 import { BaseApp } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
-import { Functionary } from '../../functionaries/entities/functionary.entity'
+import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 
 @Entity('positions')
 export class Position extends BaseApp {
@@ -30,9 +30,9 @@ export class Position extends BaseApp {
   description: string
 
   @ApiProperty({
-    type: () => Functionary,
+    type: () => FunctionaryEntity,
   })
-  @ManyToOne(() => Functionary, {
+  @ManyToOne(() => FunctionaryEntity, {
     nullable: false,
     eager: true,
   })
@@ -40,5 +40,5 @@ export class Position extends BaseApp {
     name: 'functionary_id',
     referencedColumnName: 'id',
   })
-  functionary: Functionary
+  functionary: FunctionaryEntity
 }
