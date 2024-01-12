@@ -88,12 +88,27 @@ export class ModuleEntity extends BaseAppEntity {
   })
   submodules?: Submodule[]
 
+  @ApiProperty({
+    example: '1',
+    description: 'Años asociados al módulo',
+    type: () => YearModuleEntity,
+  })
   @OneToMany(() => YearModuleEntity, (yearModule) => yearModule.module)
   yearModules: YearModuleEntity[]
 
+  @ApiProperty({
+    example: '1',
+    description: 'Procesos asociados al módulo',
+    type: () => Process,
+  })
   @OneToMany(() => Process, (process) => process.module)
   processes: Process[]
 
+  @ApiProperty({
+    example: '1',
+    description: 'Consejos asociados al módulo',
+    type: () => CouncilEntity,
+  })
   @OneToMany(() => CouncilEntity, (council) => council.module)
   councils: CouncilEntity[]
 }

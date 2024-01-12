@@ -46,6 +46,11 @@ export class YearModuleEntity extends BaseApp {
   @JoinColumn({ name: 'module_id' })
   module: ModuleEntity
 
+  @ApiProperty({
+    example: '1',
+    description: 'Submódulos asociados al año',
+    type: () => SubmoduleYearModuleEntity,
+  })
   @OneToMany(
     () => SubmoduleYearModuleEntity,
     (submoduleYearModule) => submoduleYearModule.yearModule,

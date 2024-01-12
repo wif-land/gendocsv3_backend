@@ -67,6 +67,11 @@ export class Process extends BaseApp {
   @JoinColumn({ name: 'submodule_year_module_id' })
   submoduleYearModule: SubmoduleYearModuleEntity
 
+  @ApiProperty({
+    example: '1',
+    description: 'Plantillas asociadas al proceso',
+    type: () => TemplateProcess,
+  })
   @OneToMany(
     () => TemplateProcess,
     (templateProcess) => templateProcess.process,
