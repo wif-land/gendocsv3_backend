@@ -40,11 +40,17 @@ export class YearModuleEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Módulo asociado al año',
+    type: () => ModuleEntity,
   })
   @ManyToOne(() => ModuleEntity, { eager: true, nullable: false })
   @JoinColumn({ name: 'module_id' })
   module: ModuleEntity
 
+  @ApiProperty({
+    example: '1',
+    description: 'Submódulos asociados al año',
+    type: () => SubmoduleYearModuleEntity,
+  })
   @OneToMany(
     () => SubmoduleYearModuleEntity,
     (submoduleYearModule) => submoduleYearModule.yearModule,

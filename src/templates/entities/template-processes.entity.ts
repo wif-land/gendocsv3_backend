@@ -61,6 +61,7 @@ export class TemplateProcess extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Proceso asociado a la plantilla',
+    type: () => Process,
   })
   @ManyToOne(() => Process, { eager: true, nullable: false })
   @JoinColumn({ name: 'process_id' })
@@ -69,6 +70,7 @@ export class TemplateProcess extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Usuario asociado a la plantilla',
+    type: () => User,
   })
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({ name: 'user_id' })

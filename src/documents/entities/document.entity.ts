@@ -27,6 +27,7 @@ export class DocumentEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Id de la template de la que se creó el documento',
+    type: () => TemplateProcess,
   })
   @OneToMany(
     () => TemplateProcess,
@@ -47,6 +48,7 @@ export class DocumentEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Usuario que creó el documento',
+    type: () => User,
   })
   @ManyToOne(() => User, (user) => user.documents, { nullable: false })
   @JoinColumn({ name: 'user_id' })

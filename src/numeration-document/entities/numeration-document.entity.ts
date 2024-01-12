@@ -41,6 +41,7 @@ export class NumerationDocumentEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Identificador único del year_module',
+    type: () => YearModuleEntity,
   })
   @ManyToOne(() => YearModuleEntity, { nullable: false })
   @JoinColumn({ name: 'year_module_id' })

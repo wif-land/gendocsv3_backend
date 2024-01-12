@@ -42,6 +42,7 @@ export class Process extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Usuario que creó el proceso',
+    type: () => User,
   })
   @ManyToOne(() => User, { eager: true, nullable: false })
   @JoinColumn({ name: 'user_id' })
@@ -50,6 +51,7 @@ export class Process extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Módulo asociado al proceso',
+    type: () => ModuleEntity,
   })
   @ManyToOne(() => ModuleEntity, { eager: true, nullable: false })
   @JoinColumn({ name: 'module_id' })
@@ -59,11 +61,17 @@ export class Process extends BaseApp {
     example: '2',
     description:
       'submodule_year_module al que pertenece proceso para obtener el directorio padre de drive',
+    type: () => SubmoduleYearModuleEntity,
   })
   @ManyToOne(() => SubmoduleYearModuleEntity, { nullable: false })
   @JoinColumn({ name: 'submodule_year_module_id' })
   submoduleYearModule: SubmoduleYearModuleEntity
 
+  @ApiProperty({
+    example: '1',
+    description: 'Plantillas asociadas al proceso',
+    type: () => TemplateProcess,
+  })
   @OneToMany(
     () => TemplateProcess,
     (templateProcess) => templateProcess.process,
