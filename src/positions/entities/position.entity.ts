@@ -11,23 +11,23 @@ export class Position extends BaseApp {
     uniqueItems: true,
   })
   @Column({
-    name: 'name',
+    name: 'variable',
     type: 'varchar',
     length: 50,
     unique: true,
   })
-  name: string
+  variable: string
 
   @ApiProperty({
     example: 'Cargo de prueba',
-    description: 'Descripción del cargo',
+    description: 'Nombre del cargo',
   })
   @Column({
-    name: 'description',
+    name: 'name',
     type: 'varchar',
     length: 255,
   })
-  description: string
+  name: string
 
   @ApiProperty({
     type: () => FunctionaryEntity,
