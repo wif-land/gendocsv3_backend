@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { BasePerson } from '../../shared/entities/base-person.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { Career } from '../../careers/entites/careers.entity'
+import { DocumentEntity } from '../../documents/entities/document.entity'
 
 @Entity('students')
 export class Student extends BasePerson {
@@ -79,7 +80,19 @@ export class Student extends BasePerson {
   approvedCredits: number
 
   @ApiProperty({
-    type: () => Career,
+    example: true,
+    description: 'Estado del estudiante',
+    default: true,
+  })
+  @Column({
+    name: 'is_active',
+    default: true,
+  })
+  isActive: boolean
+
+  @ApiProperty({
+    example: '1',
+    description: 'Carrera a la que pertenece el estudiante',
   })
   @ManyToOne(() => Career, {
     nullable: false,
@@ -91,14 +104,6 @@ export class Student extends BasePerson {
   })
   career: Career
 
-  @ApiProperty({
-    example: true,
-    description: 'Estado del funcionario',
-    default: true,
-  })
-  @Column({
-    name: 'is_active',
-    default: true,
-  })
-  isActive: boolean
+  @OneToMany(() => DocumentEntity, (document) => document.student)
+  documents: DocumentEntity[]
 }

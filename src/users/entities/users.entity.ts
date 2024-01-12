@@ -5,6 +5,7 @@ import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { Process } from '../../processes/entities/process.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 import { CouncilEntity } from '../../councils/entities/council.entity'
+import { DocumentEntity } from '../../documents/entities/document.entity'
 
 @Entity('users')
 export class User extends BaseAppEntity {
@@ -93,4 +94,7 @@ export class User extends BaseAppEntity {
 
   @OneToMany(() => CouncilEntity, (council) => council.user)
   councils: CouncilEntity[]
+
+  @OneToMany(() => DocumentEntity, (document) => document.user)
+  documents: DocumentEntity[]
 }

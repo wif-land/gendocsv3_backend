@@ -120,6 +120,7 @@ export class ProcessesService {
           'processes.submoduleYearModule',
           'submoduleYearModule',
         )
+        .leftJoinAndSelect('processes.templateProcesses', 'templates')
         .where('module.id = :moduleId', { moduleId })
         .orderBy('processes.createdAt', 'DESC')
 

@@ -20,7 +20,7 @@ export class NumerationDocumentEntity extends BaseApp {
   @ApiProperty({
     example: `${NumerationState.ENQUEUED}`,
     description: 'Identificador único del proceso',
-    type: () => NumerationState,
+    enum: NumerationState,
   })
   @Column({
     name: 'state',
@@ -33,7 +33,6 @@ export class NumerationDocumentEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Identificador único del consejo',
-    type: () => CouncilEntity,
   })
   @ManyToOne(() => CouncilEntity, { eager: true, nullable: false })
   @JoinColumn({ name: 'council_id' })
@@ -42,7 +41,6 @@ export class NumerationDocumentEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Identificador único del year_module',
-    type: () => YearModuleEntity,
   })
   @ManyToOne(() => YearModuleEntity, { nullable: false })
   @JoinColumn({ name: 'year_module_id' })
