@@ -3,7 +3,7 @@ import { UsersService } from '../users/users.service'
 import { User } from '../users/entities/users.entity'
 import { JwtService } from '@nestjs/jwt'
 import { compareSync } from 'bcrypt'
-import { Module } from '../modules/entities/modules.entity'
+import { ModuleEntity } from '../modules/entities/modules.entity'
 
 @Injectable()
 export class AuthService {
@@ -23,8 +23,8 @@ export class AuthService {
       throw new UnauthorizedException(`AuthService:login ${email} ********`)
     }
 
-    const accessModulesIds = user.accessModules.map(
-      (module: Module) => module.id,
+    const accessModules = user.accessModules.map(
+      (module: ModuleEntity) => module.id,
     )
 
     const payload = {
@@ -36,7 +36,7 @@ export class AuthService {
       googleEmail: user.googleEmail,
       sub: user.id,
       roles: user.roles,
-      accessModulesIds,
+      accessModules,
       isActive: user.isActive,
     }
 

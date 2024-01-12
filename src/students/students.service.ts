@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { CreateStudentDto } from './dto/create-student.dto'
 import { UpdateStudentDto } from './dto/update-student.dto'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -19,44 +25,84 @@ export class StudentsService {
         ...createStudentDto,
       })
 
+      if (!student) {
+        throw new BadRequestException('Student not created')
+      }
+
       return await this.studentRepository.save(student)
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
   async findAll(): Promise<Student[]> {
-    return await this.studentRepository.find()
+    try {
+      const students = await this.studentRepository.find({
+        order: {
+          id: 'ASC',
+        },
+      })
+
+      if (!students) {
+        throw new BadRequestException('Students not found')
+      }
+
+      return students
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
   async findOne(id: string): Promise<Student> {
-    return await this.studentRepository.findOneBy({ id })
+    try {
+      const student = await this.studentRepository.findOneBy({ id })
+
+      if (!student) {
+        throw new BadRequestException('Student not found')
+      }
+
+      return student
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
   async update(
     id: string,
     updateStudentDto: UpdateStudentDto,
   ): Promise<Student> {
-    const student = await this.studentRepository.preload({
-      id,
-      ...updateStudentDto,
-      career: { id: updateStudentDto.careerId },
-    })
+    try {
+      const student = await this.studentRepository.preload({
+        id,
+        ...updateStudentDto,
+        career: { id: updateStudentDto.careerId },
+      })
 
-    if (!student) {
-      throw new BadRequestException('Student not found')
+      if (!student) {
+        throw new BadRequestException('Student not found')
+      }
+
+      return await this.studentRepository.save(student)
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
-
-    return await this.studentRepository.save(student)
   }
 
   async remove(id: string): Promise<boolean> {
-    const student = await this.findOne(id)
+    try {
+      const student = await this.findOne(id)
 
-    student.isActive = false
+      if (!student) {
+        throw new NotFoundException('Student not found')
+      }
 
-    await this.studentRepository.save(student)
+      student.isActive = false
 
-    return true
+      await this.studentRepository.save(student)
+
+      return true
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 }

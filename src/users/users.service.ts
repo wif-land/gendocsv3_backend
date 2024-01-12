@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, Repository } from 'typeorm'
 import { User } from './entities/users.entity'
@@ -20,79 +20,103 @@ export class UsersService {
   ) {}
 
   async getByEmail(email: string): Promise<User> {
-    const result = await this.userRepository.findOne({
-      where: {
-        outlookEmail: email,
-        isActive: true,
-      },
-    })
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          outlookEmail: email,
+          isActive: true,
+        },
+      })
 
-    return result
+      if (!user) {
+        throw new HttpException(
+          'No se encontro el usuario',
+          HttpStatus.NOT_FOUND,
+        )
+      }
+
+      return user
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
   async create(user: CreateUserDTO) {
-    const password = await this.generateSaltPassword(user.password)
-
-    let userCreated = undefined
-    let error = undefined
-
     try {
+      const password = await this.generateSaltPassword(user.password)
+
+      if (!password) {
+        throw new HttpException(
+          'No se pudo crear el usuario',
+          HttpStatus.CONFLICT,
+        )
+      }
+
       const userEntity = await this.userRepository.create({
         ...user,
         accessModules: [],
         password,
       })
 
+      if (!userEntity) {
+        throw new HttpException(
+          'No se pudo crear el usuario',
+          HttpStatus.CONFLICT,
+        )
+      }
+
       let userSaved = await this.userRepository.save(userEntity)
 
-      const { modules, error } = await this.userAccessModulesService.create({
+      const { modules } = await this.userAccessModulesService.create({
         userId: userSaved.id,
         modulesIds: user.accessModules,
       })
+
+      if (modules.length === 0) {
+        throw new HttpException(
+          'No se pudo crear asignar los modulos al usuario',
+          HttpStatus.CONFLICT,
+        )
+      }
 
       userEntity.accessModules = modules
 
       userSaved = await this.userRepository.save(userEntity)
 
-      if (error) {
-        throw new Error(error)
+      if (!userSaved) {
+        throw new HttpException(
+          'No se pudo crear el usuario',
+          HttpStatus.CONFLICT,
+        )
       }
 
-      if (modules.length === 0) {
-        throw new Error('No se pudo crear asignar los modulos al usuario')
+      return {
+        ...userSaved,
+        accessModules: userSaved.accessModules.map((module) => module.id),
       }
-
-      userCreated = userSaved
-    } catch (e) {
-      error = e
-    }
-
-    return {
-      user: userCreated,
-      error,
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
   async update(id: number, user: Partial<CreateUserDTO>) {
-    let userToUpdate = user
-    let password = ''
-    let error = undefined
-    const hasNewPassword = user.password !== undefined
-    const hasAccessModules = !!user.accessModules
-
     try {
+      let userToUpdate = user
+      let password = ''
+      const hasNewPassword = user.password !== undefined
+      const hasAccessModules = !!user.accessModules
+
       if (hasAccessModules) {
-        const { modules, error } = await this.userAccessModulesService.update({
+        const { modules } = await this.userAccessModulesService.update({
           userId: id,
           modulesIds: user.accessModules,
         })
 
-        if (error) {
-          throw new Error(error)
-        }
-
         if (modules.length === 0) {
-          throw new Error('No se pudo actualizar los modulos del usuario')
+          throw new HttpException(
+            'No se pudo actualizar los modulos del usuario',
+            HttpStatus.CONFLICT,
+          )
         }
       }
 
@@ -103,7 +127,10 @@ export class UsersService {
       })
 
       if (!userGetted) {
-        throw new Error('No se encontro el usuario')
+        throw new HttpException(
+          'No se encontro el usuario',
+          HttpStatus.NOT_FOUND,
+        )
       }
 
       if (hasNewPassword) {
@@ -131,6 +158,13 @@ export class UsersService {
         },
       })
 
+      if (!userUpdated) {
+        throw new HttpException(
+          'No se encontro el usuario',
+          HttpStatus.NOT_FOUND,
+        )
+      }
+
       const payload = {
         sub: id,
         firstName: user.firstName,
@@ -145,9 +179,8 @@ export class UsersService {
       }
 
       return { user: userUpdated, accessToken: this.jwtService.sign(payload) }
-    } catch (e) {
-      error = e
-      return { error }
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
@@ -164,24 +197,39 @@ export class UsersService {
 
       return true
     } catch (error) {
-      return false
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.userRepository.find({
-      select: {
-        id: true,
-        outlookEmail: true,
-        googleEmail: true,
-        firstName: true,
-        firstLastName: true,
-        secondName: true,
-        secondLastName: true,
-        roles: true,
-        isActive: true,
-      },
-    })
+  async findAll() {
+    try {
+      const users = await this.userRepository.find({
+        select: {
+          id: true,
+          outlookEmail: true,
+          googleEmail: true,
+          firstName: true,
+          firstLastName: true,
+          secondName: true,
+          secondLastName: true,
+          roles: true,
+          isActive: true,
+        },
+      })
+
+      const usersFound = users.map((user) => ({
+        ...user,
+        accessModules: user.accessModules.map((module) => module.id),
+      }))
+
+      if (!users) {
+        throw new HttpException('Usuarios no encontrados', HttpStatus.NOT_FOUND)
+      }
+
+      return usersFound
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
   private async generateSaltPassword(password: string): Promise<string> {

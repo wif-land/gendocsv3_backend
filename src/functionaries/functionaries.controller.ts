@@ -12,7 +12,7 @@ import {
 import { FunctionariesService } from './functionaries.service'
 import { CreateFunctionaryDto } from './dto/create-functionary.dto'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
-import { Functionary } from './entities/functionary.entity'
+import { FunctionaryEntity } from './entities/functionary.entity'
 
 @ApiTags('Functionaries')
 @Controller('functionaries')
@@ -24,13 +24,13 @@ export class FunctionariesController {
     return await this.functionariesService.create(createFunctionaryDto)
   }
 
-  @ApiResponse({ isArray: true, type: Functionary })
+  @ApiResponse({ isArray: true, type: FunctionaryEntity })
   @Get()
   async findAll() {
     return await this.functionariesService.findAll()
   }
 
-  @ApiResponse({ type: Functionary })
+  @ApiResponse({ type: FunctionaryEntity })
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.functionariesService.findOne(id)

@@ -1,10 +1,19 @@
-import { Column, Entity, JoinTable, ManyToMany } from 'typeorm'
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { RolesType } from '../../auth/decorators/roles-decorator'
-import { Module } from '../../modules/entities/modules.entity'
+import { ModuleEntity } from '../../modules/entities/modules.entity'
 import { BaseAppEntity } from '../../shared/entities/base.entity'
+import { Process } from '../../processes/entities/process.entity'
+import { TemplateProcess } from '../../templates/entities/template-processes.entity'
+import { CouncilEntity } from '../../councils/entities/council.entity'
+import { DocumentEntity } from '../../documents/entities/document.entity'
+import { ApiProperty } from '@nestjs/swagger'
 
 @Entity('users')
 export class User extends BaseAppEntity {
+  @ApiProperty({
+    example: 'Juan',
+    description: 'Primer nombre del usuario',
+  })
   @Column({
     name: 'first_name',
     type: 'varchar',
@@ -12,6 +21,10 @@ export class User extends BaseAppEntity {
   })
   firstName: string
 
+  @ApiProperty({
+    example: 'Perez',
+    description: 'Segundo nombre del usuario',
+  })
   @Column({
     name: 'second_name',
     type: 'varchar',
@@ -20,6 +33,10 @@ export class User extends BaseAppEntity {
   })
   secondName?: string
 
+  @ApiProperty({
+    example: 'Perez',
+    description: 'Primer apellido del usuario',
+  })
   @Column({
     name: 'first_last_name',
     type: 'varchar',
@@ -27,6 +44,10 @@ export class User extends BaseAppEntity {
   })
   firstLastName: string
 
+  @ApiProperty({
+    example: 'Perez',
+    description: 'Segundo apellido del usuario',
+  })
   @Column({
     name: 'second_last_name',
     type: 'varchar',
@@ -35,6 +56,10 @@ export class User extends BaseAppEntity {
   })
   secondLastName?: string
 
+  @ApiProperty({
+    example: 'joea@uta.edu.ec',
+    description: 'Correo institucional del usuario',
+  })
   @Column({
     name: 'outlook_email',
     unique: true,
@@ -43,6 +68,10 @@ export class User extends BaseAppEntity {
   })
   outlookEmail: string
 
+  @ApiProperty({
+    example: 'jasdf@gmail.com',
+    description: 'Correo personal del usuario',
+  })
   @Column({
     name: 'google_email',
     unique: true,
@@ -51,6 +80,10 @@ export class User extends BaseAppEntity {
   })
   googleEmail: string
 
+  @ApiProperty({
+    example: 'asdfkawehuf',
+    description: 'Contraseña del usuario',
+  })
   @Column({
     name: 'password',
     type: 'varchar',
@@ -58,19 +91,27 @@ export class User extends BaseAppEntity {
   })
   password: string
 
+  @ApiProperty({
+    example: 'ADMIN',
+    description: 'Roles del usuario',
+  })
   @Column({
     name: 'roles',
     type: 'simple-array',
   })
   roles: RolesType[]
 
+  @ApiProperty({
+    example: 'true',
+    description: 'Estado del usuario',
+  })
   @Column({
     name: 'is_active',
     default: true,
   })
   isActive: boolean
 
-  @ManyToMany(() => Module, {
+  @ManyToMany(() => ModuleEntity, {
     eager: true,
     onDelete: 'NO ACTION',
     onUpdate: 'NO ACTION',
@@ -80,5 +121,37 @@ export class User extends BaseAppEntity {
     joinColumn: { name: 'user_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'module_id', referencedColumnName: 'id' },
   })
-  accessModules?: Module[]
+  accessModules?: ModuleEntity[]
+
+  @ApiProperty({
+    example: '1',
+    description: 'Procesos asociados al usuario',
+    type: () => Process,
+  })
+  @OneToMany(() => Process, (process) => process.user)
+  processes: Process[]
+
+  @ApiProperty({
+    example: '1',
+    description: 'Plantillas asociadas al usuario',
+    type: () => TemplateProcess,
+  })
+  @OneToMany(() => TemplateProcess, (templateProcess) => templateProcess.user)
+  templateProcesses: TemplateProcess[]
+
+  @ApiProperty({
+    example: '1',
+    description: 'Consejos asociados al usuario',
+    type: () => CouncilEntity,
+  })
+  @OneToMany(() => CouncilEntity, (council) => council.user)
+  councils: CouncilEntity[]
+
+  @ApiProperty({
+    example: '1',
+    description: 'Documentos asociados al usuario',
+    type: () => DocumentEntity,
+  })
+  @OneToMany(() => DocumentEntity, (document) => document.user)
+  documents: DocumentEntity[]
 }

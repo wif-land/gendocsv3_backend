@@ -24,6 +24,13 @@ import { FunctionariesModule } from './functionaries/functionaries.module'
 import { StudentsModule } from './students/students.module'
 import { DataSource, DataSourceOptions } from 'typeorm'
 import { config as dotenvConfig } from 'dotenv'
+import { ProcessesModule } from './processes/processes.module'
+import { TemplatesModule } from './templates/templates.module'
+import { YearModuleModule } from './year-module/year-module.module'
+import { VariablesModule } from './variables/variables.module'
+import { CouncilsModule } from './councils/councils.module'
+import { NumerationDocumentModule } from './numeration-document/numeration-document.module'
+import { DocumentsModule } from './documents/documents.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -52,7 +59,7 @@ export default connectionSource
     }),
     TypeOrmModule.forRoot({
       ...config,
-      dropSchema: process.env.NODE_ENV === 'development',
+      dropSchema: false,
     } as TypeOrmModuleOptions),
     LogModule,
     TerminusModule,
@@ -68,6 +75,13 @@ export default connectionSource
     UserAccessModulesModule,
     FunctionariesModule,
     StudentsModule,
+    ProcessesModule,
+    TemplatesModule,
+    YearModuleModule,
+    VariablesModule,
+    CouncilsModule,
+    NumerationDocumentModule,
+    DocumentsModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],

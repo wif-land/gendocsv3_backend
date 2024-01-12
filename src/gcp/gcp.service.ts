@@ -41,12 +41,78 @@ export class GcpService {
     return data.id
   }
 
+  async createDocumentByParentId(
+    title: string,
+    parentId: string,
+  ): Promise<string> {
+    const { data } = await this.drive.files.create({
+      requestBody: {
+        name: title,
+        mimeType: 'application/vnd.google-apps.document',
+        parents: [parentId],
+      },
+    })
+
+    return data.id
+  }
+
+  async createDocumentByParentIdAndCopy(
+    title: string,
+    parentId: string,
+    documentId: string,
+  ): Promise<string> {
+    const { data } = await this.drive.files.copy({
+      fileId: documentId,
+      requestBody: {
+        name: title,
+        parents: [parentId],
+      },
+    })
+    return data.id
+  }
+
+  async renameAsset(assetId: string, title: string): Promise<string> {
+    const { data } = await this.drive.files.update({
+      fileId: assetId,
+      requestBody: {
+        name: title,
+      },
+    })
+
+    return data.id
+  }
+
+  async moveAsset(assetId: string, parentId: string): Promise<string> {
+    const { data } = await this.drive.files.update({
+      fileId: assetId,
+      addParents: parentId,
+      removeParents: this.configService.get('gcp.rootDriveFolderId'),
+    })
+
+    return data.id
+  }
+
   async createFolder(title: string): Promise<string> {
     const { data } = await this.drive.files.create({
       requestBody: {
         name: title,
         mimeType: 'application/vnd.google-apps.folder',
         parents: [this.configService.get('gcp.rootDriveFolderId')],
+      },
+    })
+
+    return data.id
+  }
+
+  async createFolderByParentId(
+    title: string,
+    parentId: string,
+  ): Promise<string> {
+    const { data } = await this.drive.files.create({
+      requestBody: {
+        name: title,
+        mimeType: 'application/vnd.google-apps.folder',
+        parents: [parentId],
       },
     })
 
