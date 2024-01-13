@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
 import { BaseApp } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
@@ -9,6 +9,12 @@ export class DocumentFunctionaryEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Id del documento',
+    type: () => DocumentEntity,
+  })
+  @ManyToOne(() => DocumentEntity, {
+    eager: true,
+    nullable: false,
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'document_id' })
   document: DocumentEntity
@@ -16,7 +22,9 @@ export class DocumentFunctionaryEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Id del funcionario',
+    type: () => FunctionaryEntity,
   })
+  @ManyToOne(() => FunctionaryEntity, { eager: true, nullable: false })
   @JoinColumn({ name: 'functionary_id' })
   functionary: FunctionaryEntity
 

@@ -3,6 +3,7 @@ import { BasePerson } from '../../shared/entities/base-person.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { CouncilAttendanceEntity } from '../../councils/entities/council-attendance.entity'
 import { Position } from '../../positions/entities/position.entity'
+import { DocumentFunctionaryEntity } from '../../documents/entities/document-functionary.entity'
 
 @Entity('functionaries')
 export class FunctionaryEntity extends BasePerson {
@@ -79,4 +80,14 @@ export class FunctionaryEntity extends BasePerson {
   })
   @OneToMany(() => Position, (position) => position.functionary)
   positions: Position[]
+
+  @ApiProperty({
+    type: () => DocumentFunctionaryEntity,
+    isArray: true,
+  })
+  @OneToMany(
+    () => DocumentFunctionaryEntity,
+    (documentFunctionary) => documentFunctionary.functionary,
+  )
+  documentFunctionaries: DocumentFunctionaryEntity[]
 }

@@ -34,6 +34,8 @@ export class DocumentsService {
 
   async create(createDocumentDto: CreateDocumentDto) {
     let driveId = undefined
+    let document = undefined
+    let documentFunctionaries
 
     const numeration = await this.numerationDocumentService.create({
       number: createDocumentDto.number,
@@ -41,11 +43,10 @@ export class DocumentsService {
     })
 
     try {
-      let documentFunctionaries
       let functionariesData = undefined
       let studentData = undefined
 
-      const document = this.documentsRepository.create({
+      document = this.documentsRepository.create({
         ...createDocumentDto,
         numerationDocument: { id: numeration.id },
         templateProcess: { id: createDocumentDto.templateId },
@@ -56,15 +57,32 @@ export class DocumentsService {
         await this.numerationDocumentService.remove(numeration.id)
         throw new Error('Document not created')
       }
+      await this.documentsRepository.save(document)
+
+      const savedDocument = await this.documentsRepository.findOneOrFail({
+        where: { id: document.id },
+        relations: [
+          'numerationDocument',
+          'numerationDocument.council',
+          'numerationDocument.council.attendance',
+          'numerationDocument.council.attendance.functionary',
+          'user',
+          'student',
+          'templateProcess',
+          'documentFunctionaries',
+          'documentFunctionaries.functionary',
+        ],
+      })
 
       const generalData = await this.variableService.getGeneralVariables(
-        document,
+        savedDocument,
       )
 
       const councilData = await this.variableService.getCouncilVariables(
-        document,
+        savedDocument,
       )
 
+      const positionsData = await this.variableService.getPositionVariables()
       const customVariablesData =
         await this.variableService.getCustomVariables()
 
@@ -72,13 +90,23 @@ export class DocumentsService {
         documentFunctionaries = createDocumentDto.functionariesIds.map(
           (functionaryId) =>
             this.documentFunctionaryRepository.create({
-              document: { id: document.id },
+              document: { id: savedDocument.id },
               functionary: { id: functionaryId },
             }),
         )
 
-        functionariesData = await this.variableService.getFunctionaryVariables(
+        documentFunctionaries = await this.documentFunctionaryRepository.save(
           documentFunctionaries,
+        )
+
+        const documentFunctionariesSaved =
+          await this.documentFunctionaryRepository.find({
+            where: { document: { id: savedDocument.id } },
+            relations: ['functionary'],
+          })
+
+        functionariesData = await this.variableService.getFunctionaryVariables(
+          documentFunctionariesSaved,
         )
       }
 
@@ -90,9 +118,15 @@ export class DocumentsService {
 
         const student = await qb.getOne()
         // eslint-disable-next-line require-atomic-updates
-        document.student = student
+        savedDocument.student = student
 
-        studentData = await this.variableService.getStudentVariables(document)
+        await this.documentsRepository.update(savedDocument.id, {
+          student: { id: student.id },
+        })
+
+        studentData = await this.variableService.getStudentVariables(
+          savedDocument,
+        )
       }
 
       const variables = {
@@ -102,28 +136,53 @@ export class DocumentsService {
           ? functionariesData
           : [],
         [DefaultVariable.PREFIX_ESTUDIANTE]: studentData ? studentData : [],
+        [DefaultVariable.PREFIX_CARGOS]: positionsData,
         [DefaultVariable.PREFIX_CUSTOM]: customVariablesData,
       }
 
       const variablesJson = JSON.stringify(variables)
 
       // eslint-disable-next-line require-atomic-updates
-      document.variables = JSON.parse(variablesJson)
+      savedDocument.variables = JSON.parse(variablesJson)
 
       driveId = await this.filesService.createDocumentByParentIdAndCopy(
         formatNumeration(numeration.number),
-        numeration.council.driveId,
-        document.templateProcess.driveId,
+        savedDocument.numerationDocument.council.driveId,
+        savedDocument.templateProcess.driveId,
       )
+      const formatVariables = {
+        ...generalData,
+        ...councilData,
+        // eslint-disable-next-line no-extra-parens
+        ...(functionariesData ? functionariesData : []),
+        // eslint-disable-next-line no-extra-parens
+        ...(studentData ? studentData : []),
+        ...positionsData,
+        ...customVariablesData,
+      }
+      await this.filesService.replaceTextOnDocument(formatVariables, driveId)
 
-      await this.filesService.replaceTextOnDocument(variables, driveId)
-
-      return await this.documentsRepository.save(document)
+      return await this.documentsRepository.update(savedDocument.id, {
+        driveId,
+        variables: JSON.stringify(formatVariables),
+      })
     } catch (error) {
       if (driveId) {
         await this.filesService.remove(driveId)
       }
-      await this.numerationDocumentService.remove(numeration.id)
+
+      if (documentFunctionaries) {
+        await this.documentFunctionaryRepository.delete(
+          documentFunctionaries.map((item) => item.id),
+        )
+      }
+
+      if (document) {
+        await this.documentsRepository.delete(document.id)
+      }
+      if (numeration) {
+        await this.numerationDocumentService.remove(numeration.id)
+      }
       throw new Error(error.message)
     }
   }
@@ -146,8 +205,8 @@ export class DocumentsService {
       const document = await this.documentsRepository.findOne({
         where: { id },
         relations: [
-          'numerations',
-          'numerations.council',
+          'numerationDocument',
+          'numerationDocument.council',
           'user',
           'student',
           'templateProcess',
@@ -176,8 +235,6 @@ export class DocumentsService {
       if (!document) {
         throw new NotFoundException('Document not found')
       }
-
-      await this.documentFunctionaryRepository.delete(document.id)
 
       const confirmation = await this.numerationDocumentService.documentRemoved(
         document,

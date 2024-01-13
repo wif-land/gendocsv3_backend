@@ -26,9 +26,14 @@ export class NumerationDocumentService {
 
   async create(createNumerationDocumentDto: CreateNumerationDocumentDto) {
     try {
-      const council = await this.councilRepository.findOneOrFail({
+      const council = await this.councilRepository.findOne({
         where: { id: createNumerationDocumentDto.councilId },
       })
+
+      if (!council) {
+        throw new BadRequestException('Council not found')
+      }
+
       const year = new Date().getFullYear()
       const qb = this.dataSource
         .createQueryBuilder(YearModuleEntity, 'year_module')
@@ -86,11 +91,11 @@ export class NumerationDocumentService {
               createNumerationDocumentDto.number)
         ) {
           if (
-            createNumerationDocumentDto.number <=
+            createNumerationDocumentDto.number <
             numerationsByYearModule[0].number
           ) {
             throw new BadRequestException(
-              'El número ya es parte de la numeración de otro consejo',
+              'El número ya es parte de la numeración de otro consejo o ya está en uso',
             )
           }
 
@@ -174,9 +179,9 @@ export class NumerationDocumentService {
         where: { id: document.numerationDocument.id },
       })
 
-      numeration.state = NumerationState.ENQUEUED
-
-      return await this.numerationDocumentRepository.save(numeration)
+      return await this.numerationDocumentRepository.update(numeration.id, {
+        state: NumerationState.ENQUEUED,
+      })
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -187,7 +192,14 @@ export class NumerationDocumentService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} numerationDocument`
+    try {
+      return this.numerationDocumentRepository.findOneOrFail({
+        where: { id },
+        relations: ['council'],
+      })
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
   }
 
   update(id: number, updateNumerationDocumentDto: UpdateNumerationDocumentDto) {

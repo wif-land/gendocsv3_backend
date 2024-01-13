@@ -8,7 +8,7 @@ import { UpdateVariableDto } from './dto/update-variable.dto'
 import { DocumentEntity } from '../documents/entities/document.entity'
 import { DefaultVariable } from '../shared/enums/default-variable'
 import { formatDate, formatDateText } from '../shared/utils/date'
-import { getFullName, toFirstUpperCase } from '../shared/utils/string'
+import { getFullName, formatNumeration } from '../shared/utils/string'
 import { CouncilAttendanceRole } from '../councils/interfaces/council-attendance.interface'
 import { DocumentFunctionaryEntity } from '../documents/entities/document-functionary.entity'
 import { DataSource, Repository } from 'typeorm'
@@ -90,7 +90,10 @@ export class VariablesService {
     try {
       const variables = {
         [DefaultVariable.CREADOPOR]: `${document.user.firstName} ${document.user.firstLastName}`,
-        [DefaultVariable.NUMDOC]: document.numerationDocument.number,
+        [DefaultVariable.NUMDOC]: formatNumeration(
+          document.numerationDocument.number,
+        ),
+        [DefaultVariable.YEAR]: document.createdAt.getFullYear().toString(),
       }
 
       return variables
@@ -101,6 +104,14 @@ export class VariablesService {
 
   async getCouncilVariables(document: DocumentEntity) {
     try {
+      const functionary = document.numerationDocument.council.attendance.find(
+        (attendance) => attendance.role === CouncilAttendanceRole.PRESIDENT,
+      ).functionary
+
+      if (!functionary) {
+        throw new BadRequestException('El consejo no tiene presidente asignado')
+      }
+
       const variables = {
         [DefaultVariable.FECHA]: formatDate(
           document.numerationDocument.council.date,
@@ -108,16 +119,11 @@ export class VariablesService {
         [DefaultVariable.FECHAUP]: formatDateText(
           document.numerationDocument.council.date,
         ),
-        [DefaultVariable.SESION]: toFirstUpperCase(
-          document.numerationDocument.council.type,
-        ),
+        [DefaultVariable.SESION]:
+          document.numerationDocument.council.type.toLowerCase(),
         [DefaultVariable.SESIONUP]:
           document.numerationDocument.council.type.toUpperCase(),
-        [DefaultVariable.RESPONSABLE]: `${getFullName(
-          document.numerationDocument.council.attendance.find((attendance) => {
-            attendance.role === CouncilAttendanceRole.PRESIDENT
-          }).functionary,
-        )}`,
+        [DefaultVariable.RESPONSABLE]: `${getFullName(functionary)}`,
       }
 
       return variables
@@ -161,7 +167,7 @@ export class VariablesService {
         (documentFunctionary, index) =>
           // eslint-disable-next-line no-extra-parens
           (variables[
-            DefaultVariable.DOCENTE_N.replace('$i', index.toString())
+            DefaultVariable.DOCENTE_N.replace('$i', (index + 1).toString())
           ] = getFullName(documentFunctionary.functionary)),
       )
 
@@ -195,7 +201,7 @@ export class VariablesService {
 
   async getCustomVariables() {
     try {
-      const variables = undefined
+      const variables: object = {}
 
       const customVariables = await this.findAll()
 
@@ -204,6 +210,7 @@ export class VariablesService {
           // eslint-disable-next-line no-extra-parens
           (variables[customVariable.variable] = customVariable.value),
       )
+
       return variables
     } catch (error) {
       throw new InternalServerErrorException(error.message)

@@ -89,4 +89,5 @@ export enum DefaultVariable {
    * PREFIJO DE VARIABLES CUSTOM
    */
   PREFIX_CUSTOM = 'custom',
+  PREFIX_CARGOS = 'position',
 }

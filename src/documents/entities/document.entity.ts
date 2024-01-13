@@ -29,7 +29,7 @@ export class DocumentEntity extends BaseApp {
     description: 'Id de la template de la que se creó el documento',
     type: () => TemplateProcess,
   })
-  @OneToMany(
+  @ManyToOne(
     () => TemplateProcess,
     (templateProcess) => templateProcess.documents,
   )
@@ -83,6 +83,7 @@ export class DocumentEntity extends BaseApp {
   @Column({
     name: 'drive_id',
     type: 'varchar',
+    nullable: true,
   })
   driveId: string
 
