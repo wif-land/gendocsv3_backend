@@ -93,7 +93,7 @@ export class DocumentEntity extends BaseApp {
   })
   @Column({
     name: 'variables',
-    type: 'string',
+    type: 'varchar',
     nullable: true,
   })
   variables: string

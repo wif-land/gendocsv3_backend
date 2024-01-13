@@ -10,6 +10,7 @@ import { CouncilEntity } from '../councils/entities/council.entity'
   imports: [
     TypeOrmModule.forFeature([NumerationDocumentEntity, CouncilEntity]),
   ],
+  exports: [NumerationDocumentService],
   providers: [NumerationDocumentService],
 })
 export class NumerationDocumentModule {}
