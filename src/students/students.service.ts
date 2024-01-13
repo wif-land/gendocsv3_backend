@@ -53,7 +53,7 @@ export class StudentsService {
     }
   }
 
-  async findOne(id: string): Promise<Student> {
+  async findOne(id: number): Promise<Student> {
     try {
       const student = await this.studentRepository.findOneBy({ id })
 
@@ -68,7 +68,7 @@ export class StudentsService {
   }
 
   async update(
-    id: string,
+    id: number,
     updateStudentDto: UpdateStudentDto,
   ): Promise<Student> {
     try {
@@ -88,7 +88,7 @@ export class StudentsService {
     }
   }
 
-  async remove(id: string): Promise<boolean> {
+  async remove(id: number): Promise<boolean> {
     try {
       const student = await this.findOne(id)
 

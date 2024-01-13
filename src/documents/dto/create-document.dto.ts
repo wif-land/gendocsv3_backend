@@ -12,6 +12,14 @@ export class CreateDocumentDto {
 
   @ApiProperty({
     example: '1',
+    description: 'Identificador único del consejo',
+  })
+  @IsNumber()
+  @IsPositive()
+  councilId: number
+
+  @ApiProperty({
+    example: '1',
     description: 'Identificador único de plantilla',
   })
   @IsNumber()
@@ -35,7 +43,7 @@ export class CreateDocumentDto {
   @IsArray()
   @IsNumber({}, { each: true })
   @IsPositive({ each: true })
-  functionaryIds: number[]
+  functionariesIds: number[]
 
   @ApiProperty({
     example: '1',

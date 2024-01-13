@@ -12,7 +12,7 @@ export class FunctionaryForTest1704821645707 implements MigrationInterface {
       firstLastName: 'LEnin',
       secondLastName: 'Lenin',
       outlookEmail: 'lenin@uta.edu.ec',
-      googleEmail: 'lenin@gmail.com',
+      personalEmail: 'lenin@gmail.com',
       phoneNumber: '0979424062',
       regularPhoneNumber: '784512',
       dni: '1850994623',

@@ -93,10 +93,10 @@ export class DocumentEntity extends BaseApp {
   })
   @Column({
     name: 'variables',
-    type: 'json',
+    type: 'string',
     nullable: true,
   })
-  variables: JSON
+  variables: string
 
   @OneToMany(
     () => DocumentFunctionaryEntity,

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsString } from 'class-validator'
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
 export class CreatePositionDto {
   @ApiProperty({
@@ -21,8 +21,9 @@ export class CreatePositionDto {
   @ApiProperty({
     description: 'Id del funcionario',
   })
-  @IsString({
+  @IsNumber()
+  @IsNotEmpty({
     message: 'functionaryId is required',
   })
-  functionaryId: string
+  functionaryId: number
 }

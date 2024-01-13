@@ -32,20 +32,20 @@ export class StudentsController {
 
   @ApiResponse({ type: Student })
   @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: number) {
     return await this.studentsService.findOne(id)
   }
 
   @Patch(':id')
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseUUIDPipe) id: number,
     @Body() updateStudentDto: UpdateStudentDto,
   ) {
     return await this.studentsService.update(id, updateStudentDto)
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: number) {
     return await this.studentsService.remove(id)
   }
 }

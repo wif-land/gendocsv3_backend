@@ -52,7 +52,7 @@ export class FunctionariesService {
     }
   }
 
-  async findOne(id: string): Promise<FunctionaryEntity> {
+  async findOne(id: number): Promise<FunctionaryEntity> {
     try {
       const functionary = await this.functionaryRepository.findOneBy({ id })
 
@@ -67,7 +67,7 @@ export class FunctionariesService {
   }
 
   async update(
-    id: string,
+    id: number,
     updateFunctionaryDto: Partial<CreateFunctionaryDto>,
   ): Promise<FunctionaryEntity> {
     try {
@@ -86,7 +86,7 @@ export class FunctionariesService {
     }
   }
 
-  async remove(id: string): Promise<boolean> {
+  async remove(id: number): Promise<boolean> {
     try {
       const functionary = await this.findOne(id)
 

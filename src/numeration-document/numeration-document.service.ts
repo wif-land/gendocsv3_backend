@@ -11,6 +11,7 @@ import { NumerationDocumentEntity } from './entities/numeration-document.entity'
 import { CouncilEntity } from '../councils/entities/council.entity'
 import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { NumerationState } from '../shared/enums/numeration-state'
+import { DocumentEntity } from '../documents/entities/document.entity'
 
 @Injectable()
 export class NumerationDocumentService {
@@ -167,6 +168,20 @@ export class NumerationDocumentService {
     }
   }
 
+  async documentRemoved(document: DocumentEntity) {
+    try {
+      const numeration = await this.numerationDocumentRepository.findOneOrFail({
+        where: { id: document.numerationDocument.id },
+      })
+
+      numeration.state = NumerationState.ENQUEUED
+
+      return await this.numerationDocumentRepository.save(numeration)
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
+  }
+
   findAll() {
     return `This action returns all numerationDocument`
   }
@@ -180,6 +195,10 @@ export class NumerationDocumentService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} numerationDocument`
+    try {
+      return this.numerationDocumentRepository.delete(id)
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
   }
 }
