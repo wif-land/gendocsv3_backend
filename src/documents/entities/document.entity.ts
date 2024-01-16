@@ -91,8 +91,7 @@ export class DocumentEntity extends BaseApp {
   driveId: string
 
   @ApiProperty({
-    example:
-      '{"general":{"{{CREADOPOR}}":"Psi. Pamela Paliz, Mg.","{{NUMDOC}}":"0051","{{YEAR}}":"2023"},"estudiante":{"{{ESTUDIANTE}}":"Alex Mateo Robalino Tubon","{{ESTUDIANTEUP}}":"ALEX MATEO ROBALINO TUBON","{{CEDULA}}":"1805278320","{{MATRICULA}}":"0126","{{FOLIO}}":"0063","{{TELEFONO}}":"2427260","{{CELULAR}}":"0999094587","{{CORREO}}":"alexrobalino27@gmail.com","{{CORREOUTA}}":"arobalino8320@uta.edu.ec","{{NOMBRECARRERA}}":"Tecnolog\u00edas de la Informaci\u00f3n","{{NOMBRECARRERAUP}}":"TECNOLOG\u00cdAS DE LA INFORMACI\u00d3N","{{COORDINADOR}}":"Clay Fernando Ald\u00e1s Flores"},"consejo":{"{{FECHA}}":"20/01/2023","{{FECHAUP}}":"20 de enero de 2023","{{SESION}}":"ordinaria","{{RESPONSABLE}}":"Ing. Mg. Elsa Pilar Urrutia Urrutia"},"docentes":{"{{DOCENTE_N_0}}":"Ing. Mg. Jeanette del Pilar Ure\u00f1a Aguirre"}}',
+    example: `{"general":{"{{CREADOPOR}}":"Psi. Pamela Paliz, Mg.","{{NUMDOC}}":"0051","{{YEAR}}":"2023"},"estudiante":{"{{ESTUDIANTE}}":"Alex Mateo Robalino Tubon","{{ESTUDIANTEUP}}":"ALEX MATEO ROBALINO TUBON","{{CEDULA}}":"1805278320","{{MATRICULA}}":"0126","{{FOLIO}}":"0063","{{TELEFONO}}":"2427260","{{CELULAR}}":"0999094587","{{CORREO}}":"alexrobalino27@gmail.com","{{CORREOUTA}}":"arobalino8320@uta.edu.ec","{{NOMBRECARRERA}}":"Tecnolog\u00edas de la Informaci\u00f3n","{{NOMBRECARRERAUP}}":"TECNOLOG\u00cdAS DE LA INFORMACI\u00d3N","{{COORDINADOR}}":"Clay Fernando Ald\u00e1s Flores"},"consejo":{"{{FECHA}}":"20/01/2023","{{FECHAUP}}":"20 de enero de 2023","{{SESION}}":"ordinaria","{{RESPONSABLE}}":"Ing. Mg. Elsa Pilar Urrutia Urrutia"},"docentes":{"{{DOCENTE_N_0}}":"Ing. Mg. Jeanette del Pilar Ure\u00f1a Aguirre"}}`,
     description: 'Variables a reemplazar en el documento',
   })
   @Column({

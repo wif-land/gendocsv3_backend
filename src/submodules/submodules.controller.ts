@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common'
 import { SubmodulesService } from './submodules.service'
 import { CreateSubmoduleDto } from './dto/create-submodule.dto'
 import { ApiTags } from '@nestjs/swagger'
@@ -19,12 +27,12 @@ export class SubmodulesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.submodulesService.findOne(id)
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.submodulesService.remove(id)
   }
 }

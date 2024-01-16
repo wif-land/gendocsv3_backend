@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common'
 import { NumerationDocumentService } from './numeration-document.service'
 import { CreateNumerationDocumentDto } from './dto/create-numeration-document.dto'
@@ -28,13 +29,13 @@ export class NumerationDocumentController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.numerationDocumentService.findOne(+id)
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateNumerationDocumentDto: UpdateNumerationDocumentDto,
   ) {
     return this.numerationDocumentService.update(
@@ -44,7 +45,7 @@ export class NumerationDocumentController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.numerationDocumentService.remove(+id)
   }
 }
