@@ -32,20 +32,20 @@ export class FunctionariesController {
 
   @ApiResponse({ type: FunctionaryEntity })
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: number) {
     return await this.functionariesService.findOne(id)
   }
 
   @Put()
   async update(
-    @Query('id', ParseUUIDPipe) id: string,
+    @Query('id', ParseUUIDPipe) id: number,
     @Body() updateFunctionaryDto: Partial<CreateFunctionaryDto>,
   ) {
     return await this.functionariesService.update(id, updateFunctionaryDto)
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: number) {
     return await this.functionariesService.remove(id)
   }
 }

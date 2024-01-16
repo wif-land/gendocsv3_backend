@@ -11,6 +11,7 @@ import { NumerationDocumentEntity } from './entities/numeration-document.entity'
 import { CouncilEntity } from '../councils/entities/council.entity'
 import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { NumerationState } from '../shared/enums/numeration-state'
+import { DocumentEntity } from '../documents/entities/document.entity'
 
 @Injectable()
 export class NumerationDocumentService {
@@ -25,9 +26,14 @@ export class NumerationDocumentService {
 
   async create(createNumerationDocumentDto: CreateNumerationDocumentDto) {
     try {
-      const council = await this.councilRepository.findOneOrFail({
+      const council = await this.councilRepository.findOne({
         where: { id: createNumerationDocumentDto.councilId },
       })
+
+      if (!council) {
+        throw new BadRequestException('Council not found')
+      }
+
       const year = new Date().getFullYear()
       const qb = this.dataSource
         .createQueryBuilder(YearModuleEntity, 'year_module')
@@ -85,11 +91,11 @@ export class NumerationDocumentService {
               createNumerationDocumentDto.number)
         ) {
           if (
-            createNumerationDocumentDto.number <=
+            createNumerationDocumentDto.number <
             numerationsByYearModule[0].number
           ) {
             throw new BadRequestException(
-              'El número ya es parte de la numeración de otro consejo',
+              'El número ya es parte de la numeración de otro consejo o ya está en uso',
             )
           }
 
@@ -167,12 +173,33 @@ export class NumerationDocumentService {
     }
   }
 
+  async documentRemoved(document: DocumentEntity) {
+    try {
+      const numeration = await this.numerationDocumentRepository.findOneOrFail({
+        where: { id: document.numerationDocument.id },
+      })
+
+      return await this.numerationDocumentRepository.update(numeration.id, {
+        state: NumerationState.ENQUEUED,
+      })
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
+  }
+
   findAll() {
     return `This action returns all numerationDocument`
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} numerationDocument`
+    try {
+      return this.numerationDocumentRepository.findOneOrFail({
+        where: { id },
+        relations: ['council'],
+      })
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
   }
 
   update(id: number, updateNumerationDocumentDto: UpdateNumerationDocumentDto) {
@@ -180,6 +207,10 @@ export class NumerationDocumentService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} numerationDocument`
+    try {
+      return this.numerationDocumentRepository.delete(id)
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
   }
 }

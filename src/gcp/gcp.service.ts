@@ -118,4 +118,44 @@ export class GcpService {
 
     return data.id
   }
+
+  async replaceTextOnDocument(
+    data: object,
+    documentId: string,
+  ): Promise<boolean> {
+    try {
+      const requests = Object.keys(data).map((key) => ({
+        replaceAllText: {
+          containsText: {
+            text: `${key}`,
+            matchCase: true,
+          },
+          replaceText: data[key],
+        },
+      }))
+
+      await this.docs.documents.batchUpdate({
+        documentId,
+        requestBody: {
+          requests,
+        },
+      })
+
+      return true
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  async remove(assetId: string): Promise<boolean> {
+    try {
+      await this.drive.files.delete({
+        fileId: assetId,
+      })
+
+      return true
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  }
 }

@@ -3,7 +3,7 @@ import { BaseApp } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
 
 @Entity('variables')
-export class Variable extends BaseApp {
+export class VariableEntity extends BaseApp {
   @ApiProperty({
     example: '{{SALUDO}}',
     description: 'Variable',
@@ -11,6 +11,7 @@ export class Variable extends BaseApp {
   @Column({
     name: 'variable',
     type: 'varchar',
+    unique: true,
   })
   variable: string
 

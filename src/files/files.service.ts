@@ -108,4 +108,41 @@ export class FilesService {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
+
+  async replaceTextOnDocument(
+    data: object,
+    documentId: string,
+  ): Promise<boolean> {
+    try {
+      const result = await this.gcpService.replaceTextOnDocument(
+        data,
+        documentId,
+      )
+
+      if (!result) {
+        throw new HttpException(
+          'Error replacing text on document',
+          HttpStatus.CONFLICT,
+        )
+      }
+
+      return result
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async remove(assetId: string): Promise<boolean> {
+    try {
+      const result = await this.gcpService.remove(assetId)
+
+      if (!result) {
+        throw new HttpException('Error removing asset', HttpStatus.CONFLICT)
+      }
+
+      return result
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
 }

@@ -50,19 +50,11 @@ export class CreateFunctionaryDto {
   @ApiProperty({
     description: 'Correo personal del funcionario',
   })
-  @IsEmail(
-    {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      host_whitelist: ['gmail.com'],
-    },
-    {
-      message: 'email must be a valid Gmail email',
-    },
-  )
+  @IsEmail()
   @IsNotEmpty({
-    message: 'googleEmail is required',
+    message: 'personalEmail is required',
   })
-  googleEmail: string
+  personalEmail: string
 
   @ApiProperty({
     description: 'Número de teléfono del funcionario',
