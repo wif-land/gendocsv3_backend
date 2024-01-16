@@ -12,7 +12,9 @@ import {
 import { NumerationDocumentService } from './numeration-document.service'
 import { CreateNumerationDocumentDto } from './dto/create-numeration-document.dto'
 import { UpdateNumerationDocumentDto } from './dto/update-numeration-document.dto'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('NumerationDocument')
 @Controller('numeration-document')
 export class NumerationDocumentController {
   constructor(
