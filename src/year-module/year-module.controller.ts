@@ -26,20 +26,20 @@ export class YearModuleController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.yearModuleService.findOne(+id)
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateYearModuleDto: UpdateYearModuleDto,
   ) {
     return this.yearModuleService.update(+id, updateYearModuleDto)
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.yearModuleService.remove(+id)
   }
 }

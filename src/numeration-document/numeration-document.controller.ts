@@ -28,13 +28,13 @@ export class NumerationDocumentController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.numerationDocumentService.findOne(+id)
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateNumerationDocumentDto: UpdateNumerationDocumentDto,
   ) {
     return this.numerationDocumentService.update(
@@ -44,7 +44,7 @@ export class NumerationDocumentController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.numerationDocumentService.remove(+id)
   }
 }

@@ -189,8 +189,9 @@ export class DocumentsService {
 
   async findAll() {
     try {
-      const documents = await this.documentsRepository.find()
-
+      const documents = await this.documentsRepository.find({
+        relations: ['numerationDocument', 'user', 'student', 'templateProcess'],
+      })
       if (!documents) {
         throw new NotFoundException('Documents not found')
       }

@@ -20,7 +20,7 @@ export class DocumentEntity extends BaseApp {
     example: '1',
     description: 'Id de la numeración del documento',
   })
-  @OneToOne(() => NumerationDocumentEntity, { nullable: false })
+  @OneToOne(() => NumerationDocumentEntity, { eager: true, nullable: false })
   @JoinColumn({ name: 'numeration_document_id' })
   numerationDocument: NumerationDocumentEntity
 
@@ -32,6 +32,7 @@ export class DocumentEntity extends BaseApp {
   @ManyToOne(
     () => TemplateProcess,
     (templateProcess) => templateProcess.documents,
+    { nullable: false },
   )
   @JoinColumn({ name: 'template_process_id' })
   templateProcess: TemplateProcess
@@ -50,7 +51,9 @@ export class DocumentEntity extends BaseApp {
     description: 'Usuario que creó el documento',
     type: () => User,
   })
-  @ManyToOne(() => User, (user) => user.documents, { nullable: false })
+  @ManyToOne(() => User, (user) => user.documents, {
+    nullable: false,
+  })
   @JoinColumn({ name: 'user_id' })
   user: User
 

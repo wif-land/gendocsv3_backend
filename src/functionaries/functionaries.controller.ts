@@ -5,7 +5,6 @@ import {
   Body,
   Param,
   Delete,
-  ParseUUIDPipe,
   Put,
   Query,
 } from '@nestjs/common'
@@ -38,14 +37,14 @@ export class FunctionariesController {
 
   @Put()
   async update(
-    @Query('id', ParseUUIDPipe) id: number,
+    @Query('id') id: number,
     @Body() updateFunctionaryDto: Partial<CreateFunctionaryDto>,
   ) {
     return await this.functionariesService.update(id, updateFunctionaryDto)
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseUUIDPipe) id: number) {
+  async remove(@Param('id') id: number) {
     return await this.functionariesService.remove(id)
   }
 }
