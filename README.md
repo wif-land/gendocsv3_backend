@@ -93,3 +93,29 @@ Para revertir las migraciones ejecuta el siguiente comando:
 ```bash
 npm run migration:revert
 ```
+
+### Deploy a producción
+
+The server must have:
+
+- Docker
+- Docker compose
+- Git
+
+If is the first time that you deploy the project from your computer, you must first generate a ssh key and add the public key to the server. You can do that running the following command:
+
+```bash
+make generate_ssh_key VM_IP=<ip of the server>
+```
+
+This command will generate a ssh key and will add the public key to the server.
+
+Then you can deploy the project to the server running the following command, but first you must fill the `.env.production` file with the environment variables needed for the project.
+
+```bash
+touch .env
+```
+
+```bash
+make deploy_production VM_IP=<ip of the server>
+```
