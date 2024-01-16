@@ -26,20 +26,20 @@ export class VariablesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.variablesService.findOne(+id)
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateVariableDto: UpdateVariableDto,
   ) {
     return this.variablesService.update(+id, updateVariableDto)
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.variablesService.remove(+id)
   }
 }

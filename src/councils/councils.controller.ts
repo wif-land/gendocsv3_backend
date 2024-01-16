@@ -25,18 +25,18 @@ export class CouncilsController {
 
   @ApiResponse({ isArray: true, type: CouncilEntity })
   @Get()
-  async findAll(@Query('moduleId') moduleId?: string) {
+  async findAll(@Query('moduleId') moduleId?: number) {
     return this.councilsService.findAll(moduleId)
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: number) {
     return this.councilsService.findOne(+id)
   }
 
   @Patch(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateCouncilDto: Partial<CreateCouncilDto>,
   ) {
     return this.councilsService.update(+id, updateCouncilDto)

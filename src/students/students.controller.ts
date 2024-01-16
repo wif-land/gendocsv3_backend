@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  ParseUUIDPipe,
 } from '@nestjs/common'
 import { StudentsService } from './students.service'
 import { CreateStudentDto } from './dto/create-student.dto'
@@ -32,20 +31,20 @@ export class StudentsController {
 
   @ApiResponse({ type: Student })
   @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: number) {
+  async findOne(@Param('id') id: number) {
     return await this.studentsService.findOne(id)
   }
 
   @Patch(':id')
   async update(
-    @Param('id', ParseUUIDPipe) id: number,
+    @Param('id') id: number,
     @Body() updateStudentDto: UpdateStudentDto,
   ) {
     return await this.studentsService.update(id, updateStudentDto)
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseUUIDPipe) id: number) {
+  async remove(@Param('id') id: number) {
     return await this.studentsService.remove(id)
   }
 }

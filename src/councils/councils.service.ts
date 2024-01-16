@@ -98,7 +98,7 @@ export class CouncilsService {
     }
   }
 
-  async findAll(moduleId?: string) {
+  async findAll(moduleId?: number) {
     try {
       const queryBuilder = this.dataSource.createQueryBuilder(
         CouncilEntity,
