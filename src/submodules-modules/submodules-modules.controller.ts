@@ -6,6 +6,7 @@ import {
   Patch,
   Delete,
   Param,
+  ParseIntPipe,
 } from '@nestjs/common'
 import { SubmodulesModulesService } from './submodules-modules.service'
 import { CreateSubmodulesModuleDto } from './dto/create-submodule-module.dto'
@@ -43,7 +44,7 @@ export class SubmodulesModulesController {
   }
 
   @Delete('all-from-module/:moduleId')
-  async removeAllFromModule(@Param('moduleId') moduleId: number) {
+  async removeAllFromModule(@Param('moduleId', ParseIntPipe) moduleId: number) {
     return await this.submodulesModulesService.removeAll(moduleId)
   }
 }

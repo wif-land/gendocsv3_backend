@@ -6,7 +6,8 @@ import { FunctionaryEntity } from '../../functionaries/entities/functionary.enti
 @Entity('positions')
 export class Position extends BaseApp {
   @ApiProperty({
-    example: "'$'{name}",
+    // eslint-disable-next-line no-template-curly-in-string
+    example: '${name}',
     description: 'Codigo del cargo',
     uniqueItems: true,
   })

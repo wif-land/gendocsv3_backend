@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { Auth } from '../auth/decorators/auth-decorator'
 import { CareersService } from './careers.service'
@@ -23,7 +31,7 @@ export class CareersController {
   @Auth('ADMIN')
   @Put()
   async update(
-    @Query('id') id: number,
+    @Query('id', ParseIntPipe) id: number,
     @Body() data: Partial<CreateCareerDto>,
   ) {
     return await this.careersService.update(id, data)

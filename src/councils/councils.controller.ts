@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common'
 import { CouncilsService } from './councils.service'
 import { CreateCouncilDto } from './dto/create-council.dto'
@@ -25,18 +26,18 @@ export class CouncilsController {
 
   @ApiResponse({ isArray: true, type: CouncilEntity })
   @Get()
-  async findAll(@Query('moduleId') moduleId?: number) {
+  async findAll(@Query('moduleId', ParseIntPipe) moduleId?: number) {
     return this.councilsService.findAll(moduleId)
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.councilsService.findOne(+id)
   }
 
   @Patch(':id')
   async update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateCouncilDto: Partial<CreateCouncilDto>,
   ) {
     return this.councilsService.update(+id, updateCouncilDto)
