@@ -42,6 +42,10 @@ export class DocumentsService {
       councilId: createDocumentDto.councilId,
     })
 
+    if (!numeration) {
+      throw new Error('Numeration not created')
+    }
+
     try {
       let functionariesData = undefined
       let studentData = undefined
