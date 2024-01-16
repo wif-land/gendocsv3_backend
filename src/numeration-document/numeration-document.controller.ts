@@ -7,11 +7,14 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common'
 import { NumerationDocumentService } from './numeration-document.service'
 import { CreateNumerationDocumentDto } from './dto/create-numeration-document.dto'
 import { UpdateNumerationDocumentDto } from './dto/update-numeration-document.dto'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('NumerationDocument')
 @Controller('numeration-document')
 export class NumerationDocumentController {
   constructor(
@@ -26,6 +29,10 @@ export class NumerationDocumentController {
   @Get()
   findAll() {
     return this.numerationDocumentService.findAll()
+  }
+  @Get('by-council')
+  async findByCouncil(@Query('councilId', ParseIntPipe) id: number) {
+    return await this.numerationDocumentService.getNumerationByCouncil(id)
   }
 
   @Get(':id')
