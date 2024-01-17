@@ -40,36 +40,39 @@ export class StudentsService {
   async createBulk(
     createStudentsBulkDto: CreateStudentsBulkDto,
   ): Promise<boolean> {
-    const { students } = createStudentsBulkDto
-    const studentsToInsert: Student[] = []
-
-    students.forEach((student) => {
-      studentsToInsert.push(
-        this.studentRepository.create({
-          career: { id: student.careerId },
-          ...student,
-        }),
-      )
-    })
-
     const queryRunner =
       this.studentRepository.manager.connection.createQueryRunner()
-    await queryRunner.connect()
     await queryRunner.startTransaction()
 
     try {
-      await queryRunner.manager.save(studentsToInsert)
-      await queryRunner.commitTransaction()
+      for (const studentDto of createStudentsBulkDto.students) {
+        let student = await this.studentRepository.findOne({
+          where: { dni: studentDto.dni },
+        })
 
+        if (student) {
+          student = this.studentRepository.merge(student, {
+            ...studentDto,
+            career: { id: studentDto.careerId },
+          })
+        } else {
+          student = this.studentRepository.create({
+            ...studentDto,
+            career: { id: studentDto.careerId },
+          })
+        }
+
+        await queryRunner.manager.save(student)
+      }
+
+      await queryRunner.commitTransaction()
       await queryRunner.release()
 
       return true
     } catch (error) {
       await queryRunner.rollbackTransaction()
       await queryRunner.release()
-
-      this.handleDBExceptions(error)
-      await queryRunner.release()
+      throw new HttpException(error.message, error.status)
     }
   }
 
