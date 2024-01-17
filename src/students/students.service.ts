@@ -3,6 +3,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common'
 import { CreateStudentDto } from './dto/create-student.dto'
@@ -10,6 +11,7 @@ import { UpdateStudentDto } from './dto/update-student.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Student } from './entities/student.entity'
+import { CreateStudentsBulkDto } from './dto/create-students-bulk.dto'
 
 @Injectable()
 export class StudentsService {
@@ -32,6 +34,45 @@ export class StudentsService {
       return await this.studentRepository.save(student)
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async createBulk(
+    createStudentsBulkDto: CreateStudentsBulkDto,
+  ): Promise<boolean> {
+    const queryRunner =
+      this.studentRepository.manager.connection.createQueryRunner()
+    await queryRunner.startTransaction()
+
+    try {
+      for (const studentDto of createStudentsBulkDto.students) {
+        let student = await this.studentRepository.findOne({
+          where: { dni: studentDto.dni },
+        })
+
+        if (student) {
+          student = this.studentRepository.merge(student, {
+            ...studentDto,
+            career: { id: studentDto.careerId },
+          })
+        } else {
+          student = this.studentRepository.create({
+            ...studentDto,
+            career: { id: studentDto.careerId },
+          })
+        }
+
+        await queryRunner.manager.save(student)
+      }
+
+      await queryRunner.commitTransaction()
+      await queryRunner.release()
+
+      return true
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+      await queryRunner.release()
+      throw new HttpException(error.message, error.status)
     }
   }
 
@@ -104,5 +145,13 @@ export class StudentsService {
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
+  }
+
+  private handleDBExceptions(error) {
+    if (error.code === '23505') throw new BadRequestException(error.detail)
+
+    throw new InternalServerErrorException(
+      'Unexpected error, check server logs',
+    )
   }
 }

@@ -71,7 +71,6 @@ export class DocumentsService {
           'numerationDocument.council.attendance',
           'numerationDocument.council.attendance.functionary',
           'user',
-          'student',
           'templateProcess',
           'documentFunctionaries',
           'documentFunctionaries.functionary',
@@ -118,6 +117,7 @@ export class DocumentsService {
         const qb = this.dataSource
           .createQueryBuilder(Student, 'student')
           .leftJoinAndSelect('student.career', 'career')
+          .leftJoinAndSelect('career.coordinator', 'coordinator')
           .where('student.id = :id', { id: createDocumentDto.studentId })
 
         const student = await qb.getOne()

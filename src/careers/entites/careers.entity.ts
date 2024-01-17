@@ -1,6 +1,7 @@
-import { Column, Entity } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
 import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { ICareer } from '../interfaces/career.interface'
+import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 
 @Entity('careers')
 export class Career extends BaseAppEntity implements ICareer {
@@ -41,6 +42,13 @@ export class Career extends BaseAppEntity implements ICareer {
   })
   vinculationHours: number
 
-  @Column()
-  coordinator: string
+  @ManyToOne(() => FunctionaryEntity, (functionary) => functionary.careers, {
+    eager: true,
+    nullable: false,
+  })
+  @JoinColumn({
+    name: 'coordinator_id',
+    referencedColumnName: 'id',
+  })
+  coordinator: FunctionaryEntity
 }

@@ -11,7 +11,7 @@ export class LoadStudentForTest1705110761172 implements MigrationInterface {
     const careerForTest = {
       internshipHours: 180,
       vinculationHours: 280,
-      coordinator: 'Lenin Moreno',
+      coordinator: { id: 1 },
       name: 'Ingeniería en Sistemas',
       credits: 240,
       menDegree: 'Ingeniero en Sistemas',
