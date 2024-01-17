@@ -108,8 +108,7 @@ export class NumerationDocumentService {
           (numerationsByYearModule[0].council.id ===
             createNumerationDocumentDto.councilId &&
             numerationsByYearModule[0].number <
-              createNumerationDocumentDto.number &&
-            numerationsByYearModule[0].state === NumerationState.USED)
+              createNumerationDocumentDto.number)
         ) {
           if (
             (!numerationsByCouncil || numerationsByCouncil.length === 0) &&
