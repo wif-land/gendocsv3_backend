@@ -193,7 +193,6 @@ export class NumerationDocumentService {
         }
       }
     } catch (error) {
-      console.log(error)
       if (error.status) throw new BadRequestException(error.message)
 
       throw new Error(error.message)
