@@ -13,6 +13,7 @@ import { CreateStudentDto } from './dto/create-student.dto'
 import { UpdateStudentDto } from './dto/update-student.dto'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Student } from './entities/student.entity'
+import { CreateStudentsBulkDto } from './dto/create-students-bulk.dto'
 
 @ApiTags('Students')
 @Controller('students')
@@ -22,6 +23,11 @@ export class StudentsController {
   @Post()
   async create(@Body() createStudentDto: CreateStudentDto) {
     return await this.studentsService.create(createStudentDto)
+  }
+
+  @Post('bulk')
+  async createBulk(@Body() createStudentsBulkDto: CreateStudentsBulkDto) {
+    return await this.studentsService.createBulk(createStudentsBulkDto)
   }
 
   @ApiResponse({ isArray: true, type: Student })
