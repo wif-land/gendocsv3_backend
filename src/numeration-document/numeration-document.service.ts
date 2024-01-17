@@ -13,6 +13,7 @@ import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { NumerationState } from '../shared/enums/numeration-state'
 import { DocumentEntity } from '../documents/entities/document.entity'
 import { NumerationByCouncil } from './dto/numeration-by-council.dto'
+import { CouncilAttendanceRole } from '../councils/interfaces/council-attendance.interface'
 
 @Injectable()
 export class NumerationDocumentService {
@@ -33,6 +34,16 @@ export class NumerationDocumentService {
 
       if (!council) {
         throw new BadRequestException('Council not found')
+      }
+
+      const hasPresident = council.attendance.find(
+        (a) => a.role === CouncilAttendanceRole.PRESIDENT,
+      )
+
+      if (!hasPresident) {
+        throw new BadRequestException(
+          'El consejo no tiene un presidente asignado',
+        )
       }
 
       const year = new Date().getFullYear()

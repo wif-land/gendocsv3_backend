@@ -133,6 +133,7 @@ export class VariablesService {
   }
 
   async getStudentVariables(document: DocumentEntity) {
+    console.log(document)
     try {
       const variables = {
         [DefaultVariable.ESTUDIANTE]: getFullName(document.student),
