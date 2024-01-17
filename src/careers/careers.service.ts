@@ -23,7 +23,7 @@ export class CareersService {
 
         if (existingCareer) {
           throw new HttpException(
-            'Coordinator is already assigned to an active career',
+            'El coordinador ya se encuentra asignado a una carrera activa',
             HttpStatus.BAD_REQUEST,
           )
         }
@@ -64,10 +64,16 @@ export class CareersService {
 
   async update(id: number, data: Partial<CreateCareerDto>) {
     try {
-      if (data.isActive) {
+      let coordinatorId: number
+      if (data.coordinator === undefined) {
+        coordinatorId = (await this.careerRepository.findOneBy({ id }))
+          .coordinator.id
+      }
+
+      if (data !== undefined && data.isActive) {
         const existingCareer = await this.careerRepository.findOne({
           where: {
-            coordinator: { id: data.coordinator },
+            coordinator: { id: data.coordinator || coordinatorId },
             isActive: true,
             id: Not(id),
           },
@@ -75,7 +81,7 @@ export class CareersService {
 
         if (existingCareer) {
           throw new HttpException(
-            'Coordinator is already assigned to another active career',
+            'El coordinador ya se encuentra asignado a una carrera activa',
             HttpStatus.BAD_REQUEST,
           )
         }
