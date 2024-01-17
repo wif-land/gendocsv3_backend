@@ -108,8 +108,7 @@ export class NumerationDocumentService {
           (numerationsByYearModule[0].council.id ===
             createNumerationDocumentDto.councilId &&
             numerationsByYearModule[0].number <
-              createNumerationDocumentDto.number &&
-            numerationsByYearModule[0].state === NumerationState.USED)
+              createNumerationDocumentDto.number)
         ) {
           if (
             (!numerationsByCouncil || numerationsByCouncil.length === 0) &&
@@ -194,6 +193,7 @@ export class NumerationDocumentService {
         }
       }
     } catch (error) {
+      console.log(error)
       if (error.status) throw new BadRequestException(error.message)
 
       throw new Error(error.message)
