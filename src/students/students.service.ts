@@ -40,11 +40,11 @@ export class StudentsService {
   async createBulk(
     createStudentsBulkDto: CreateStudentsBulkDto,
   ): Promise<boolean> {
-    const students = createStudentsBulkDto.students
-    const studentsPromise = []
+    const { students } = createStudentsBulkDto
+    const studentsToInsert: Student[] = []
 
     students.forEach((student) => {
-      studentsPromise.push(
+      studentsToInsert.push(
         this.studentRepository.create({
           career: { id: student.careerId },
           ...student,
@@ -58,7 +58,7 @@ export class StudentsService {
     await queryRunner.startTransaction()
 
     try {
-      await queryRunner.manager.save(studentsPromise)
+      await queryRunner.manager.save(studentsToInsert)
       await queryRunner.commitTransaction()
 
       await queryRunner.release()
