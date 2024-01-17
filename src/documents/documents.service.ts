@@ -72,6 +72,7 @@ export class DocumentsService {
           'numerationDocument.council.attendance.functionary',
           'user',
           'student',
+          'student.career.coordinator',
           'templateProcess',
           'documentFunctionaries',
           'documentFunctionaries.functionary',
