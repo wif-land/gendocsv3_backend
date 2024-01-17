@@ -149,7 +149,9 @@ export class VariablesService {
         [DefaultVariable.NOMBRECARRERA]: document.student.career.name,
         [DefaultVariable.NOMBRECARRERAUP]:
           document.student.career.name.toUpperCase(),
-        [DefaultVariable.COORDINADOR]: document.student.career.coordinator,
+        [DefaultVariable.COORDINADOR]: getFullName(
+          document.student.career.coordinator,
+        ),
       }
 
       return variables
