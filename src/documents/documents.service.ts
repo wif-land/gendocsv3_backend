@@ -171,8 +171,6 @@ export class DocumentsService {
         variables: JSON.stringify(formatVariables),
       })
     } catch (error) {
-      console.log(error)
-
       if (driveId) {
         await this.filesService.remove(driveId)
       }
