@@ -2,10 +2,6 @@ import { CouncilAttendanceRole } from '../interfaces/council-attendance.interfac
 import { IsNotEmpty, IsNumber } from 'class-validator'
 
 export class CreateAttendanceDto {
-  @IsNotEmpty({ message: 'Council id is required' })
-  councilId: number
-
-  @IsNotEmpty({ message: 'Functionary id is required' })
   @IsNumber()
   functionaryId: number
 

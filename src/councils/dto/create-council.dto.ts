@@ -52,7 +52,7 @@ export class CreateCouncilDto implements ICouncil {
   userId: number
 
   @IsOptional()
-  attendance?: CreateAttendanceDto[]
+  attendees?: CreateAttendanceDto[]
 
   @IsOptional()
   @IsBoolean()

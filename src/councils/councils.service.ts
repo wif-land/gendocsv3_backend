@@ -33,8 +33,8 @@ export class CouncilsService {
   ) {}
 
   async create(createCouncilDto: CreateCouncilDto) {
-    const { attendance = [], ...councilData } = createCouncilDto
-    const hasAttendance = attendance.length > 0
+    const { attendees = [], ...councilData } = createCouncilDto
+    const hasAttendance = attendees.length > 0
 
     try {
       const year = new Date().getFullYear()
@@ -77,7 +77,7 @@ export class CouncilsService {
         return await this.councilRepository.save(council)
       }
 
-      const councilAttendance = attendance.map((item) =>
+      const councilAttendance = attendees.map((item) =>
         this.councilAttendanceRepository.create({
           ...item,
           council: { id: councilInserted.id },

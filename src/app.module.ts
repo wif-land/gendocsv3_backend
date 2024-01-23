@@ -60,7 +60,7 @@ export default connectionSource
     }),
     TypeOrmModule.forRoot({
       ...config,
-      dropSchema: process.env.NODE_ENV === 'test',
+      dropSchema: process.env.NODE_ENV === 'staging',
     } as TypeOrmModuleOptions),
     LogModule,
     TerminusModule,
