@@ -1,6 +1,6 @@
 .PHONY: up down clean deploy_production backup generate_ssh_key
 
-ENV_FILE := .env
+ENV_FILE := .env.production
 COMPOSE_DEVELOP_FILE := docker-compose.develop.yaml
 COMPOSE_PRODUCTION_FILE := docker-compose.production.yaml
 REMOTE_DIR := /root/gendocsv3
@@ -16,7 +16,6 @@ clean:
 	docker system prune -af
 
 deploy_production: $(ENV_FILE) $(COMPOSE_PRODUCTION_FILE) Makefile
-	make backup
 	ssh $(VM_USER)@$(VM_IP) "mkdir -p $(REMOTE_DIR)"
 	scp $(ENV_FILE) $(COMPOSE_PRODUCTION_FILE) $(VM_USER)@$(VM_IP):$(REMOTE_DIR)/
 	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && docker compose -f $(REMOTE_DIR)/$(COMPOSE_PRODUCTION_FILE) --env-file $(REMOTE_DIR)/$(ENV_FILE) down && docker system prune -af && docker compose -f $(REMOTE_DIR)/$(COMPOSE_PRODUCTION_FILE) --env-file $(REMOTE_DIR)/$(ENV_FILE) up -d"
