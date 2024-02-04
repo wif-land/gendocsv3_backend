@@ -51,13 +51,24 @@ export class CreateCouncilDto implements ICouncil {
   @IsNotEmpty({ message: 'userId field is required' })
   userId: number
 
+  @ApiProperty({
+    description: 'Arreglo de asistencias',
+  })
   @IsOptional()
   attendees?: CreateAttendanceDto[]
 
+  @ApiProperty({
+    description: 'Estado del consejo',
+    required: false,
+  })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean
 
+  @ApiProperty({
+    description: 'Estado del consejo',
+    required: false,
+  })
   @IsOptional()
   @IsBoolean()
   isArchived?: boolean

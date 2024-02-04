@@ -12,6 +12,8 @@ import { CouncilsService } from './councils.service'
 import { CreateCouncilDto } from './dto/create-council.dto'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { CouncilEntity } from './entities/council.entity'
+import { UpdateCouncilDto } from './dto/update-council.dto'
+import { UpdateCouncilsBulkDto } from './dto/update-councils-bulk.dto'
 
 @ApiTags('Councils')
 @Controller('councils')
@@ -38,8 +40,13 @@ export class CouncilsController {
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateCouncilDto: Partial<CreateCouncilDto>,
+    @Body() updateCouncilDto: UpdateCouncilDto,
   ) {
     return this.councilsService.update(+id, updateCouncilDto)
+  }
+
+  @Patch('bulk')
+  async updateBulk(@Body() updateCouncilsBulkDto: UpdateCouncilsBulkDto) {
+    return await this.councilsService.updateBulk(updateCouncilsBulkDto)
   }
 }
