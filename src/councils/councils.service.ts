@@ -17,6 +17,7 @@ import { SubmodulesNames } from '../shared/enums/submodules-names'
 import { ResponseCouncilsDto } from './dto/response-councils.dto'
 import { UpdateCouncilDto } from './dto/update-council.dto'
 import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
+import { PaginationDto } from '../shared/dtos/pagination.dto'
 
 @Injectable()
 export class CouncilsService {
@@ -100,7 +101,9 @@ export class CouncilsService {
     }
   }
 
-  async findAll(moduleId?: number) {
+  async findAll(paginationDto: PaginationDto) {
+    // eslint-disable-next-line no-magic-numbers
+    const { moduleId, limit = 10, offset = 0 } = paginationDto
     try {
       const queryBuilder = this.dataSource.createQueryBuilder(
         CouncilEntity,
@@ -116,6 +119,8 @@ export class CouncilsService {
       queryBuilder.leftJoinAndSelect('attendance.functionary', 'functionary')
       queryBuilder.where('module.id = :moduleId', { moduleId })
       queryBuilder.orderBy('councils.createdAt', 'DESC')
+      queryBuilder.take(limit)
+      queryBuilder.skip(offset)
 
       const councils = await queryBuilder.getMany()
 
@@ -123,6 +128,17 @@ export class CouncilsService {
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
+  }
+
+  async count(moduleId?: number) {
+    const queryBuilder = this.dataSource.createQueryBuilder(
+      CouncilEntity,
+      'councils',
+    )
+    queryBuilder.leftJoin('councils.module', 'module')
+    queryBuilder.where('module.id = :moduleId', { moduleId })
+
+    return queryBuilder.getCount()
   }
 
   async findOne(id: number) {
