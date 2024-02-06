@@ -13,12 +13,17 @@ import { CreateCouncilDto } from './dto/create-council.dto'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { CouncilEntity } from './entities/council.entity'
 import { UpdateCouncilDto } from './dto/update-council.dto'
-import { UpdateCouncilsBulkDto } from './dto/update-councils-bulk.dto'
+import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 
 @ApiTags('Councils')
 @Controller('councils')
 export class CouncilsController {
   constructor(private readonly councilsService: CouncilsService) {}
+
+  @Patch('bulk')
+  async updateBulk(@Body() updateCouncilsBulkDto: UpdateCouncilBulkItemDto[]) {
+    return this.councilsService.updateBulk(updateCouncilsBulkDto)
+  }
 
   @ApiResponse({ type: CouncilEntity })
   @Post()
@@ -43,10 +48,5 @@ export class CouncilsController {
     @Body() updateCouncilDto: UpdateCouncilDto,
   ) {
     return this.councilsService.update(+id, updateCouncilDto)
-  }
-
-  @Patch('bulk')
-  async updateBulk(@Body() updateCouncilsBulkDto: UpdateCouncilsBulkDto) {
-    return await this.councilsService.updateBulk(updateCouncilsBulkDto)
   }
 }

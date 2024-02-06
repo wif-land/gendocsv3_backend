@@ -59,7 +59,6 @@ export class CreateCouncilDto implements ICouncil {
   @ValidateIf((o) => o.attendees)
   @IsArray({
     message: 'Attendees must be a valid array of objects',
-    each: true,
   })
   @IsOptional()
   attendees?: CreateAttendanceDto[]

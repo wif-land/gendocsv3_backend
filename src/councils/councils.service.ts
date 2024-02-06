@@ -16,7 +16,7 @@ import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-yea
 import { SubmodulesNames } from '../shared/enums/submodules-names'
 import { ResponseCouncilsDto } from './dto/response-councils.dto'
 import { UpdateCouncilDto } from './dto/update-council.dto'
-import { UpdateCouncilsBulkDto } from './dto/update-councils-bulk.dto'
+import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 
 @Injectable()
 export class CouncilsService {
@@ -184,7 +184,7 @@ export class CouncilsService {
     return updatedCouncil
   }
 
-  async updateBulk(updateCouncilsBulkDto: UpdateCouncilsBulkDto) {
+  async updateBulk(updateCouncilsBulkDto: UpdateCouncilBulkItemDto[]) {
     const queryRunner =
       this.councilRepository.manager.connection.createQueryRunner()
 
@@ -192,7 +192,7 @@ export class CouncilsService {
 
     try {
       const updatedCouncils = []
-      for (const councilDto of updateCouncilsBulkDto.councils) {
+      for (const councilDto of updateCouncilsBulkDto) {
         const { id, ...councilData } = councilDto
         const hasNameChanged = councilData.name !== undefined
 
