@@ -44,8 +44,11 @@ export class CouncilsController {
   }
 
   @Get(':term')
-  async findByTerm(@Param('term') term: string) {
-    return this.councilsService.findByTerm(term)
+  async findByTerm(
+    @Param('term') term: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return this.councilsService.findByTerm(term, paginationDto)
   }
 
   @Patch(':id')

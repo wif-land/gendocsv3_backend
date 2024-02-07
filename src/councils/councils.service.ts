@@ -141,7 +141,8 @@ export class CouncilsService {
     return queryBuilder.getCount()
   }
 
-  async findByTerm(term: string) {
+  async findByTerm(term: string, paginationDto: PaginationDto) {
+    const { moduleId } = paginationDto
     const queryBuilder = this.dataSource.createQueryBuilder(
       CouncilEntity,
       'councils',
@@ -156,10 +157,11 @@ export class CouncilsService {
     queryBuilder.leftJoinAndSelect('attendance.functionary', 'functionary')
     queryBuilder.orderBy('councils.id', 'ASC')
     queryBuilder.where(
-      'UPPER(councils.name) like :termName or CAST(councils.id AS TEXT) = :termId',
+      '(UPPER(councils.name) like :termName or CAST(councils.id AS TEXT) = :termId) and module.id = :moduleId',
       {
         termName: `%${term.toUpperCase()}%`,
         termId: term,
+        moduleId,
       },
     )
 
