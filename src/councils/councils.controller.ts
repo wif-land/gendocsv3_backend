@@ -43,9 +43,9 @@ export class CouncilsController {
     return this.councilsService.count(moduleId)
   }
 
-  @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.councilsService.findOne(+id)
+  @Get(':term')
+  async findByTerm(@Param('term') term: string) {
+    return this.councilsService.findByTerm(term)
   }
 
   @Patch(':id')

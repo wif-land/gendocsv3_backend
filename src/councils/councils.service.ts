@@ -141,7 +141,7 @@ export class CouncilsService {
     return queryBuilder.getCount()
   }
 
-  async findOne(id: number) {
+  async findByTerm(term: string) {
     const queryBuilder = this.dataSource.createQueryBuilder(
       CouncilEntity,
       'councils',
@@ -154,20 +154,25 @@ export class CouncilsService {
     )
     queryBuilder.leftJoinAndSelect('councils.attendance', 'attendance')
     queryBuilder.leftJoinAndSelect('attendance.functionary', 'functionary')
-    queryBuilder.orderBy('councils.createdAt', 'DESC')
-    queryBuilder.where('councils.id = :id', { id })
+    queryBuilder.orderBy('councils.id', 'ASC')
+    queryBuilder.where(
+      'UPPER(councils.name) like :termName or CAST(councils.id AS TEXT) = :termId',
+      {
+        termName: `%${term.toUpperCase()}%`,
+        termId: term,
+      },
+    )
 
-    const council = await queryBuilder.getOne()
+    const councils = await queryBuilder.getMany()
 
-    if (!council) {
+    if (councils.length === 0) {
       throw new NotFoundException('Council not found')
     }
 
-    return new ResponseCouncilsDto(council)
+    return councils.map((council) => new ResponseCouncilsDto(council))
   }
 
   async update(id: number, updateCouncilDto: UpdateCouncilDto) {
-    // método para uodatear un consejo, ya tiene el id
     const queryBuilder = this.dataSource.createQueryBuilder(
       CouncilEntity,
       'councils',
