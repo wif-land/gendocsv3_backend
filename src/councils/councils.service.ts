@@ -101,7 +101,7 @@ export class CouncilsService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto) {
+  async findAllAndCount(paginationDto: PaginationDto) {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = paginationDto
     try {
@@ -122,9 +122,21 @@ export class CouncilsService {
       queryBuilder.take(limit)
       queryBuilder.skip(offset)
 
+      const countQueryBuilder = this.dataSource.createQueryBuilder(
+        CouncilEntity,
+        'councils',
+      )
+      countQueryBuilder.leftJoin('councils.module', 'module')
+      countQueryBuilder.where('module.id = :moduleId', { moduleId })
+
+      const count = await countQueryBuilder.getCount()
+
       const councils = await queryBuilder.getMany()
 
-      return councils.map((council) => new ResponseCouncilsDto(council))
+      return {
+        count,
+        councils: councils.map((council) => new ResponseCouncilsDto(council)),
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -142,7 +154,8 @@ export class CouncilsService {
   }
 
   async findByTerm(term: string, paginationDto: PaginationDto) {
-    const { moduleId } = paginationDto
+    // eslint-disable-next-line no-magic-numbers
+    const { moduleId, limit = 10, offset = 0 } = paginationDto
     const queryBuilder = this.dataSource.createQueryBuilder(
       CouncilEntity,
       'councils',
@@ -164,6 +177,24 @@ export class CouncilsService {
         moduleId,
       },
     )
+    queryBuilder.take(limit)
+    queryBuilder.skip(offset)
+
+    const countQueryBuilder = this.dataSource.createQueryBuilder(
+      CouncilEntity,
+      'councils',
+    )
+    countQueryBuilder.leftJoin('councils.module', 'module')
+    countQueryBuilder.where(
+      '(UPPER(councils.name) like :termName or CAST(councils.id AS TEXT) = :termId) and module.id = :moduleId',
+      {
+        termName: `%${term.toUpperCase()}%`,
+        termId: term,
+        moduleId,
+      },
+    )
+
+    const count = await countQueryBuilder.getCount()
 
     const councils = await queryBuilder.getMany()
 
@@ -171,7 +202,11 @@ export class CouncilsService {
       throw new NotFoundException('Council not found')
     }
 
-    return councils.map((council) => new ResponseCouncilsDto(council))
+    const mappedCouncils = councils.map(
+      (council) => new ResponseCouncilsDto(council),
+    )
+
+    return { count, councils: mappedCouncils }
   }
 
   async update(id: number, updateCouncilDto: UpdateCouncilDto) {

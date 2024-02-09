@@ -35,7 +35,7 @@ export class CouncilsController {
   @ApiResponse({ isArray: true, type: CouncilEntity })
   @Get()
   async findAll(@Query() paginationDto: PaginationDto) {
-    return this.councilsService.findAll(paginationDto)
+    return this.councilsService.findAllAndCount(paginationDto)
   }
 
   @Get('count')
