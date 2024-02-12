@@ -5,9 +5,8 @@ import {
   Body,
   Param,
   Delete,
-  Put,
-  Query,
   ParseIntPipe,
+  Patch,
 } from '@nestjs/common'
 import { FunctionariesService } from './functionaries.service'
 import { CreateFunctionaryDto } from './dto/create-functionary.dto'
@@ -36,9 +35,9 @@ export class FunctionariesController {
     return await this.functionariesService.findOne(id)
   }
 
-  @Put()
+  @Patch(':id')
   async update(
-    @Query('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateFunctionaryDto: Partial<CreateFunctionaryDto>,
   ) {
     return await this.functionariesService.update(id, updateFunctionaryDto)
