@@ -83,32 +83,28 @@ export class FunctionariesService {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDto
 
-    try {
-      const queryBuilder =
-        this.functionaryRepository.createQueryBuilder('functionaries')
+    const queryBuilder =
+      this.functionaryRepository.createQueryBuilder('functionaries')
 
-      const functionaries = await queryBuilder
-        .where(
-          'UPPER(functionaries.first_name) like :field or UPPER(functionaries.second_name) like :field or UPPER(functionaries.first_last_name) like :field or UPPER(functionaries.second_last_name) like :field or functionaries.dni like :field',
-          { field: `%${field.toUpperCase()}%` },
-        )
-        .orderBy('functionaries.id', 'ASC')
-        .take(limit)
-        .skip(offset)
-        .getMany()
+    const functionaries = await queryBuilder
+      .where(
+        'UPPER(functionaries.first_name) like :field or UPPER(functionaries.second_name) like :field or UPPER(functionaries.first_last_name) like :field or UPPER(functionaries.second_last_name) like :field or functionaries.dni like :field',
+        { field: `%${field.toUpperCase()}%` },
+      )
+      .orderBy('functionaries.id', 'ASC')
+      .take(limit)
+      .skip(offset)
+      .getMany()
 
-      if (!functionaries) {
-        throw new NotFoundException('Functionaries not found')
-      }
+    const count = await queryBuilder.getCount()
 
-      const count = await queryBuilder.getCount()
+    if (functionaries.length === 0 || count === 0) {
+      throw new NotFoundException('Functionaries not found')
+    }
 
-      return {
-        count,
-        functionaries,
-      }
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    return {
+      count,
+      functionaries,
     }
   }
 
