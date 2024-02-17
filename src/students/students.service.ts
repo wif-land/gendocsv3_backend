@@ -23,8 +23,8 @@ export class StudentsService {
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
     try {
       const student = this.studentRepository.create({
-        career: { id: createStudentDto.careerId },
         ...createStudentDto,
+        career: { id: createStudentDto.career },
       })
 
       if (!student) {
@@ -53,12 +53,12 @@ export class StudentsService {
         if (student) {
           student = this.studentRepository.merge(student, {
             ...studentDto,
-            career: { id: studentDto.careerId },
+            career: { id: studentDto.career },
           })
         } else {
           student = this.studentRepository.create({
             ...studentDto,
-            career: { id: studentDto.careerId },
+            career: { id: studentDto.career },
           })
         }
 
@@ -116,7 +116,7 @@ export class StudentsService {
       const student = await this.studentRepository.preload({
         id,
         ...updateStudentDto,
-        career: { id: updateStudentDto.careerId },
+        career: { id: updateStudentDto.career },
       })
 
       if (!student) {

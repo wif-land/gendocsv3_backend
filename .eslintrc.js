@@ -46,7 +46,7 @@ module.exports = {
       'error',
       {
         selector: 'variable',
-        format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+        format: ['camelCase', 'PascalCase', 'UPPER_CASE', '{field}'],
         filter: {
           regex: '^((es|en)_([A-Z]+))$',
           match: false,
