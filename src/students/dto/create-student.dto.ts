@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Expose, Type } from 'class-transformer'
+import { Type } from 'class-transformer'
 import {
   IsNotEmpty,
   IsEmail,
@@ -46,7 +46,7 @@ export class CreateStudentDto {
     {
       message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.email, {
         '{field}': 'outlookEmail',
-      })
+      }),
     },
   )
   @IsNotEmpty()
@@ -154,7 +154,7 @@ export class CreateStudentDto {
   @IsNotEmpty({
     message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
       '{field}': 'career',
-    })
+    }),
   })
   career: number
 }
