@@ -38,11 +38,6 @@ export class CouncilsController {
     return this.councilsService.findAllAndCount(paginationDto)
   }
 
-  @Get('count')
-  async countCouncils(@Query('moduleId', ParseIntPipe) moduleId?: number) {
-    return this.councilsService.count(moduleId)
-  }
-
   @Get(':term')
   async findByTerm(
     @Param('term') term: string,

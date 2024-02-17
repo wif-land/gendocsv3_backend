@@ -142,17 +142,6 @@ export class CouncilsService {
     }
   }
 
-  async count(moduleId?: number) {
-    const queryBuilder = this.dataSource.createQueryBuilder(
-      CouncilEntity,
-      'councils',
-    )
-    queryBuilder.leftJoin('councils.module', 'module')
-    queryBuilder.where('module.id = :moduleId', { moduleId })
-
-    return queryBuilder.getCount()
-  }
-
   async findByTerm(term: string, paginationDto: PaginationDto) {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = paginationDto
