@@ -142,7 +142,7 @@ export class CouncilsService {
     }
   }
 
-  async findByTerm(term: string, paginationDto: PaginationDto) {
+  async findByField(field: string, paginationDto: PaginationDto) {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = paginationDto
     const queryBuilder = this.dataSource.createQueryBuilder(
@@ -161,8 +161,8 @@ export class CouncilsService {
     queryBuilder.where(
       '(UPPER(councils.name) like :termName or CAST(councils.id AS TEXT) = :termId) and module.id = :moduleId',
       {
-        termName: `%${term.toUpperCase()}%`,
-        termId: term,
+        termName: `%${field.toUpperCase()}%`,
+        termId: field,
         moduleId,
       },
     )
@@ -177,8 +177,8 @@ export class CouncilsService {
     countQueryBuilder.where(
       '(UPPER(councils.name) like :termName or CAST(councils.id AS TEXT) = :termId) and module.id = :moduleId',
       {
-        termName: `%${term.toUpperCase()}%`,
-        termId: term,
+        termName: `%${field.toUpperCase()}%`,
+        termId: field,
         moduleId,
       },
     )
@@ -218,8 +218,8 @@ export class CouncilsService {
     }
 
     const updatedCouncil = await this.councilRepository.preload({
-      id,
       ...updateCouncilDto,
+      id,
     })
 
     if (!updatedCouncil) {
