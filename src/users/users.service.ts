@@ -6,6 +6,7 @@ import { CreateUserDTO } from './dto/create-user.dto'
 import { genSalt, hash } from 'bcrypt'
 import { JwtService } from '@nestjs/jwt'
 import { UserAccessModulesService } from '../users-access-modules/users-access-modules.service'
+import { PaginationDto } from '../shared/dtos/pagination.dto'
 
 @Injectable()
 export class UsersService {
@@ -201,7 +202,9 @@ export class UsersService {
     }
   }
 
-  async findAll() {
+  async findAll(pagnationDto: PaginationDto) {
+    // eslint-disable-next-line no-magic-numbers
+    const { limit = 5, offset = 0 } = pagnationDto
     try {
       const users = await this.userRepository.find({
         select: {
@@ -215,6 +218,8 @@ export class UsersService {
           roles: true,
           isActive: true,
         },
+        take: limit,
+        skip: offset,
       })
 
       const usersFound = users.map((user) => ({
@@ -226,7 +231,12 @@ export class UsersService {
         throw new HttpException('Usuarios no encontrados', HttpStatus.NOT_FOUND)
       }
 
-      return usersFound
+      const count = await this.userRepository.count()
+
+      return {
+        count,
+        users: usersFound,
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
