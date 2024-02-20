@@ -6,6 +6,8 @@ import { SubmodulesModule } from '../submodules-modules/entities/submodule-modul
 import { UserAccessModule } from '../users-access-modules/entities/user-access-module.entity'
 
 export class InitDatabase1704560301619 implements MigrationInterface {
+  name?: string
+  transaction?: boolean
   public async up(queryRunner: QueryRunner): Promise<void> {
     const connection = queryRunner.connection
 
@@ -18,7 +20,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         id: 1,
         googleEmail: 'gendocsv2@gmail.com',
         outlookEmail: 'ddlm.montenegro@uta.edu.ec',
-        roles: ['ADMIN'],
+        role: 'ADMIN',
         isActive: true,
         password:
           '$2a$12$NMywRUK4Ontc9.4Y1YYyyeTU2aUfHdv42wH6c3dls8cveUdpGo1n2',

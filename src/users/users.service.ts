@@ -220,7 +220,7 @@ export class UsersService {
           firstLastName: true,
           secondName: true,
           secondLastName: true,
-          roles: true,
+          role: true,
           isActive: true,
         },
         take: limit,

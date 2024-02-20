@@ -93,13 +93,13 @@ export class UserEntity extends BaseAppEntity {
 
   @ApiProperty({
     example: 'ADMIN',
-    description: 'Roles del usuario',
+    description: 'Rol del usuario',
   })
   @Column({
-    name: 'roles',
-    type: 'simple-array',
+    name: 'role',
+    enum: RolesType,
   })
-  roles: RolesType[]
+  role: RolesType
 
   @ApiProperty({
     example: 'true',

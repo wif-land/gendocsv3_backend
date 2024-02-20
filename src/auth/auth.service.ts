@@ -35,7 +35,7 @@ export class AuthService {
       outlookEmail: user.outlookEmail,
       googleEmail: user.googleEmail,
       sub: user.id,
-      roles: user.roles,
+      role: user.role,
       accessModules,
       isActive: user.isActive,
     }

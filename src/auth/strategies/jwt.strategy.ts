@@ -13,7 +13,7 @@ interface Payload {
   outlookEmail: string
   googleEmail: string
   iat: string
-  roles: string[]
+  role: string
   isActive: boolean
   accessModulesIds: number[]
 }
@@ -37,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       firstLastName: payload.firstLastName,
       secondName: payload.secondName,
       secondLastName: payload.secondLastName,
-      roles: payload.roles,
+      role: payload.role,
       isActive: payload.isActive,
       accessModulesIds: payload.accessModulesIds,
     }
