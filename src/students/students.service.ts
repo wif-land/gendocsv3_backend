@@ -109,7 +109,7 @@ export class StudentsService {
       const student = await this.studentRepository.findOneBy({ id })
 
       if (!student) {
-        throw new BadRequestException('Student not found')
+        throw new BadRequestException(`Student with id ${id} not found`)
       }
 
       return student
