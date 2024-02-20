@@ -88,7 +88,11 @@ export class FunctionariesService {
 
     const functionaries = await queryBuilder
       .where(
-        'UPPER(functionaries.first_name) like :field or UPPER(functionaries.second_name) like :field or UPPER(functionaries.first_last_name) like :field or UPPER(functionaries.second_last_name) like :field or functionaries.dni like :field',
+        `UPPER(functionaries.first_name) like :field 
+        or UPPER(functionaries.second_name) like :field 
+        or UPPER(functionaries.first_last_name) like :field 
+        or UPPER(functionaries.second_last_name) like :field 
+        or functionaries.dni like :field`,
         { field: `%${field.toUpperCase()}%` },
       )
       .orderBy('functionaries.id', 'ASC')
