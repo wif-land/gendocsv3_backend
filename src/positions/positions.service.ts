@@ -10,6 +10,7 @@ import { UpdatePositionDto } from './dto/update-position.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Position } from './entities/position.entity'
+import { PaginationDto } from '../shared/dtos/pagination.dto'
 
 @Injectable()
 export class PositionsService {
@@ -25,29 +26,46 @@ export class PositionsService {
         functionary: { id: createPositionDto.functionaryId },
       })
 
-      if (!position) {
+      const savedPosition = await this.positionRepository.save(position)
+
+      if (!savedPosition) {
         throw new BadRequestException('Position not created')
       }
 
-      return await this.positionRepository.save(position)
+      const detailedPosition = await this.positionRepository.findOne({
+        where: { id: savedPosition.id },
+        relations: ['functionary'],
+      })
+
+      return detailedPosition
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(): Promise<Position[]> {
+  async findAll(paginationDto: PaginationDto) {
+    // eslint-disable-next-line no-magic-numbers
+    const { limit = 5, offset = 0 } = paginationDto
+
     try {
       const positions = await this.positionRepository.find({
         order: {
           id: 'ASC',
         },
+        take: limit,
+        skip: offset,
       })
 
       if (!positions) {
         throw new NotFoundException('Positions not found')
       }
 
-      return positions
+      const count = await this.positionRepository.count()
+
+      return {
+        count,
+        positions,
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -67,14 +85,45 @@ export class PositionsService {
     }
   }
 
+  async findByField(field: string, paginationDTO: PaginationDto) {
+    // eslint-disable-next-line no-magic-numbers
+    const { limit = 5, offset = 0 } = paginationDTO
+
+    const queryBuilder = this.positionRepository.createQueryBuilder('positions')
+
+    const positions = await queryBuilder
+      .leftJoinAndSelect('positions.functionary', 'functionary')
+      .where(
+        `UPPER(positions.variable) like :field 
+        or UPPER(positions.name) like :field `,
+        { field: `%${field.toUpperCase()}%` },
+      )
+      .orderBy('positions.id', 'ASC')
+      .take(limit)
+      .skip(offset)
+      .getMany()
+
+    const count = await queryBuilder.getCount()
+
+    if (!positions || !count) {
+      throw new NotFoundException('Position not found')
+    }
+
+    return {
+      count,
+      positions,
+    }
+  }
+
   async update(
     id: number,
     updatePositionDto: UpdatePositionDto,
   ): Promise<Position> {
     try {
       const position = await this.positionRepository.preload({
-        id,
         ...updatePositionDto,
+        functionary: { id: updatePositionDto.functionaryId },
+        id,
       })
 
       if (!position) {
