@@ -28,12 +28,12 @@ export class StudentsController {
     return await this.studentsService.create(createStudentDto)
   }
 
-  @Post('create/bulk')
+  @Post('bulk')
   async createBulk(@Body() createStudentsBulkDto: CreateStudentsBulkDto) {
     return await this.studentsService.createBulk(createStudentsBulkDto)
   }
 
-  @Patch('update/bulk')
+  @Patch('bulk')
   async updateBulk(@Body() updateStudentsBulkDto: UpdateStudentsBulkItemDto[]) {
     return await this.studentsService.updateBulk(updateStudentsBulkDto)
   }
