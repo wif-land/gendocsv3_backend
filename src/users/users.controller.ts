@@ -7,11 +7,9 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Put,
   Query,
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import { Auth } from '../auth/decorators/auth-decorator'
 import { CreateUserDTO } from './dto/create-user.dto'
 import { UsersService } from './users.service'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
