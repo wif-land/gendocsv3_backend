@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { BaseApp } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { Process } from '../../processes/entities/process.entity'
-import { User } from '../../users/entities/users.entity'
+import { UserEntity } from '../../users/entities/users.entity'
 import { DocumentEntity } from '../../documents/entities/document.entity'
 
 @Entity('templates_processes')
@@ -70,11 +70,11 @@ export class TemplateProcess extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Usuario asociado a la plantilla',
-    type: () => User,
+    type: () => UserEntity,
   })
-  @ManyToOne(() => User, { nullable: false })
+  @ManyToOne(() => UserEntity, { nullable: false })
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user: UserEntity
 
   @OneToMany(() => DocumentEntity, (document) => document.templateProcess)
   documents: DocumentEntity[]

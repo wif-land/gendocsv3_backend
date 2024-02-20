@@ -9,7 +9,7 @@ import { DocumentEntity } from '../../documents/entities/document.entity'
 import { ApiProperty } from '@nestjs/swagger'
 
 @Entity('users')
-export class User extends BaseAppEntity {
+export class UserEntity extends BaseAppEntity {
   @ApiProperty({
     example: 'Juan',
     description: 'Primer nombre del usuario',

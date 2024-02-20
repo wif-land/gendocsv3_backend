@@ -9,10 +9,11 @@ import {
   Post,
   Query,
 } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { CreateUserDTO } from './dto/create-user.dto'
 import { UsersService } from './users.service'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { UserEntity } from './entities/users.entity'
 
 @ApiTags('users')
 @Controller('users')
@@ -32,7 +33,6 @@ export class UsersController {
     return await this.userService.update(id, updateUserDto)
   }
 
-  // @Auth('ADMIN')
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
     return await this.userService.delete(id)
@@ -41,5 +41,14 @@ export class UsersController {
   @Get()
   async findAll(@Query() paginationDto: PaginationDto) {
     return await this.userService.findAll(paginationDto)
+  }
+
+  @ApiResponse({ isArray: true, type: UserEntity })
+  @Get(`:field`)
+  async findByField(
+    @Param('field') field: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return await this.userService.findByField(field, paginationDto)
   }
 }
