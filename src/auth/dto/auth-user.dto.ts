@@ -7,6 +7,6 @@ export class AuthUser {
   secondName: string
   secondLastName: string
   isActive: boolean
-  roles: string[]
+  role: string
   accessModulesIds: number[]
 }

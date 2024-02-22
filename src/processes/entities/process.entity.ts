@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { BaseApp } from '../../shared/entities/base-app.entity'
-import { User } from '../../users/entities/users.entity'
+import { UserEntity } from '../../users/entities/users.entity'
 import { ModuleEntity } from '../../modules/entities/modules.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
@@ -42,11 +42,11 @@ export class Process extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Usuario que creó el proceso',
-    type: () => User,
+    type: () => UserEntity,
   })
-  @ManyToOne(() => User, { eager: true, nullable: false })
+  @ManyToOne(() => UserEntity, { eager: true, nullable: false })
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user: UserEntity
 
   @ApiProperty({
     example: '1',

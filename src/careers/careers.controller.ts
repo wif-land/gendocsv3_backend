@@ -11,24 +11,25 @@ import { ApiTags } from '@nestjs/swagger'
 import { Auth } from '../auth/decorators/auth-decorator'
 import { CareersService } from './careers.service'
 import { CreateCareerDto } from './dto/create-career.dto'
+import { RolesType } from '../auth/decorators/roles-decorator'
 @ApiTags('Careers')
 @Controller('careers')
 export class CareersController {
   constructor(private readonly careersService: CareersService) {}
 
-  @Auth('ADMIN')
+  @Auth(RolesType.ADMIN)
   @Post()
   async create(@Body() data: CreateCareerDto) {
     return await this.careersService.create(data)
   }
 
-  @Auth('ADMIN')
+  @Auth(RolesType.ADMIN)
   @Get()
   async findAll() {
     return await this.careersService.findAll()
   }
 
-  @Auth('ADMIN')
+  @Auth(RolesType.ADMIN)
   @Put()
   async update(
     @Query('id', ParseIntPipe) id: number,

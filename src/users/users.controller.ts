@@ -3,15 +3,17 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
 } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
-import { Auth } from '../auth/decorators/auth-decorator'
+import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { CreateUserDTO } from './dto/create-user.dto'
 import { UsersService } from './users.service'
+import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { UserEntity } from './entities/users.entity'
 
 @ApiTags('users')
 @Controller('users')
@@ -23,22 +25,30 @@ export class UsersController {
     return await this.userService.create(createUserDto)
   }
 
-  @Put()
+  @Patch(':id')
   async update(
-    @Query('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: Partial<CreateUserDTO>,
   ) {
     return await this.userService.update(id, updateUserDto)
   }
 
-  @Auth('ADMIN')
-  @Delete()
-  async delete(@Query('id', ParseIntPipe) id: number) {
+  @Delete(':id')
+  async delete(@Param('id', ParseIntPipe) id: number) {
     return await this.userService.delete(id)
   }
 
   @Get()
-  async findAll() {
-    return await this.userService.findAll()
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return await this.userService.findAll(paginationDto)
+  }
+
+  @ApiResponse({ isArray: true, type: UserEntity })
+  @Get(`:field`)
+  async findByField(
+    @Param('field') field: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return await this.userService.findByField(field, paginationDto)
   }
 }
