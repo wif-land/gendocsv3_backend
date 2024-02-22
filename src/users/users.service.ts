@@ -207,9 +207,9 @@ export class UsersService {
     }
   }
 
-  async findAll(pagnationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = pagnationDto
+    const { limit = 5, offset = 0 } = paginationDto
     try {
       const users = await this.userRepository.find({
         select: {
@@ -222,6 +222,9 @@ export class UsersService {
           secondLastName: true,
           role: true,
           isActive: true,
+        },
+        order: {
+          id: 'ASC',
         },
         take: limit,
         skip: offset,
