@@ -2,7 +2,7 @@ import { Column, Entity, OneToMany } from 'typeorm'
 import { BasePerson } from '../../shared/entities/base-person.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { CouncilAttendanceEntity } from '../../councils/entities/council-attendance.entity'
-import { Position } from '../../positions/entities/position.entity'
+import { PositionEntity } from '../../positions/entities/position.entity'
 import { DocumentFunctionaryEntity } from '../../documents/entities/document-functionary.entity'
 import { Career } from '../../careers/entites/careers.entity'
 
@@ -76,11 +76,11 @@ export class FunctionaryEntity extends BasePerson {
   councilAttendance: CouncilAttendanceEntity[]
 
   @ApiProperty({
-    type: () => Position,
+    type: () => PositionEntity,
     isArray: true,
   })
-  @OneToMany(() => Position, (position) => position.functionary)
-  positions: Position[]
+  @OneToMany(() => PositionEntity, (position) => position.functionary)
+  positions: PositionEntity[]
 
   @ApiProperty({
     type: () => DocumentFunctionaryEntity,

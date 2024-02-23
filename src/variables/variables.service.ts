@@ -12,7 +12,7 @@ import { getFullName, formatNumeration } from '../shared/utils/string'
 import { CouncilAttendanceRole } from '../councils/interfaces/council-attendance.interface'
 import { DocumentFunctionaryEntity } from '../documents/entities/document-functionary.entity'
 import { DataSource, Repository } from 'typeorm'
-import { Position } from '../positions/entities/position.entity'
+import { PositionEntity } from '../positions/entities/position.entity'
 import { VariableEntity } from './entities/variable.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 
@@ -184,7 +184,7 @@ export class VariablesService {
       const variables = {}
 
       const qb = this.dataSource
-        .createQueryBuilder(Position, 'position')
+        .createQueryBuilder(PositionEntity, 'position')
         .leftJoinAndSelect('position.functionary', 'functionary')
 
       const positions = await qb.getMany()
