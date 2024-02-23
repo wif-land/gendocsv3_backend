@@ -13,6 +13,7 @@ import { PositionsService } from './positions.service'
 import { CreatePositionDto } from './dto/create-position.dto'
 import { UpdatePositionDto } from './dto/update-position.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { BulkDeletePosition } from './dto/bulk-delete-position'
 
 @Controller('positions')
 export class PositionsController {
@@ -24,8 +25,8 @@ export class PositionsController {
   }
 
   @Post('/delete/bulk')
-  async removeBulk(@Body() ids: number[]) {
-    return await this.positionsService.removeBulk(ids)
+  async removeBulk(@Body() bulkDeletePosition: BulkDeletePosition) {
+    return await this.positionsService.removeBulk(bulkDeletePosition)
   }
 
   @Get()

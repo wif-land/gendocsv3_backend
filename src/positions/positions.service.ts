@@ -12,6 +12,7 @@ import { Repository } from 'typeorm'
 import { PositionEntity } from './entities/position.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
+import { BulkDeletePosition } from './dto/bulk-delete-position'
 
 @Injectable()
 export class PositionsService {
@@ -156,9 +157,9 @@ export class PositionsService {
     }
   }
 
-  async removeBulk(ids: number[]): Promise<boolean> {
+  async removeBulk(bulkDeletePosition: BulkDeletePosition): Promise<boolean> {
     try {
-      await this.positionRepository.delete(ids)
+      await this.positionRepository.delete(bulkDeletePosition.ids)
       return true
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
