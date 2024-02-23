@@ -6,7 +6,8 @@ export class LoadInitPositionsVariables1705112420411
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const positionsRepository = queryRunner.connection.getRepository(PositionEntity)
+    const positionsRepository =
+      queryRunner.connection.getRepository(PositionEntity)
     const variablesRepository =
       queryRunner.connection.getRepository(VariableEntity)
 
@@ -42,7 +43,8 @@ export class LoadInitPositionsVariables1705112420411
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const positionsRepository = queryRunner.connection.getRepository(PositionEntity)
+    const positionsRepository =
+      queryRunner.connection.getRepository(PositionEntity)
     const variablesRepository =
       queryRunner.connection.getRepository(VariableEntity)
 
