@@ -11,7 +11,7 @@ import { BaseApp } from '../../shared/entities/base-app.entity'
 import { NumerationDocumentEntity } from '../../numeration-document/entities/numeration-document.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 import { Student } from '../../students/entities/student.entity'
-import { User } from '../../users/entities/users.entity'
+import { UserEntity } from '../../users/entities/users.entity'
 import { DocumentFunctionaryEntity } from './document-functionary.entity'
 
 @Entity('documents')
@@ -49,13 +49,13 @@ export class DocumentEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Usuario que creó el documento',
-    type: () => User,
+    type: () => UserEntity,
   })
-  @ManyToOne(() => User, (user) => user.documents, {
+  @ManyToOne(() => UserEntity, (user) => user.documents, {
     nullable: false,
   })
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user: UserEntity
 
   @ApiProperty({
     example: 'Defincición de cargos para elecciones',

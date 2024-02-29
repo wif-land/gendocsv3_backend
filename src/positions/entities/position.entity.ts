@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger'
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 
 @Entity('positions')
-export class Position extends BaseApp {
+export class PositionEntity extends BaseApp {
   @ApiProperty({
     // eslint-disable-next-line no-template-curly-in-string
     example: '${name}',

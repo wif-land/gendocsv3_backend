@@ -83,14 +83,32 @@ export class FunctionariesService {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDto
 
+    const terms = field.split(' ').filter((term) => term.length > 0)
     const queryBuilder =
       this.functionaryRepository.createQueryBuilder('functionaries')
 
-    const functionaries = await queryBuilder
-      .where(
-        'UPPER(functionaries.first_name) like :field or UPPER(functionaries.second_name) like :field or UPPER(functionaries.first_last_name) like :field or UPPER(functionaries.second_last_name) like :field or functionaries.dni like :field',
-        { field: `%${field.toUpperCase()}%` },
+    const searchConditions = terms
+      .map(
+        (term) => ` 
+      (UPPER(functionaries.first_name) LIKE :${term} 
+      OR UPPER(functionaries.second_name) LIKE :${term} 
+      OR UPPER(functionaries.first_last_name) LIKE :${term} 
+      OR UPPER(functionaries.second_last_name) LIKE :${term}
+      OR functionaries.dni LIKE :${term})
+    `,
       )
+      .join(' AND ')
+
+    const parameters = terms.reduce(
+      (acc, term) => ({
+        ...acc,
+        [term]: `%${term.toUpperCase()}%`,
+      }),
+      {},
+    )
+
+    const functionaries = await queryBuilder
+      .where(searchConditions, parameters)
       .orderBy('functionaries.id', 'ASC')
       .take(limit)
       .skip(offset)

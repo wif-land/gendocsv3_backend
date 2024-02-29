@@ -38,12 +38,12 @@ export class CouncilsController {
     return this.councilsService.findAllAndCount(paginationDto)
   }
 
-  @Get(':term')
-  async findByTerm(
-    @Param('term') term: string,
+  @Get(':field')
+  async findByField(
+    @Param('field') field: string,
     @Query() paginationDto: PaginationDto,
   ) {
-    return this.councilsService.findByTerm(term, paginationDto)
+    return this.councilsService.findByField(field, paginationDto)
   }
 
   @Patch(':id')
