@@ -18,12 +18,15 @@ import { ResponseCouncilsDto } from './dto/response-councils.dto'
 import { UpdateCouncilDto } from './dto/update-council.dto'
 import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 
 @Injectable()
 export class CouncilsService {
   constructor(
     @InjectRepository(CouncilEntity)
     private readonly councilRepository: Repository<CouncilEntity>,
+    @InjectRepository(FunctionaryEntity)
+    private readonly functionaryRepository: Repository<FunctionaryEntity>,
     @InjectRepository(CouncilAttendanceEntity)
     private readonly councilAttendanceRepository: Repository<CouncilAttendanceEntity>,
     @InjectRepository(YearModuleEntity)
@@ -80,11 +83,26 @@ export class CouncilsService {
         return await this.councilRepository.save(council)
       }
 
+      const promises = attendees.map((item) =>
+        this.functionaryRepository.findOne({
+          where: {
+            dni: item.functionaryId,
+          },
+        }),
+      )
+
+      const functionariesIds = (await Promise.all(promises)).map((item) => ({
+        id: item.id,
+        dni: item.dni,
+      }))
+
       const councilAttendance = attendees.map((item) =>
         this.councilAttendanceRepository.create({
           ...item,
           council: { id: councilInserted.id },
-          functionary: { id: item.functionaryId },
+          functionary: {
+            id: functionariesIds.find((f) => f.dni === item.functionaryId).id,
+          },
         }),
       )
 
