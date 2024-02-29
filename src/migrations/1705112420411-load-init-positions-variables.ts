@@ -1,12 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
-import { Position } from '../positions/entities/position.entity'
+import { PositionEntity } from '../positions/entities/position.entity'
 import { VariableEntity } from '../variables/entities/variable.entity'
 
 export class LoadInitPositionsVariables1705112420411
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const positionsRepository = queryRunner.connection.getRepository(Position)
+    const positionsRepository =
+      queryRunner.connection.getRepository(PositionEntity)
     const variablesRepository =
       queryRunner.connection.getRepository(VariableEntity)
 
@@ -42,7 +43,8 @@ export class LoadInitPositionsVariables1705112420411
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const positionsRepository = queryRunner.connection.getRepository(Position)
+    const positionsRepository =
+      queryRunner.connection.getRepository(PositionEntity)
     const variablesRepository =
       queryRunner.connection.getRepository(VariableEntity)
 

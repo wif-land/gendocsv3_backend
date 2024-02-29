@@ -23,6 +23,11 @@ export class PositionsController {
     return await this.positionsService.create(createPositionDto)
   }
 
+  @Delete('/delete/bulk')
+  async removeBulk(@Body() ids: number[]) {
+    return await this.positionsService.removeBulk(ids)
+  }
+
   @Get()
   async findAll(@Query() paginationDto: PaginationDto) {
     return await this.positionsService.findAll(paginationDto)
