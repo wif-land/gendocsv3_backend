@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common'
@@ -26,79 +27,190 @@ export class NumerationDocumentService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createNumerationDocumentDto: CreateNumerationDocumentDto) {
+  async verifyCouncilExists(councilId: number) {
+    const council = await this.dataSource.manager.findOne(CouncilEntity, {
+      where: { id: councilId },
+    })
+
+    if (!council) throw new BadRequestException('Council not found')
+    return council
+  }
+
+  async validateCouncilPresident(council: CouncilEntity) {
+    const hasPresident = council.attendance.find(
+      (a) => a.role === CouncilAttendanceRole.PRESIDENT,
+    )
+    if (!hasPresident) {
+      throw new BadRequestException(
+        'El consejo no tiene un presidente asignado',
+      )
+    }
+  }
+
+  async getYearModule(council: CouncilEntity) {
+    const year = new Date().getFullYear()
+
+    const qb = this.dataSource.manager
+      .createQueryBuilder(YearModuleEntity, 'year_module')
+      .leftJoinAndSelect('year_module.module', 'module')
+    qb.where('year_module.year = :year', { year })
+    qb.andWhere('year_module.module.id = :moduleId', {
+      moduleId: council.module.id,
+    })
+    const yearModule = await qb.getOne()
+
+    if (!yearModule) {
+      throw new BadRequestException('YearModule not found')
+    }
+
+    return yearModule
+  }
+
+  async createLastNumeration(
+    numeration: number,
+    councilId: number,
+    yearModuleId: number,
+  ) {
+    const numerationDocument = this.dataSource.manager.create(
+      NumerationDocumentEntity,
+      {
+        number: numeration,
+        state: NumerationState.USED,
+        council: { id: councilId },
+        yearModule: { id: yearModuleId },
+      },
+    )
+
+    const numerationDocumentSaved = await this.dataSource.manager.save(
+      numerationDocument,
+    )
+
+    if (!numerationDocumentSaved) {
+      throw new InternalServerErrorException('Error al crear la numeración')
+    }
+
+    return numerationDocumentSaved
+  }
+
+  async reserveNumerationRange(
+    start: number,
+    end: number,
+    councilId: number,
+    yearModuleId: number,
+  ) {
     try {
-      const council = await this.councilRepository.findOne({
-        where: { id: createNumerationDocumentDto.councilId },
-      })
-
-      if (!council) {
-        throw new BadRequestException('Council not found')
+      for (let i = start; i < end; i++) {
+        const numerationDocument = this.dataSource.manager.create(
+          NumerationDocumentEntity,
+          {
+            number: i,
+            state: NumerationState.RESERVED,
+            council: { id: councilId },
+            yearModule: { id: yearModuleId },
+          },
+        )
+        await this.dataSource.manager.save(numerationDocument)
       }
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
+  }
 
-      const hasPresident = council.attendance.find(
-        (a) => a.role === CouncilAttendanceRole.PRESIDENT,
+  verifyNumerationUsed(
+    numeration: number,
+    numerations: NumerationDocumentEntity[],
+  ) {
+    if (
+      numerations &&
+      numerations[0].state === NumerationState.USED &&
+      numerations[0].number === numeration
+    ) {
+      throw new BadRequestException('El número ya está en uso')
+    }
+  }
+
+  async getAvailableCouncilNumeration(councilId: number) {
+    const qb = this.dataSource.manager
+      .createQueryBuilder(NumerationDocumentEntity, 'numeration_document')
+      .leftJoinAndSelect('numeration_document.council', 'council')
+    qb.where('numeration_document.council.id = :councilId', {
+      councilId,
+    })
+    qb.andWhere('numeration_document.state <> :state', {
+      state: NumerationState.USED,
+    })
+    const availableCounsilNumeration = await qb.getMany()
+
+    if (
+      !availableCounsilNumeration ||
+      availableCounsilNumeration.length === 0
+    ) {
+      throw new BadRequestException(
+        'No hay números disponibles para el consejo y los siguientes se encuentran en uso',
+      )
+    }
+
+    return availableCounsilNumeration
+  }
+
+  async create(createNumerationDocumentDto: CreateNumerationDocumentDto) {
+    const queryRunner = this.dataSource.createQueryRunner()
+    await queryRunner.startTransaction()
+
+    try {
+      const council = await this.verifyCouncilExists(
+        createNumerationDocumentDto.councilId,
       )
 
-      if (!hasPresident) {
-        throw new BadRequestException(
-          'El consejo no tiene un presidente asignado',
-        )
-      }
+      await this.validateCouncilPresident(council)
 
-      const year = new Date().getFullYear()
-      const qb = this.dataSource
-        .createQueryBuilder(YearModuleEntity, 'year_module')
-        .leftJoinAndSelect('year_module.module', 'module')
-      qb.where('year_module.year = :year', { year })
-      qb.andWhere('year_module.module.id = :moduleId', {
-        moduleId: council.module.id,
-      })
+      const yearModule = await this.getYearModule(council)
 
-      const yearModule = await qb.getOneOrFail()
-
-      const numerationsByYearModule =
-        await this.numerationDocumentRepository.find({
+      const numerationsByYearModule = await this.dataSource.manager.find(
+        NumerationDocumentEntity,
+        {
           where: { yearModule: { id: yearModule.id } },
           order: { number: 'DESC' },
-        })
+        },
+      )
 
       if (!numerationsByYearModule || numerationsByYearModule.length === 0) {
         if (createNumerationDocumentDto.number > 1) {
-          for (let i = 1; i < createNumerationDocumentDto.number; i++) {
-            const numerationDocument = this.numerationDocumentRepository.create(
-              {
-                number: i,
-                state: NumerationState.RESERVED,
-                council: { id: createNumerationDocumentDto.councilId },
-                yearModule: { id: yearModule.id },
-              },
-            )
-            await this.numerationDocumentRepository.save(numerationDocument)
-          }
+          await this.reserveNumerationRange(
+            1,
+            createNumerationDocumentDto.number,
+            createNumerationDocumentDto.councilId,
+            yearModule.id,
+          )
         }
 
-        const numerationDocument = this.numerationDocumentRepository.create({
-          number: createNumerationDocumentDto.number,
-          state: NumerationState.USED,
-          council: { id: createNumerationDocumentDto.councilId },
-          yearModule: { id: yearModule.id },
-        })
-
-        return await this.numerationDocumentRepository.save(numerationDocument)
+        return await this.createLastNumeration(
+          createNumerationDocumentDto.number,
+          createNumerationDocumentDto.councilId,
+          yearModule.id,
+        )
       } else {
-        const numerationsByCouncil =
-          await this.numerationDocumentRepository.find({
+        const numerationsByCouncil = await this.dataSource.manager.find(
+          NumerationDocumentEntity,
+          {
             where: { council: { id: createNumerationDocumentDto.councilId } },
             order: { number: 'DESC' },
-          })
+          },
+        )
+
+        this.verifyNumerationUsed(
+          createNumerationDocumentDto.number,
+          numerationsByCouncil,
+        )
 
         if (
-          numerationsByCouncil &&
-          numerationsByCouncil[0].state === NumerationState.USED &&
-          numerationsByCouncil[0].number === createNumerationDocumentDto.number
+          (!numerationsByCouncil || numerationsByCouncil.length === 0) &&
+          createNumerationDocumentDto.number <=
+            numerationsByYearModule[0].number
         ) {
-          throw new BadRequestException('El número ya está en uso')
+          throw new BadRequestException(
+            'El número ya es parte de la numeración de otro consejo o ya está en uso',
+          )
         }
 
         if (
@@ -111,91 +223,58 @@ export class NumerationDocumentService {
               createNumerationDocumentDto.number)
         ) {
           if (
-            (!numerationsByCouncil || numerationsByCouncil.length === 0) &&
-            createNumerationDocumentDto.number <=
-              numerationsByYearModule[0].number
-          ) {
-            throw new BadRequestException(
-              'El número ya es parte de la numeración de otro consejo o ya está en uso',
-            )
-          }
-
-          if (
             createNumerationDocumentDto.number >
             numerationsByYearModule[0].number + 1
           ) {
-            for (
-              let i = numerationsByYearModule[0].number + 1;
-              i < createNumerationDocumentDto.number;
-              i++
-            ) {
-              const numerationDocument =
-                this.numerationDocumentRepository.create({
-                  number: i,
-                  state: NumerationState.RESERVED,
-                  council: { id: createNumerationDocumentDto.councilId },
-                  yearModule: { id: yearModule.id },
-                })
-              await this.numerationDocumentRepository.save(numerationDocument)
-            }
-          }
-
-          const numerationDocument = this.numerationDocumentRepository.create({
-            number: createNumerationDocumentDto.number,
-            state: NumerationState.USED,
-            council: { id: createNumerationDocumentDto.councilId },
-            yearModule: { id: yearModule.id },
-          })
-
-          return await this.numerationDocumentRepository.save(
-            numerationDocument,
-          )
-        } else {
-          const qb = this.dataSource
-            .createQueryBuilder(NumerationDocumentEntity, 'numeration_document')
-            .leftJoinAndSelect('numeration_document.council', 'council')
-          qb.where('numeration_document.council.id = :councilId', {
-            councilId: createNumerationDocumentDto.councilId,
-          })
-          qb.andWhere('numeration_document.state <> :state', {
-            state: NumerationState.USED,
-          })
-          const availableCounsilNumeration = await qb.getMany()
-
-          if (
-            !availableCounsilNumeration ||
-            availableCounsilNumeration.length === 0
-          ) {
-            throw new BadRequestException(
-              'No hay números disponibles para el consejo y los siguientes se encuentran en uso',
+            await this.reserveNumerationRange(
+              numerationsByYearModule[0].number + 1,
+              createNumerationDocumentDto.number,
+              createNumerationDocumentDto.councilId,
+              yearModule.id,
             )
           }
 
+          return await this.createLastNumeration(
+            createNumerationDocumentDto.number,
+            createNumerationDocumentDto.councilId,
+            yearModule.id,
+          )
+        } else {
+          const availableCouncilNumeration =
+            await this.getAvailableCouncilNumeration(
+              createNumerationDocumentDto.councilId,
+            )
+
           if (
             createNumerationDocumentDto.number <=
-            availableCounsilNumeration[0].number
+            availableCouncilNumeration[0].number
           ) {
             throw new BadRequestException(
               'El número ya es parte de la numeración de otro consejo',
             )
           }
 
-          const numerationDocument = availableCounsilNumeration.find(
+          const numerationDocument = availableCouncilNumeration.find(
             (numeration) =>
               numeration.number === createNumerationDocumentDto.number,
           )
 
           numerationDocument.state = NumerationState.USED
 
-          return await this.numerationDocumentRepository.save(
+          return await this.dataSource.manager.save(
+            NumerationDocumentEntity,
             numerationDocument,
           )
         }
       }
     } catch (error) {
-      if (error.status) throw new BadRequestException(error.message)
+      await queryRunner.rollbackTransaction()
+
+      if (error.status) throw new HttpException(error.message, error.status)
 
       throw new Error(error.message)
+    } finally {
+      await queryRunner.release()
     }
   }
 
