@@ -404,4 +404,4 @@ postgres-data/
 # Google
 credentials.json
 
-.env.production
+.env*

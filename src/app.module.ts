@@ -1,5 +1,5 @@
 // eslint-disable-next-line filenames/match-exported
-import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common'
+import { MiddlewareConsumer, Module } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
@@ -47,6 +47,7 @@ const config = {
   keepConnectionAlive: true,
   migrationsRun: false,
   migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
+  migrationsTableName: 'migrations',
 }
 
 const connectionSource = new DataSource(config as DataSourceOptions)
@@ -88,14 +89,7 @@ export default connectionSource
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],
 })
-export class AppModule implements OnModuleInit {
-  async onModuleInit() {
-    await connectionSource.initialize()
-    await connectionSource.runMigrations({
-      transaction: 'each',
-    })
-  }
-
+export class AppModule {
   configure(consumer: MiddlewareConsumer): void {
     if (process.env.NODE_ENV === 'production') {
       consumer.apply(LoggerMiddleware).forRoutes('users/*')
