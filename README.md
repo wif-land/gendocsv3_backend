@@ -104,7 +104,7 @@ Para revertir las migraciones ejecuta el siguiente comando:
 npm run migration:revert
 ```
 
-### Deploy a producción
+## Deploy a producción
 
 El servidor debe tener instalado:
 

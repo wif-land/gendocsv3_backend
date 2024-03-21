@@ -39,4 +39,4 @@ jobs:
           context: .
           file: ./Dockerfile.production
           push: true
-          tags: leninner/gendocsv3:$GITHUB_SHA
+          tags: leninner/gendocsv3:latest
