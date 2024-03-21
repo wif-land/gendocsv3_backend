@@ -2,11 +2,14 @@ import {
   IsArray,
   IsBoolean,
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   MinLength,
 } from 'class-validator'
 import { RolesType } from '../../auth/decorators/roles-decorator'
+import { DtoUtils } from '../../shared/utils/dtos'
+import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
 
 const MIN_PASSWORD_LENGTH = 4
 
@@ -60,10 +63,12 @@ export class CreateUserDTO {
   @IsNotEmpty({
     message: 'roles is required',
   })
-  @IsArray({
-    message: 'roles must be an array',
+  @IsEnum(RolesType, {
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.isEnum, {
+      '{field}': 'roles',
+    }),
   })
-  roles: RolesType[]
+  role: RolesType
 
   @IsOptional()
   @IsBoolean({

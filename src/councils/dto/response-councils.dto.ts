@@ -7,11 +7,11 @@ export class ResponseCouncilsDto {
   name: string
   date: Date
   moduleId: number
-  userId: number
+  createdBy: string
   driveId: string
   createdAt: Date
   updatedAt: Date
-  attendance: number[]
+  attendees: CouncilAttendanceEntity[]
   isActive: boolean
   isArchived: boolean
   type: CouncilType
@@ -21,15 +21,13 @@ export class ResponseCouncilsDto {
     this.name = council.name
     this.date = council.date
     this.moduleId = council.module.id
-    this.userId = council.user.id
+    this.createdBy = `${council.user.firstName} ${council.user.firstLastName}`
     this.driveId = council.driveId
     this.createdAt = council.createdAt
     this.updatedAt = council.updatedAt
     this.isActive = council.isActive
     this.isArchived = council.isArchived
-    this.attendance = council.attendance.map(
-      (item: CouncilAttendanceEntity) => item.id,
-    )
+    this.attendees = council.attendance
     this.type = council.type
   }
 }

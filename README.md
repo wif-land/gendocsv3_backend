@@ -10,7 +10,7 @@ Este proyecto es creado para la Universidad Técnica de Ambato que se planea sea
 
 Usa la versión 18.18.2 de `NodeJS` o superior.
 
-1. Ejecuta el comando de `make` para crear la imagen de la base de datos
+1. Ejecuta el comando de `make` para crear la imagen de la base de datos y ejecutar las migraciones
 
 ```bash
 make up
@@ -21,7 +21,17 @@ make up
 #### En linux:
 
 ```bash
+# Debian/Ubuntu
 sudo apt-get install make
+
+# Fedora
+sudo dnf install make
+
+# Arch
+sudo pacman -S make
+
+# AlmaLinux/CentOS
+sudo yum install make
 ```
 
 #### En windows:
@@ -92,4 +102,30 @@ Para revertir las migraciones ejecuta el siguiente comando:
 
 ```bash
 npm run migration:revert
+```
+
+### Deploy a producción
+
+El servidor debe tener instalado:
+
+- Docker
+- Docker compose
+- Git
+
+If is the first time that you deploy the project from your computer, you must first generate a ssh key and add the public key to the server. You can do that running the following command:
+
+```bash
+make generate_ssh_key VM_IP=<ip of the server>
+```
+
+This command will generate a ssh key and will add the public key to the server.
+
+Then you can deploy the project to the server running the following command, but first you must fill the `.env.production` file with the environment variables needed for the project.
+
+```bash
+touch .env.production
+```
+
+```bash
+make deploy_production VM_IP=<ip of the server>
 ```

@@ -7,6 +7,7 @@ import { CouncilAttendanceEntity } from './entities/council-attendance.entity'
 import { FilesModule } from '../files/files.module'
 import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
+import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-yea
       CouncilAttendanceEntity,
       YearModuleEntity,
       SubmoduleYearModuleEntity,
+      FunctionaryEntity,
     ]),
   ],
   controllers: [CouncilsController],

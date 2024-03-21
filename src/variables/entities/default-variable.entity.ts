@@ -5,7 +5,7 @@ import { ApiProperty } from '@nestjs/swagger'
 @Entity('default_variables')
 export class DefaultVariable extends BaseApp {
   @ApiProperty({
-    example: '{{ESTU_UP}}',
+    example: `{{ESTU_UP}}`,
     description: 'Variable',
   })
   @Column({

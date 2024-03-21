@@ -11,7 +11,7 @@ import { BaseApp } from '../../shared/entities/base-app.entity'
 import { NumerationDocumentEntity } from '../../numeration-document/entities/numeration-document.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 import { Student } from '../../students/entities/student.entity'
-import { User } from '../../users/entities/users.entity'
+import { UserEntity } from '../../users/entities/users.entity'
 import { DocumentFunctionaryEntity } from './document-functionary.entity'
 
 @Entity('documents')
@@ -20,7 +20,7 @@ export class DocumentEntity extends BaseApp {
     example: '1',
     description: 'Id de la numeración del documento',
   })
-  @OneToOne(() => NumerationDocumentEntity, { nullable: false })
+  @OneToOne(() => NumerationDocumentEntity, { eager: true, nullable: false })
   @JoinColumn({ name: 'numeration_document_id' })
   numerationDocument: NumerationDocumentEntity
 
@@ -29,9 +29,10 @@ export class DocumentEntity extends BaseApp {
     description: 'Id de la template de la que se creó el documento',
     type: () => TemplateProcess,
   })
-  @OneToMany(
+  @ManyToOne(
     () => TemplateProcess,
     (templateProcess) => templateProcess.documents,
+    { nullable: false },
   )
   @JoinColumn({ name: 'template_process_id' })
   templateProcess: TemplateProcess
@@ -48,11 +49,13 @@ export class DocumentEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Usuario que creó el documento',
-    type: () => User,
+    type: () => UserEntity,
   })
-  @ManyToOne(() => User, (user) => user.documents, { nullable: false })
+  @ManyToOne(() => UserEntity, (user) => user.documents, {
+    nullable: false,
+  })
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user: UserEntity
 
   @ApiProperty({
     example: 'Defincición de cargos para elecciones',
@@ -83,20 +86,20 @@ export class DocumentEntity extends BaseApp {
   @Column({
     name: 'drive_id',
     type: 'varchar',
+    nullable: true,
   })
   driveId: string
 
   @ApiProperty({
-    example:
-      '{"general":{"{{CREADOPOR}}":"Psi. Pamela Paliz, Mg.","{{NUMDOC}}":"0051","{{YEAR}}":"2023"},"estudiante":{"{{ESTUDIANTE}}":"Alex Mateo Robalino Tubon","{{ESTUDIANTEUP}}":"ALEX MATEO ROBALINO TUBON","{{CEDULA}}":"1805278320","{{MATRICULA}}":"0126","{{FOLIO}}":"0063","{{TELEFONO}}":"2427260","{{CELULAR}}":"0999094587","{{CORREO}}":"alexrobalino27@gmail.com","{{CORREOUTA}}":"arobalino8320@uta.edu.ec","{{NOMBRECARRERA}}":"Tecnolog\u00edas de la Informaci\u00f3n","{{NOMBRECARRERAUP}}":"TECNOLOG\u00cdAS DE LA INFORMACI\u00d3N","{{COORDINADOR}}":"Clay Fernando Ald\u00e1s Flores"},"consejo":{"{{FECHA}}":"20/01/2023","{{FECHAUP}}":"20 de enero de 2023","{{SESION}}":"ordinaria","{{RESPONSABLE}}":"Ing. Mg. Elsa Pilar Urrutia Urrutia"},"docentes":{"{{DOCENTE_N_0}}":"Ing. Mg. Jeanette del Pilar Ure\u00f1a Aguirre"}}',
+    example: `{"general":{"{{CREADOPOR}}":"Psi. Pamela Paliz, Mg.","{{NUMDOC}}":"0051","{{YEAR}}":"2023"},"estudiante":{"{{ESTUDIANTE}}":"Alex Mateo Robalino Tubon","{{ESTUDIANTEUP}}":"ALEX MATEO ROBALINO TUBON","{{CEDULA}}":"1805278320","{{MATRICULA}}":"0126","{{FOLIO}}":"0063","{{TELEFONO}}":"2427260","{{CELULAR}}":"0999094587","{{CORREO}}":"alexrobalino27@gmail.com","{{CORREOUTA}}":"arobalino8320@uta.edu.ec","{{NOMBRECARRERA}}":"Tecnolog\u00edas de la Informaci\u00f3n","{{NOMBRECARRERAUP}}":"TECNOLOG\u00cdAS DE LA INFORMACI\u00d3N","{{COORDINADOR}}":"Clay Fernando Ald\u00e1s Flores"},"consejo":{"{{FECHA}}":"20/01/2023","{{FECHAUP}}":"20 de enero de 2023","{{SESION}}":"ordinaria","{{RESPONSABLE}}":"Ing. Mg. Elsa Pilar Urrutia Urrutia"},"docentes":{"{{DOCENTE_N_0}}":"Ing. Mg. Jeanette del Pilar Ure\u00f1a Aguirre"}}`,
     description: 'Variables a reemplazar en el documento',
   })
   @Column({
     name: 'variables',
-    type: 'json',
+    type: 'varchar',
     nullable: true,
   })
-  variables: JSON
+  variables: string
 
   @OneToMany(
     () => DocumentFunctionaryEntity,

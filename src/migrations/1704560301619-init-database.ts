@@ -1,15 +1,17 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
-import { User } from '../users/entities/users.entity'
+import { UserEntity } from '../users/entities/users.entity'
 import { ModuleEntity } from '../modules/entities/modules.entity'
 import { Submodule } from '../submodules/entities/submodule.entity'
 import { SubmodulesModule } from '../submodules-modules/entities/submodule-module.entity'
 import { UserAccessModule } from '../users-access-modules/entities/user-access-module.entity'
 
 export class InitDatabase1704560301619 implements MigrationInterface {
+  name?: string
+  transaction?: boolean
   public async up(queryRunner: QueryRunner): Promise<void> {
     const connection = queryRunner.connection
 
-    const userRepository = connection.getRepository(User)
+    const userRepository = connection.getRepository(UserEntity)
     const moduleRepository = connection.getRepository(ModuleEntity)
     const submoduleRepository = connection.getRepository(Submodule)
 
@@ -18,7 +20,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         id: 1,
         googleEmail: 'gendocsv2@gmail.com',
         outlookEmail: 'ddlm.montenegro@uta.edu.ec',
-        roles: ['ADMIN'],
+        role: 'ADMIN',
         isActive: true,
         password:
           '$2a$12$NMywRUK4Ontc9.4Y1YYyyeTU2aUfHdv42wH6c3dls8cveUdpGo1n2',
@@ -142,7 +144,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     await queryRunner2.startTransaction()
 
     await queryRunner2.manager.save(
-      adminUser.map((u) => userRepository.create(u as User)),
+      adminUser.map((u) => userRepository.create(u as UserEntity)),
     )
     await queryRunner2.manager.save(
       modulesToInsert.map((m) => moduleRepository.create(m)),
@@ -159,7 +161,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     const connection = queryRunner.connection
 
-    const userRepository = connection.getRepository(User)
+    const userRepository = connection.getRepository(UserEntity)
     const moduleRepository = connection.getRepository(ModuleEntity)
     const submoduleRepository = connection.getRepository(Submodule)
     const submodulesModuleRepository =

@@ -42,44 +42,6 @@ module.exports = {
       ),
     ],
     'filenames/match-exported': ['error', 'camel'],
-    '@typescript-eslint/naming-convention': [
-      'error',
-      {
-        selector: 'variable',
-        format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
-        filter: {
-          regex: '^((es|en)_([A-Z]+))$',
-          match: false,
-        },
-        leadingUnderscore: 'allow',
-      },
-      {
-        selector: 'interface',
-        format: ['PascalCase'],
-        custom: {
-          regex: '^([I]+)$',
-          match: false,
-        },
-      },
-      {
-        selector: 'parameter',
-        format: ['camelCase'],
-        leadingUnderscore: 'allow',
-      },
-      {
-        selector: 'property',
-        format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
-        filter: {
-          regex: '^((es|en)_([A-Z]+))$',
-          match: false,
-        },
-        leadingUnderscore: 'allow',
-      },
-      {
-        selector: 'function',
-        format: ['camelCase', 'PascalCase'],
-      },
-    ],
     'no-param-reassign': 'error',
     '@typescript-eslint/no-this-alias': 'error',
     curly: ['error', 'multi-line'],

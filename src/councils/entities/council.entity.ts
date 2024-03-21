@@ -3,7 +3,7 @@ import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { CouncilType, ICouncil } from '../interfaces/council.interface'
 import { ApiProperty } from '@nestjs/swagger'
 import { ModuleEntity } from '../../modules/entities/modules.entity'
-import { User } from '../../users/entities/users.entity'
+import { UserEntity } from '../../users/entities/users.entity'
 import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
 import { CouncilAttendanceEntity } from './council-attendance.entity'
 
@@ -68,11 +68,11 @@ export class CouncilEntity extends BaseAppEntity implements ICouncil {
   @ApiProperty({
     example: '1',
     description: 'Usuario que crea el consejo',
-    type: () => User,
+    type: () => UserEntity,
   })
-  @ManyToOne(() => User, { eager: true, nullable: false })
+  @ManyToOne(() => UserEntity, { eager: true, nullable: false })
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User
+  user: UserEntity
 
   @ApiProperty({
     example: '2',

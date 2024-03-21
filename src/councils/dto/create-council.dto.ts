@@ -1,9 +1,11 @@
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsISO8601,
   IsNotEmpty,
   IsOptional,
+  ValidateIf,
 } from 'class-validator'
 import { CouncilType, ICouncil } from '../interfaces/council.interface'
 import { ApiProperty } from '@nestjs/swagger'
@@ -51,13 +53,28 @@ export class CreateCouncilDto implements ICouncil {
   @IsNotEmpty({ message: 'userId field is required' })
   userId: number
 
+  @ApiProperty({
+    description: 'Arreglo de asistencias',
+  })
+  @ValidateIf((o) => o.attendees)
+  @IsArray({
+    message: 'Attendees must be a valid array of objects',
+  })
   @IsOptional()
-  attendance?: CreateAttendanceDto[]
+  attendees?: CreateAttendanceDto[]
 
+  @ApiProperty({
+    description: 'Estado del consejo',
+    required: false,
+  })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean
 
+  @ApiProperty({
+    description: 'Estado del consejo',
+    required: false,
+  })
   @IsOptional()
   @IsBoolean()
   isArchived?: boolean

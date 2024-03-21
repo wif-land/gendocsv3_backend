@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { UsersService } from '../users/users.service'
-import { User } from '../users/entities/users.entity'
+import { UserEntity } from '../users/entities/users.entity'
 import { JwtService } from '@nestjs/jwt'
 import { compareSync } from 'bcrypt'
 import { ModuleEntity } from '../modules/entities/modules.entity'
@@ -35,7 +35,7 @@ export class AuthService {
       outlookEmail: user.outlookEmail,
       googleEmail: user.googleEmail,
       sub: user.id,
-      roles: user.roles,
+      role: user.role,
       accessModules,
       isActive: user.isActive,
     }
@@ -43,7 +43,7 @@ export class AuthService {
     return { accessToken: this.jwtService.sign(payload) }
   }
 
-  private validateUser(user: User, passwordToVerify: string): boolean {
+  private validateUser(user: UserEntity, passwordToVerify: string): boolean {
     return user && this.checkPassword(passwordToVerify, user.password)
   }
 

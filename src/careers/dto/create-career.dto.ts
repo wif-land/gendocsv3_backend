@@ -1,27 +1,30 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator'
-import { ICareer } from '../interfaces/career.interface'
+import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
-export class CreateCareerDto implements ICareer {
+export class CreateCareerDto {
   @ApiProperty()
   @IsNotEmpty({ message: 'internshipHours is required' })
+  @IsNumber()
   internshipHours: number
 
   @ApiProperty()
   @IsNotEmpty({ message: 'vinculationHours is required' })
+  @IsNumber()
   vinculationHours: number
 
   @ApiProperty()
   @IsNotEmpty({ message: 'coordinator is required' })
-  coordinator: string
+  @IsNumber()
+  coordinator: number
 
   @ApiProperty()
-  @IsNotEmpty({ message: 'Name is required' })
-  @IsString({ message: 'Name must be a string' })
+  @IsNotEmpty({ message: 'name is required' })
+  @IsString({ message: 'name must be a string' })
   name: string
 
   @ApiProperty()
   @IsNotEmpty({ message: 'credits is required' })
+  @IsNumber()
   credits: number
 
   @ApiProperty()

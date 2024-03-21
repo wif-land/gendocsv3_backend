@@ -1,13 +1,26 @@
+import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
+import { DtoUtils } from '../../shared/utils/dtos'
 import { CouncilAttendanceRole } from '../interfaces/council-attendance.interface'
-import { IsNotEmpty } from 'class-validator'
+import { IsEnum, IsNotEmpty } from 'class-validator'
 
 export class CreateAttendanceDto {
-  @IsNotEmpty({ message: 'Council id is required' })
-  councilId: number
-
-  @IsNotEmpty({ message: 'Functionary id is required' })
+  @IsNotEmpty({
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+      '{field}': 'functionaryId',
+    }),
+  })
   functionaryId: string
 
-  @IsNotEmpty({ message: 'hasAttended field is required' })
+  @IsEnum(CouncilAttendanceRole, {
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.isEnum, {
+      '{field}': 'role',
+      enum: CouncilAttendanceRole,
+    }),
+  })
+  @IsNotEmpty({
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+      field: 'functionaryId',
+    }),
+  })
   role: CouncilAttendanceRole
 }

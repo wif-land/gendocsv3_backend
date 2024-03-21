@@ -1,5 +1,5 @@
 // eslint-disable-next-line filenames/match-exported
-import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common'
+import { MiddlewareConsumer, Module } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
@@ -31,6 +31,7 @@ import { VariablesModule } from './variables/variables.module'
 import { CouncilsModule } from './councils/councils.module'
 import { NumerationDocumentModule } from './numeration-document/numeration-document.module'
 import { DocumentsModule } from './documents/documents.module'
+import { PositionsModule } from './positions/positions.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -46,6 +47,7 @@ const config = {
   keepConnectionAlive: true,
   migrationsRun: false,
   migrations: [`${__dirname}/migrations/**/*{.ts,.js}`],
+  migrationsTableName: 'migrations',
 }
 
 const connectionSource = new DataSource(config as DataSourceOptions)
@@ -59,7 +61,7 @@ export default connectionSource
     }),
     TypeOrmModule.forRoot({
       ...config,
-      dropSchema: false,
+      dropSchema: process.env.NODE_ENV === 'staging',
     } as TypeOrmModuleOptions),
     LogModule,
     TerminusModule,
@@ -82,18 +84,12 @@ export default connectionSource
     CouncilsModule,
     NumerationDocumentModule,
     DocumentsModule,
+    PositionsModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],
 })
-export class AppModule implements OnModuleInit {
-  async onModuleInit() {
-    await connectionSource.initialize()
-    await connectionSource.runMigrations({
-      transaction: 'each',
-    })
-  }
-
+export class AppModule {
   configure(consumer: MiddlewareConsumer): void {
     if (process.env.NODE_ENV === 'production') {
       consumer.apply(LoggerMiddleware).forRoutes('users/*')

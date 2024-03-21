@@ -9,6 +9,9 @@ import { CreateFunctionaryDto } from './dto/create-functionary.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { FunctionaryEntity } from './entities/functionary.entity'
+import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { UpdateFunctionaryDto } from './dto/update-functionary.dto'
+import { UpdateFunctionariesBulkItemDto } from './dto/update-functionaries-bulk.dto'
 
 @Injectable()
 export class FunctionariesService {
@@ -34,25 +37,35 @@ export class FunctionariesService {
     }
   }
 
-  async findAll(): Promise<FunctionaryEntity[]> {
+  async findAll(paginationDto: PaginationDto) {
+    // eslint-disable-next-line no-magic-numbers
+    const { limit = 5, offset = 0 } = paginationDto
+
     try {
       const functionaries = await this.functionaryRepository.find({
         order: {
           id: 'ASC',
         },
+        take: limit,
+        skip: offset,
       })
 
       if (!functionaries) {
         throw new NotFoundException('Functionaries not found')
       }
 
-      return functionaries
+      const count = await this.functionaryRepository.count()
+
+      return {
+        count,
+        functionaries,
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findOne(id: string): Promise<FunctionaryEntity> {
+  async findOne(id: number): Promise<FunctionaryEntity> {
     try {
       const functionary = await this.functionaryRepository.findOneBy({ id })
 
@@ -66,9 +79,56 @@ export class FunctionariesService {
     }
   }
 
+  async findByField(field: string, paginationDto: PaginationDto) {
+    // eslint-disable-next-line no-magic-numbers
+    const { limit = 5, offset = 0 } = paginationDto
+
+    const terms = field.split(' ').filter((term) => term.length > 0)
+    const queryBuilder =
+      this.functionaryRepository.createQueryBuilder('functionaries')
+
+    const searchConditions = terms
+      .map(
+        (term) => ` 
+      (UPPER(functionaries.first_name) LIKE :${term} 
+      OR UPPER(functionaries.second_name) LIKE :${term} 
+      OR UPPER(functionaries.first_last_name) LIKE :${term} 
+      OR UPPER(functionaries.second_last_name) LIKE :${term}
+      OR functionaries.dni LIKE :${term})
+    `,
+      )
+      .join(' AND ')
+
+    const parameters = terms.reduce(
+      (acc, term) => ({
+        ...acc,
+        [term]: `%${term.toUpperCase()}%`,
+      }),
+      {},
+    )
+
+    const functionaries = await queryBuilder
+      .where(searchConditions, parameters)
+      .orderBy('functionaries.id', 'ASC')
+      .take(limit)
+      .skip(offset)
+      .getMany()
+
+    const count = await queryBuilder.getCount()
+
+    if (functionaries.length === 0 || count === 0) {
+      throw new NotFoundException('Functionaries not found')
+    }
+
+    return {
+      count,
+      functionaries,
+    }
+  }
+
   async update(
-    id: string,
-    updateFunctionaryDto: Partial<CreateFunctionaryDto>,
+    id: number,
+    updateFunctionaryDto: UpdateFunctionaryDto,
   ): Promise<FunctionaryEntity> {
     try {
       const functionary = await this.functionaryRepository.preload({
@@ -86,7 +146,43 @@ export class FunctionariesService {
     }
   }
 
-  async remove(id: string): Promise<boolean> {
+  async bulkUpdate(
+    updateFunctionariesBulkDto: UpdateFunctionariesBulkItemDto[],
+  ) {
+    const queryRunner =
+      this.functionaryRepository.manager.connection.createQueryRunner()
+
+    await queryRunner.connect()
+
+    try {
+      await queryRunner.startTransaction()
+
+      const updatedCouncils = []
+
+      for (const updateFunctionary of updateFunctionariesBulkDto) {
+        const functionary = await this.functionaryRepository.preload({
+          id: updateFunctionary.id,
+          ...updateFunctionary,
+        })
+
+        if (!functionary) {
+          throw new NotFoundException('Functionary not found')
+        }
+
+        updatedCouncils.push(await queryRunner.manager.save(functionary))
+      }
+
+      await queryRunner.commitTransaction()
+
+      return updatedCouncils
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async remove(id: number): Promise<boolean> {
     try {
       const functionary = await this.findOne(id)
 

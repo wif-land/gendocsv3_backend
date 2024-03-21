@@ -8,6 +8,8 @@ import {
   IsBoolean,
   IsDate,
 } from 'class-validator'
+import { DtoUtils } from '../../shared/utils/dtos'
+import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
 
 export class CreateStudentDto {
   @ApiProperty({
@@ -39,11 +41,12 @@ export class CreateStudentDto {
   })
   @IsEmail(
     {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       host_whitelist: ['uta.edu.ec'],
     },
     {
-      message: 'email must be a valid UTA email',
+      message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.email, {
+        '{field}': 'outlookEmail',
+      }),
     },
   )
   @IsNotEmpty()
@@ -52,25 +55,21 @@ export class CreateStudentDto {
   @ApiProperty({
     description: 'Correo personal del estudiante',
   })
-  @IsEmail(
-    {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      host_whitelist: ['gmail.com'],
-    },
-    {
-      message: 'email must be a valid Gmail email',
-    },
-  )
+  @IsEmail()
   @IsNotEmpty({
-    message: 'googleEmail is required',
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+      '{field}': 'personalEmail',
+    }),
   })
-  googleEmail: string
+  personalEmail: string
 
   @ApiProperty({
     description: 'Número de teléfono del estudiante',
   })
   @IsNotEmpty({
-    message: 'phoneNumber is required',
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+      '{field}': 'phoneNumber',
+    }),
   })
   phoneNumber: string
 
@@ -153,7 +152,9 @@ export class CreateStudentDto {
     description: 'Id de la carrera a la que pertenece el estudiante',
   })
   @IsNotEmpty({
-    message: 'careerId is required',
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+      '{field}': 'career',
+    }),
   })
-  careerId: number
+  career: number
 }

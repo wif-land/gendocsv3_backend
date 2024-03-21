@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common'
 import { YearModuleService } from './year-module.service'
 import { CreateYearModuleDto } from './dto/create-year-module.dto'
@@ -26,20 +27,20 @@ export class YearModuleController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.yearModuleService.findOne(+id)
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateYearModuleDto: UpdateYearModuleDto,
   ) {
     return this.yearModuleService.update(+id, updateYearModuleDto)
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.yearModuleService.remove(+id)
   }
 }
