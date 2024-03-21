@@ -9,6 +9,8 @@ VM_USER := root
 
 up:
 	docker compose -f $(COMPOSE_DEVELOP_FILE) --env-file $(ENV_FILE) up -d
+	npm install
+	npm run migration:run
 
 down:
 	docker compose -f $(COMPOSE_DEVELOP_FILE) --env-file $(ENV_FILE) down
@@ -28,13 +30,3 @@ backup:
 generate_ssh_key:
 	ssh-keygen -t rsa -b 2048 -C "gendocsv3" -f ~/.ssh/id_gendocsv3 -N "" | true
 	scp ~/.ssh/id_gendocsv3.pub ${VM_USER}@$(VM_IP):~/.ssh/authorized_keys
-
-run_migrations:
-	. ./.env 
-	npm run build
-	npx typeorm migration:run -d dist/database/data-source.js
-
-revert_migrations:
-	. ./.env
-	npm run build
-	npx typeorm migration:revert -d dist/database/data-source.js
