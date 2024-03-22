@@ -126,7 +126,6 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     ]
 
     const subModulesToInsert = [
-      { name: 'Buscar' },
       { name: 'Consejos' },
       { name: 'Procesos' },
       { name: 'Documentos' },
