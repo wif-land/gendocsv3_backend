@@ -105,12 +105,6 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         defaultTemplateDriveId: '1iUw4UWmx5KGWgFrPgSdB-cJAgIB4mntSOwanMU0v3c8',
       },
       {
-        code: 'ESTU',
-        name: 'ESTUDIANTES',
-        isActive: true,
-        hasDocuments: false,
-      },
-      {
         code: 'ADMIN',
         name: 'ADMINISTRADOR',
         isActive: true,
@@ -134,7 +128,6 @@ export class InitDatabase1704560301619 implements MigrationInterface {
       { name: 'Carreras' },
       { name: 'Usuarios' },
       { name: 'Actas de grado' },
-      { name: 'Historial' },
       { name: 'Cargos' },
     ]
 

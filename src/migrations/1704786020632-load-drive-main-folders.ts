@@ -92,7 +92,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         driveId: '1qITJ5A4MrvlNGlY8FSLcAT8jsp2CQpfs',
         isActive: true,
         module: {
-          id: 12,
+          id: 11,
         },
       },
     ]
