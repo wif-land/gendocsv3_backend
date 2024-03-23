@@ -42,6 +42,7 @@ export class InitDatabaseRelations1704569355637 implements MigrationInterface {
       { submoduleId: 5, moduleId: 10 },
       { submoduleId: 6, moduleId: 10 },
       { submoduleId: 7, moduleId: 10 },
+      { submoduleId: 9, moduleId: 10 },
       { submoduleId: 8, moduleId: 11 },
       { submoduleId: 4, moduleId: 11 },
     ]
