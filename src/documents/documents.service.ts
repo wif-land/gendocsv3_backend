@@ -210,6 +210,9 @@ export class DocumentsService {
         },
         take: rowsPerPage,
         skip: rowsPerPage * (page - 1),
+        where: {
+          numerationDocument: { council: { module: { id: Number(moduleId) } } },
+        },
       })
       if (!documents) {
         throw new NotFoundException('Documents not found')
