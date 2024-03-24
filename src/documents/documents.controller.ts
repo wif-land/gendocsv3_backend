@@ -6,10 +6,12 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common'
 import { DocumentsService } from './documents.service'
 import { CreateDocumentDto } from './dto/create-document.dto'
 import { ApiTags } from '@nestjs/swagger'
+import { PaginationDto } from '../shared/dtos/pagination.dto'
 
 @ApiTags('Documents')
 @Controller('documents')
@@ -22,8 +24,8 @@ export class DocumentsController {
   }
 
   @Get()
-  findAll() {
-    return this.documentsService.findAll()
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.documentsService.findAll(paginationDto)
   }
 
   @Get(':id')

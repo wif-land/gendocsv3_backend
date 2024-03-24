@@ -16,6 +16,7 @@ import { Student } from '../students/entities/student.entity'
 import { FilesService } from '../files/files.service'
 import { formatNumeration } from '../shared/utils/string'
 import { ResponseDocumentDto } from './dto/response-document'
+import { PaginationDto } from '../shared/dtos/pagination.dto'
 
 @Injectable()
 export class DocumentsService {
@@ -191,10 +192,15 @@ export class DocumentsService {
     }
   }
 
-  async findAll() {
+  async findAll(paginationDto: PaginationDto) {
+    // eslint-disable-next-line no-magic-numbers
+    const { limit = 10, offset = 0 } = paginationDto
+
     try {
       const documents = await this.documentsRepository.find({
         relations: ['numerationDocument', 'user', 'student', 'templateProcess'],
+        take: limit,
+        skip: offset,
       })
       if (!documents) {
         throw new NotFoundException('Documents not found')
