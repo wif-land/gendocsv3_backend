@@ -32,24 +32,24 @@ export class ProcessesController {
     return await this.processesService.create(createProcessDto)
   }
 
-  @ApiResponse({ type: ResponseProcessDto })
-  @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return await this.processesService.findOne(id)
-  }
-
-  @ApiResponse({ isArray: true, type: ResponseProcessDto })
-  @Get()
-  async getProcesses(@Query() paginationDto: PaginationDto) {
-    return await this.processesService.getProcessesByModuleId(paginationDto)
-  }
-
   @Get(':field')
   async findByField(
     @Param('field') field: string,
     @Query() paginationDto: PaginationDto,
   ) {
     return await this.processesService.findByField(field, paginationDto)
+  }
+
+  // @ApiResponse({ type: ResponseProcessDto })
+  // @Get(':id')
+  // async findOne(@Param('id', ParseIntPipe) id: number) {
+  //   return await this.processesService.findOne(id)
+  // }
+
+  @ApiResponse({ isArray: true, type: ResponseProcessDto })
+  @Get()
+  async getProcesses(@Query() paginationDto: PaginationDto) {
+    return await this.processesService.getProcessesByModuleId(paginationDto)
   }
 
   @Patch(':id')
