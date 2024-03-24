@@ -15,6 +15,8 @@ import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
 import { SubmodulesNames } from '../shared/enums/submodules-names'
 import { ResponseProcessDto } from './dto/response-process.dto'
+import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { UpdateProcessBulkItemDto } from './dto/update-processes-bulk.dto'
 
 @Injectable()
 export class ProcessesService {
@@ -110,7 +112,10 @@ export class ProcessesService {
     }
   }
 
-  async getProcessesByModuleId(moduleId: number) {
+  async getProcessesByModuleId(paginationDto: PaginationDto) {
+    // eslint-disable-next-line no-magic-numbers
+    const { moduleId, limit = 10, offset = 0 } = paginationDto
+
     try {
       const qb = this.dataSource
         .createQueryBuilder(Process, 'processes')
@@ -124,17 +129,78 @@ export class ProcessesService {
         .where('module.id = :moduleId', { moduleId })
         .orderBy('processes.createdAt', 'DESC')
 
+      qb.take(limit)
+      qb.skip(offset)
+
+      const countqb = this.dataSource
+        .createQueryBuilder(Process, 'processes')
+        .leftJoinAndSelect('processes.module', 'module')
+        .where('module.id = :moduleId', { moduleId })
+
+      const count = await countqb.getCount()
+
       const processes = await qb.getMany()
 
       if (!processes) {
         throw new HttpException('Processes not found', HttpStatus.NOT_FOUND)
       }
 
-      const processesResponse = await processes.map(
+      const processesResponse = processes.map(
         (process) => new ResponseProcessDto(process),
       )
 
-      return processesResponse
+      return { count, processes: processesResponse }
+    } catch (e) {
+      new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async findByField(field: string, paginationDto: PaginationDto) {
+    // eslint-disable-next-line no-magic-numbers
+    const { moduleId, limit = 10, offset = 0 } = paginationDto
+
+    try {
+      const qb = this.dataSource
+        .createQueryBuilder(Process, 'processes')
+        .leftJoinAndSelect('processes.user', 'user')
+        .leftJoinAndSelect('processes.module', 'module')
+        .leftJoinAndSelect(
+          'processes.submoduleYearModule',
+          'submoduleYearModule',
+        )
+        .leftJoinAndSelect('processes.templateProcesses', 'templates')
+        .where('module.id = :moduleId', { moduleId })
+        .andWhere('processes.name ILIKE :field', { field: `%${field}%` })
+        .orderBy('processes.createdAt', 'DESC')
+
+      qb.take(limit)
+      qb.skip(offset)
+
+      const countqb = this.dataSource
+        .createQueryBuilder(Process, 'processes')
+        .leftJoinAndSelect('processes.module', 'module')
+        .where(
+          '(UPPER(processes.name) like :termName or CAST(processes.id AS TEXT) = :termId) and module.id = :moduleId',
+          {
+            termName: `%${field.toUpperCase()}%`,
+            termId: field,
+            moduleId,
+          },
+        )
+
+      const count = await countqb.getCount()
+
+      const processes = await qb.getMany()
+
+      if (!processes) {
+        throw new HttpException('Processes not found', HttpStatus.NOT_FOUND)
+      }
+
+      const processesResponse = processes.map(
+        (process) => new ResponseProcessDto(process),
+      )
+
+      return { count, processes: processesResponse }
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -201,6 +267,57 @@ export class ProcessesService {
       const responseProcess = await this.processRepository.save(updatedProcess)
 
       return new ResponseProcessDto(responseProcess)
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async updateBulk(updateProcessesBulkDto: UpdateProcessBulkItemDto[]) {
+    const queryRunner =
+      this.processRepository.manager.connection.createQueryRunner()
+
+    await queryRunner.startTransaction()
+
+    try {
+      const updatedProcesses = []
+      for (const processDto of updateProcessesBulkDto) {
+        const { id, ...processData } = processDto
+        const hasNameChanged = processData.name !== undefined
+
+        if (hasNameChanged) {
+          const queryBuilder = this.dataSource.createQueryBuilder(
+            Process,
+            'processes',
+          )
+          queryBuilder.where('processes.id = :id', { id })
+
+          const { driveId } = await queryBuilder.getOne()
+
+          if (!driveId) {
+            throw new NotFoundException(`Process not found with id ${id}`)
+          }
+
+          await this.fileService.renameAsset(driveId, processData.name)
+        }
+
+        const updatedProcess = await this.processRepository.preload({
+          id,
+          ...processData,
+        })
+
+        if (!updatedProcess) {
+          throw new NotFoundException(`Process not found with id ${id}`)
+        }
+
+        updatedProcesses.push(updatedProcess)
+
+        await queryRunner.manager.save(updatedProcess)
+      }
+
+      await queryRunner.commitTransaction()
+      await queryRunner.release()
+
+      return updatedProcesses
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
