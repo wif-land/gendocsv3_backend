@@ -169,8 +169,14 @@ export class ProcessesService {
           'submoduleYearModule',
         )
         .leftJoinAndSelect('processes.templateProcesses', 'templates')
-        .where('module.id = :moduleId', { moduleId })
-        .andWhere('processes.name ILIKE :field', { field: `%${field}%` })
+        .where(
+          '(UPPER(processes.name) like :termName or CAST(processes.id AS TEXT) = :termId) and module.id = :moduleId',
+          {
+            termName: `%${field.toUpperCase()}%`,
+            termId: field,
+            moduleId,
+          },
+        )
         .orderBy('processes.createdAt', 'DESC')
 
       qb.take(limit)
