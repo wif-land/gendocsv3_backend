@@ -11,7 +11,7 @@ import {
 import { DocumentsService } from './documents.service'
 import { CreateDocumentDto } from './dto/create-document.dto'
 import { ApiTags } from '@nestjs/swagger'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
 
 @ApiTags('Documents')
 @Controller('documents')
@@ -24,7 +24,7 @@ export class DocumentsController {
   }
 
   @Get()
-  findAll(@Query() paginationDto: PaginationDto) {
+  findAll(@Query() paginationDto: PaginationV2Dto) {
     return this.documentsService.findAll(paginationDto)
   }
 
