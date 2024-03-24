@@ -16,6 +16,7 @@ import { Student } from '../students/entities/student.entity'
 import { FilesService } from '../files/files.service'
 import { formatNumeration } from '../shared/utils/string'
 import { ResponseDocumentDto } from './dto/response-document'
+import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
 
 @Injectable()
 export class DocumentsService {
@@ -191,15 +192,42 @@ export class DocumentsService {
     }
   }
 
-  async findAll() {
+  async findAll(paginationDto: PaginationV2Dto) {
+    const {
+      // eslint-disable-next-line no-magic-numbers
+      rowsPerPage = 10,
+      order = 'asc',
+      orderBy = 'id',
+      page = 1,
+      moduleId,
+    } = paginationDto
+
     try {
       const documents = await this.documentsRepository.find({
         relations: ['numerationDocument', 'user', 'student', 'templateProcess'],
+        order: {
+          [orderBy]: order.toUpperCase(),
+        },
+        take: rowsPerPage,
+        skip: rowsPerPage * (page - 1),
       })
       if (!documents) {
         throw new NotFoundException('Documents not found')
       }
-      return documents.map((document) => new ResponseDocumentDto(document))
+
+      const count = await this.documentsRepository.count({
+        relations: ['numerationDocument', 'user', 'student', 'templateProcess'],
+        where: {
+          numerationDocument: { council: { module: { id: Number(moduleId) } } },
+        },
+      })
+
+      return {
+        count,
+        documents: documents.map(
+          (document) => new ResponseDocumentDto(document),
+        ),
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
