@@ -19,6 +19,7 @@ import { UpdateCouncilDto } from './dto/update-council.dto'
 import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
+import { CouncilFiltersDto } from './dto/council-filters.dto'
 
 @Injectable()
 export class CouncilsService {
@@ -80,7 +81,7 @@ export class CouncilsService {
       const councilInserted = await this.councilRepository.save(council)
 
       if (!hasAttendance) {
-        return await this.councilRepository.save(council)
+        return councilInserted
       }
 
       const promises = attendees.map((item) =>
@@ -160,53 +161,48 @@ export class CouncilsService {
     }
   }
 
-  async findByField(field: string, paginationDto: PaginationDto) {
+  async findByFilters(
+    filters: CouncilFiltersDto,
+    paginationDto: PaginationDto,
+  ) {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = paginationDto
-    const queryBuilder = this.dataSource.createQueryBuilder(
-      CouncilEntity,
-      'councils',
-    )
-    queryBuilder.leftJoinAndSelect('councils.user', 'user')
-    queryBuilder.leftJoinAndSelect('councils.module', 'module')
-    queryBuilder.leftJoinAndSelect(
-      'councils.submoduleYearModule',
-      'submoduleYearModule',
-    )
-    queryBuilder.leftJoinAndSelect('councils.attendance', 'attendance')
-    queryBuilder.leftJoinAndSelect('attendance.functionary', 'functionary')
-    queryBuilder.orderBy('councils.id', 'ASC')
-    queryBuilder.where(
-      '(UPPER(councils.name) like :termName or CAST(councils.id AS TEXT) = :termId) and module.id = :moduleId',
-      {
-        termName: `%${field.toUpperCase()}%`,
-        termId: field,
-        moduleId,
-      },
-    )
-    queryBuilder.take(limit)
-    queryBuilder.skip(offset)
 
-    const countQueryBuilder = this.dataSource.createQueryBuilder(
-      CouncilEntity,
-      'councils',
-    )
-    countQueryBuilder.leftJoin('councils.module', 'module')
-    countQueryBuilder.where(
-      '(UPPER(councils.name) like :termName or CAST(councils.id AS TEXT) = :termId) and module.id = :moduleId',
-      {
-        termName: `%${field.toUpperCase()}%`,
-        termId: field,
-        moduleId,
-      },
-    )
+    const qb = this.dataSource.createQueryBuilder(CouncilEntity, 'councils')
 
-    const count = await countQueryBuilder.getCount()
+    qb.leftJoinAndSelect('councils.user', 'user')
+      .leftJoinAndSelect('councils.module', 'module')
+      .leftJoinAndSelect('councils.submoduleYearModule', 'submoduleYearModule')
+      .leftJoinAndSelect('councils.attendance', 'attendance')
+      .leftJoinAndSelect('attendance.functionary', 'functionary')
+      .orderBy('councils.id', 'ASC')
+      .where('module.id = :moduleId', { moduleId })
+      .andWhere(
+        '((:name :: TEXT) IS NULL OR UPPER(councils.name) LIKE UPPER((:name :: TEXT)))',
+        {
+          name: filters.name,
+        },
+      )
+      .andWhere(
+        '((:state :: BOOLEAN) IS NULL OR councils.isActive = (:state :: BOOLEAN))',
+        {
+          state: filters.isActive,
+        },
+      )
+      .andWhere(
+        '((:type :: TEXT) IS NULL OR councils.type = (:type :: TEXT))',
+        {
+          type: filters.type,
+        },
+      )
+      .take(limit)
+      .skip(offset)
 
-    const councils = await queryBuilder.getMany()
+    const count = await qb.getCount()
+    const councils = await qb.getMany()
 
     if (councils.length === 0) {
-      throw new NotFoundException('Council not found')
+      throw new NotFoundException('Consejos no encontrados')
     }
 
     const mappedCouncils = councils.map(
