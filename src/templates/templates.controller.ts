@@ -31,6 +31,19 @@ export class TemplatesController {
     return await this.templatesService.findOne(id)
   }
 
+  @Get('process/:id')
+  async findByProcessId(@Param('id', ParseIntPipe) id: number) {
+    return await this.templatesService.findByProcessId(id)
+  }
+
+  @Get('process/:processId/:field')
+  async findByProcessAndField(
+    @Param('processId', ParseIntPipe) processId: number,
+    @Param('field') field: string,
+  ) {
+    return await this.templatesService.findByProcessAndField(processId, field)
+  }
+
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,

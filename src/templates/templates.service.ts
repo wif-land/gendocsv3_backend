@@ -79,6 +79,53 @@ export class TemplatesService {
     }
   }
 
+  async findByProcessId(processId: number) {
+    const qb = this.dataSource
+      .createQueryBuilder(TemplateProcess, 'template')
+      .leftJoinAndSelect('template.user', 'user')
+      .leftJoinAndSelect('template.process', 'process')
+      .where('process.id = :id', { id: processId })
+
+    const templates = await qb.getMany()
+
+    if (!templates) {
+      throw new BadRequestException('Templates not found')
+    }
+
+    const responseTemplates = templates.map(
+      (template) => new ResponseTemplateDto(template),
+    )
+
+    return { count: responseTemplates.length, templates: responseTemplates }
+  }
+
+  async findByProcessAndField(processId: number, field: string) {
+    const qb = this.dataSource
+      .createQueryBuilder(TemplateProcess, 'template')
+      .leftJoinAndSelect('template.user', 'user')
+      .leftJoinAndSelect('template.process', 'process')
+      .where(
+        '(UPPER(template.name) like :termName or CAST(template.id AS TEXT) = :termId) and process.id = :processId',
+        {
+          termName: `%${field.toUpperCase()}%`,
+          termId: field,
+          processId,
+        },
+      )
+
+    const templates = await qb.getMany()
+
+    if (!templates) {
+      throw new BadRequestException('Templates not found')
+    }
+
+    const responseTemplates = templates.map(
+      (template) => new ResponseTemplateDto(template),
+    )
+
+    return { count: responseTemplates.length, templates: responseTemplates }
+  }
+
   async findOne(id: number): Promise<ResponseTemplateDto> {
     const qb = this.dataSource
       .createQueryBuilder(TemplateProcess, 'template')
