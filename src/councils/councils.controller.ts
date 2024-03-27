@@ -40,11 +40,8 @@ export class CouncilsController {
   }
 
   @Get('filter')
-  async findByFilters(
-    @Query() paginationDto: PaginationDto,
-    @Body() filters: CouncilFiltersDto,
-  ) {
-    return this.councilsService.findByFilters(filters, paginationDto)
+  async findByFilters(@Query() filters: CouncilFiltersDto) {
+    return this.councilsService.findByFilters(filters)
   }
 
   @Patch(':id')
