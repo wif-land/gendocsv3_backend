@@ -161,12 +161,9 @@ export class CouncilsService {
     }
   }
 
-  async findByFilters(
-    filters: CouncilFiltersDto,
-    paginationDto: PaginationDto,
-  ) {
+  async findByFilters(filters: CouncilFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { moduleId, limit = 10, offset = 0 } = paginationDto
+    const { moduleId, limit = 10, offset = 0 } = filters
 
     const qb = this.dataSource.createQueryBuilder(CouncilEntity, 'councils')
 
@@ -178,15 +175,15 @@ export class CouncilsService {
       .orderBy('councils.id', 'ASC')
       .where('module.id = :moduleId', { moduleId })
       .andWhere(
-        '((:name :: TEXT) IS NULL OR UPPER(councils.name) LIKE UPPER((:name :: TEXT)))',
+        '((:name :: TEXT) IS NULL OR UPPER(councils.name) LIKE (:name :: TEXT))',
         {
-          name: filters.name,
+          name: `%${filters.name.toUpperCase()}%`,
         },
       )
       .andWhere(
         '((:state :: BOOLEAN) IS NULL OR councils.isActive = (:state :: BOOLEAN))',
         {
-          state: filters.isActive,
+          state: filters.state as unknown as boolean,
         },
       )
       .andWhere(
