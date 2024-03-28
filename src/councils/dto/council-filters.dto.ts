@@ -1,24 +1,33 @@
-import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator'
+import {
+  IsBooleanString,
+  IsDate,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator'
 import { Type } from 'class-transformer'
 import { COUNCIL_TYPES } from '../interfaces/council.interface'
 import { PaginationDto } from '../../shared/dtos/pagination.dto'
 
-enum DATE_TYPES {
+export enum DATE_TYPES {
   EJECUTION = 'EJECUTION',
   CREATION = 'CREATION',
 }
 
 export class CouncilFiltersDto extends PaginationDto {
   @IsOptional()
-  @IsString()
-  state?: string
+  @IsBooleanString()
+  state?: boolean
 
   @IsOptional()
   @IsString()
+  @MinLength(1)
   name?: string
 
   @IsOptional()
   @IsEnum(COUNCIL_TYPES)
+  @MinLength(1)
   type?: COUNCIL_TYPES
 
   @IsOptional()

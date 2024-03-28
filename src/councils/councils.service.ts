@@ -19,7 +19,7 @@ import { UpdateCouncilDto } from './dto/update-council.dto'
 import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
-import { CouncilFiltersDto } from './dto/council-filters.dto'
+import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
 
 @Injectable()
 export class CouncilsService {
@@ -175,25 +175,49 @@ export class CouncilsService {
       .orderBy('councils.id', 'ASC')
       .where('module.id = :moduleId', { moduleId })
       .andWhere(
-        '((:name :: TEXT) IS NULL OR UPPER(councils.name) LIKE (:name :: TEXT))',
+        '( (:state :: BOOLEAN) IS NULL OR councils.isActive = (:state :: BOOLEAN) )',
         {
-          name: `%${filters.name.toUpperCase()}%`,
+          state: filters.state,
         },
       )
       .andWhere(
-        '((:state :: BOOLEAN) IS NULL OR councils.isActive = (:state :: BOOLEAN))',
+        '( (:name :: TEXT) IS NULL OR UPPER(councils.name) LIKE (:name :: TEXT) )',
         {
-          state: filters.state as unknown as boolean,
+          name: filters.name && `%${filters.name?.toUpperCase()}%`,
         },
       )
       .andWhere(
-        '((:type :: TEXT) IS NULL OR councils.type = (:type :: TEXT))',
+        '( (:type :: TEXT) IS NULL OR councils.type = (:type :: TEXT) )',
         {
           type: filters.type,
         },
       )
-      .take(limit)
-      .skip(offset)
+
+    const endDate = new Date(filters.endDate || filters.startDate)
+    // eslint-disable-next-line no-magic-numbers
+    endDate.setHours(23, 59, 59, 999)
+
+    if (filters.dateType === DATE_TYPES.CREATION) {
+      qb.andWhere(
+        '( (:startDate :: DATE) IS NULL OR councils.createdAt BETWEEN (:startDate :: DATE) AND (:endDate :: DATE) )',
+        {
+          startDate: filters.startDate,
+          endDate,
+        },
+      )
+    } else if (filters.dateType === DATE_TYPES.EJECUTION) {
+      qb.andWhere(
+        '( (:startDate :: DATE) IS NULL OR councils.date BETWEEN (:startDate :: DATE) AND (:endDate :: DATE) )',
+        {
+          startDate: filters.startDate,
+          endDate,
+        },
+      )
+    }
+
+    console.log({ ...filters, endDate })
+
+    qb.take(limit).skip(offset)
 
     const count = await qb.getCount()
     const councils = await qb.getMany()
