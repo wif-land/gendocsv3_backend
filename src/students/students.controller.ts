@@ -17,6 +17,7 @@ import { Student } from './entities/student.entity'
 import { CreateStudentsBulkDto } from './dto/create-students-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
+import { StudentFiltersDto } from './dto/student-filters.dto'
 
 @ApiTags('Students')
 @Controller('students')
@@ -50,12 +51,9 @@ export class StudentsController {
     return await this.studentsService.findOne(id)
   }
 
-  @Get('search/:field')
-  async findByField(
-    @Param('field') field: string,
-    @Query() paginationDto: PaginationDto,
-  ) {
-    return await this.studentsService.findByField(field, paginationDto)
+  @Get('filter')
+  async findByFilters(@Query() filters: StudentFiltersDto) {
+    return await this.studentsService.findByFilters(filters)
   }
 
   @Patch(':id')

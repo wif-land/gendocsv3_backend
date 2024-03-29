@@ -12,6 +12,7 @@ import { FunctionaryEntity } from './entities/functionary.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateFunctionaryDto } from './dto/update-functionary.dto'
 import { UpdateFunctionariesBulkItemDto } from './dto/update-functionaries-bulk.dto'
+import { FunctionaryFiltersDto } from './dto/functionary-filters.dto'
 
 @Injectable()
 export class FunctionariesService {
@@ -79,46 +80,34 @@ export class FunctionariesService {
     }
   }
 
-  async findByField(field: string, paginationDto: PaginationDto) {
+  async findByFilters(filters: FunctionaryFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = paginationDto
+    const { limit = 10, offset = 0 } = filters
 
-    const terms = field.split(' ').filter((term) => term.length > 0)
-    const queryBuilder =
-      this.functionaryRepository.createQueryBuilder('functionaries')
+    const qb = this.functionaryRepository.createQueryBuilder('functionaries')
 
-    const searchConditions = terms
-      .map(
-        (term) => ` 
-      (UPPER(functionaries.first_name) LIKE :${term} 
-      OR UPPER(functionaries.second_name) LIKE :${term} 
-      OR UPPER(functionaries.first_last_name) LIKE :${term} 
-      OR UPPER(functionaries.second_last_name) LIKE :${term}
-      OR functionaries.dni LIKE :${term})
-    `,
-      )
-      .join(' AND ')
-
-    const parameters = terms.reduce(
-      (acc, term) => ({
-        ...acc,
-        [term]: `%${term.toUpperCase()}%`,
-      }),
-      {},
+    qb.where(
+      '( (:state :: BOOLEAN) IS NULL OR functionaries.isActive = (:state :: BOOLEAN) )',
+      {
+        state: filters.state,
+      },
     )
-
-    const functionaries = await queryBuilder
-      .where(searchConditions, parameters)
+      .andWhere(
+        "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', functionaries.firstName, functionaries.secondName, functionaries.firstLastName, functionaries.secondLastName) ILIKE :term OR functionaries.dni ILIKE :term )",
+        {
+          term: filters.field && `%${filters.field.trim()}%`,
+        },
+      )
       .orderBy('functionaries.id', 'ASC')
       .take(limit)
       .skip(offset)
-      .getMany()
 
-    const count = await queryBuilder.getCount()
-
-    if (functionaries.length === 0 || count === 0) {
+    const count = await qb.getCount()
+    if (count === 0) {
       throw new NotFoundException('Functionaries not found')
     }
+
+    const functionaries = await qb.getMany()
 
     return {
       count,

@@ -181,13 +181,13 @@ export class CouncilsService {
         },
       )
       .andWhere(
-        '( (:name :: TEXT) IS NULL OR UPPER(councils.name) LIKE (:name :: TEXT) )',
+        '( (:name :: VARCHAR) IS NULL OR councils.name ILIKE :name  )',
         {
-          name: filters.name && `%${filters.name?.toUpperCase()}%`,
+          name: filters.name && `%${filters.name}%`,
         },
       )
       .andWhere(
-        '( (:type :: TEXT) IS NULL OR councils.type = (:type :: TEXT) )',
+        '( (:type :: VARCHAR) IS NULL OR councils.type = (:type :: VARCHAR) )',
         {
           type: filters.type,
         },
@@ -215,7 +215,7 @@ export class CouncilsService {
       )
     }
 
-    console.log({ ...filters, endDate })
+    // console.log({ ...filters, endDate })
 
     qb.take(limit).skip(offset)
 
