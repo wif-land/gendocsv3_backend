@@ -25,17 +25,22 @@ export class AllExceptionsFilter implements ExceptionFilter {
       type:
         exception.response?.type || exception.response?.type || exception.name,
       title:
-        exception.response?.title || exception.title || 'Internal Server Error',
-      detail:
+        exception.response?.title ||
+        exception.title ||
+        exception.name === 'BadRequestException'
+          ? 'Petición incorrecta'
+          : exception.name || 'Internal Server Error',
+      message:
         exception.response?.detail ||
         exception.detail ||
+        exception.response?.message ||
         exception.message ||
         'Internal Server Error',
-      instance:
-        exception.response?.instance ||
-        exception.instance ||
-        exception.stack ||
-        'Internal Server Error',
+      // instance:
+      //   exception.response?.instance ||
+      //   exception.instance ||
+      //   exception.stack ||
+      //   'Internal Server Error',
       error: exception.name,
     })
   }
