@@ -21,9 +21,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     response.status(status).json({
       statusCode: status,
-      message:
-        exception.response?.message ||
+      type:
+        exception.response?.type || exception.response?.type || exception.name,
+      title:
+        exception.response?.title || exception.title || 'Internal Server Error',
+      detail:
+        exception.response?.detail ||
+        exception.detail ||
         exception.message ||
+        'Internal Server Error',
+      instance:
+        exception.response?.instance ||
+        exception.instance ||
+        exception.stack ||
         'Internal Server Error',
       error: exception.name,
     })

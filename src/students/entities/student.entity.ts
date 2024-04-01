@@ -91,6 +91,58 @@ export class Student extends BasePerson {
   isActive: boolean
 
   @ApiProperty({
+    example: 'Bachiiller en Ciencias',
+    description: 'bachelor_degeree',
+  })
+  @Column({
+    name: 'bachelor_degree',
+    type: 'varchar',
+  })
+  bachelorDegree: string
+
+  @ApiProperty({
+    example: '2021-07-07',
+    description: 'Fecha de inicio de estudios del estudiante',
+  })
+  @Column({
+    name: 'study_start_date',
+    type: 'date',
+  })
+  studyStartDate: Date
+
+  @ApiProperty({
+    example: '2021-07-07',
+    description: 'Fecha de fin de estudios del estudiante',
+  })
+  @Column({
+    name: 'study_end_date',
+    type: 'date',
+  })
+  studyEndDate: Date
+
+  @ApiProperty({
+    example: '92',
+    description: 'Horas de vinculación',
+  })
+  @Column({
+    name: 'vinculation_hours',
+    type: 'smallint',
+    nullable: true,
+  })
+  vinculationHours: number
+
+  @ApiProperty({
+    example: '142',
+    description: 'Horas de practicas',
+  })
+  @Column({
+    name: 'intership_hours',
+    type: 'smallint',
+    nullable: true,
+  })
+  intershipHours: number
+
+  @ApiProperty({
     example: '1',
     description: 'Carrera a la que pertenece el estudiante',
   })
