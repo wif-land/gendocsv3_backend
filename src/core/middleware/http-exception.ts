@@ -8,6 +8,7 @@ import {
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   catch(exception: any, host: ArgumentsHost): void {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse()

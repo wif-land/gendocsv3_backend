@@ -38,6 +38,8 @@ export class LoadStudentForTest1705110761172 implements MigrationInterface {
       canton: 'Ibarra',
       approvedCredits: 0,
       isActive: true,
+      bachelorDegree: 'Bachiller en Ciencias',
+      startStudiesDate: new Date('2021-01-01'),
       career: { id: 1 },
     }
 
