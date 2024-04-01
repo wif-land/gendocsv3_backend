@@ -105,20 +105,21 @@ export class Student extends BasePerson {
     description: 'Fecha de inicio de estudios del estudiante',
   })
   @Column({
-    name: 'study_start_date',
+    name: 'start_studies_date',
     type: 'date',
   })
-  studyStartDate: Date
+  startStudiesDate: Date
 
   @ApiProperty({
     example: '2021-07-07',
     description: 'Fecha de fin de estudios del estudiante',
   })
   @Column({
-    name: 'study_end_date',
+    name: 'end_studies_date',
     type: 'date',
+    nullable: true,
   })
-  studyEndDate: Date
+  endStudiesDate: Date
 
   @ApiProperty({
     example: '92',
