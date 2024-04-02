@@ -45,15 +45,15 @@ export class StudentsController {
     return await this.studentsService.findAll(paginationDto)
   }
 
+  @Get('filter')
+  async findByFilters(@Query() filters: StudentFiltersDto) {
+    return await this.studentsService.findByFilters(filters)
+  }
+
   @ApiResponse({ type: Student })
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.studentsService.findOne(id)
-  }
-
-  @Get('filter')
-  async findByFilters(@Query() filters: StudentFiltersDto) {
-    return await this.studentsService.findByFilters(filters)
   }
 
   @Patch(':id')

@@ -218,7 +218,7 @@ export class StudentsService {
         throw new NotFoundException('Student not found')
       }
 
-      student.isActive = false
+      student.isActive = !student.isActive
 
       await this.studentRepository.save(student)
 
