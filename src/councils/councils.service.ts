@@ -172,7 +172,6 @@ export class CouncilsService {
       .leftJoinAndSelect('councils.submoduleYearModule', 'submoduleYearModule')
       .leftJoinAndSelect('councils.attendance', 'attendance')
       .leftJoinAndSelect('attendance.functionary', 'functionary')
-      .orderBy('councils.id', 'ASC')
       .where('module.id = :moduleId', { moduleId })
       .andWhere(
         '( (:state :: BOOLEAN) IS NULL OR councils.isActive = (:state :: BOOLEAN) )',
@@ -215,16 +214,16 @@ export class CouncilsService {
       )
     }
 
-    // console.log({ ...filters, endDate })
-
-    qb.take(limit).skip(offset)
-
     const count = await qb.getCount()
-    const councils = await qb.getMany()
-
-    if (councils.length === 0) {
+    if (count === 0) {
       throw new NotFoundException('Consejos no encontrados')
     }
+
+    const councils = await qb
+      .orderBy('councils.id', 'ASC')
+      .take(limit)
+      .skip(offset)
+      .getMany()
 
     const mappedCouncils = councils.map(
       (council) => new ResponseCouncilsDto(council),

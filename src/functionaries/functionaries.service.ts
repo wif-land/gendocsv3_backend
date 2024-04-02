@@ -91,23 +91,23 @@ export class FunctionariesService {
       {
         state: filters.state,
       },
+    ).andWhere(
+      "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', functionaries.firstName, functionaries.secondName, functionaries.firstLastName, functionaries.secondLastName) ILIKE :term OR functionaries.dni ILIKE :term )",
+      {
+        term: filters.field && `%${filters.field.trim()}%`,
+      },
     )
-      .andWhere(
-        "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', functionaries.firstName, functionaries.secondName, functionaries.firstLastName, functionaries.secondLastName) ILIKE :term OR functionaries.dni ILIKE :term )",
-        {
-          term: filters.field && `%${filters.field.trim()}%`,
-        },
-      )
-      .orderBy('functionaries.id', 'ASC')
-      .take(limit)
-      .skip(offset)
 
     const count = await qb.getCount()
     if (count === 0) {
       throw new NotFoundException('Functionaries not found')
     }
 
-    const functionaries = await qb.getMany()
+    const functionaries = await qb
+      .orderBy('functionaries.id', 'ASC')
+      .take(limit)
+      .skip(offset)
+      .getMany()
 
     return {
       count,

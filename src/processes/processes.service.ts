@@ -17,6 +17,7 @@ import { SubmodulesNames } from '../shared/enums/submodules-names'
 import { ResponseProcessDto } from './dto/response-process.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateProcessBulkItemDto } from './dto/update-processes-bulk.dto'
+import { ProcessFiltersDto } from './dto/process-filters.dto'
 
 @Injectable()
 export class ProcessesService {
@@ -155,61 +156,46 @@ export class ProcessesService {
     }
   }
 
-  async findByField(field: string, paginationDto: PaginationDto) {
+  async findByFilters(filters: ProcessFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { moduleId, limit = 10, offset = 0 } = paginationDto
+    const { moduleId, limit = 10, offset = 0 } = filters
 
-    try {
-      const qb = this.dataSource
-        .createQueryBuilder(Process, 'processes')
-        .leftJoinAndSelect('processes.user', 'user')
-        .leftJoinAndSelect('processes.module', 'module')
-        .leftJoinAndSelect(
-          'processes.submoduleYearModule',
-          'submoduleYearModule',
-        )
-        .leftJoinAndSelect('processes.templateProcesses', 'templates')
-        .where(
-          '(UPPER(processes.name) like :termName or CAST(processes.id AS TEXT) = :termId) and module.id = :moduleId',
-          {
-            termName: `%${field.toUpperCase()}%`,
-            termId: field,
-            moduleId,
-          },
-        )
-        .orderBy('processes.createdAt', 'DESC')
-
-      qb.take(limit)
-      qb.skip(offset)
-
-      const countqb = this.dataSource
-        .createQueryBuilder(Process, 'processes')
-        .leftJoinAndSelect('processes.module', 'module')
-        .where(
-          '(UPPER(processes.name) like :termName or CAST(processes.id AS TEXT) = :termId) and module.id = :moduleId',
-          {
-            termName: `%${field.toUpperCase()}%`,
-            termId: field,
-            moduleId,
-          },
-        )
-
-      const count = await countqb.getCount()
-
-      const processes = await qb.getMany()
-
-      if (!processes) {
-        throw new HttpException('Processes not found', HttpStatus.NOT_FOUND)
-      }
-
-      const processesResponse = processes.map(
-        (process) => new ResponseProcessDto(process),
+    const qb = this.dataSource
+      .createQueryBuilder(Process, 'processes')
+      .leftJoinAndSelect('processes.user', 'user')
+      .leftJoinAndSelect('processes.module', 'module')
+      .leftJoinAndSelect('processes.submoduleYearModule', 'submoduleYearModule')
+      .leftJoinAndSelect('processes.templateProcesses', 'templates')
+      .where('module.id = :moduleId', { moduleId })
+      .andWhere(
+        '( (:state :: BOOLEAN) IS NULL OR processes.isActive = (:state :: BOOLEAN) )',
+        {
+          state: filters.state,
+        },
+      )
+      .andWhere(
+        '( (:name :: VARCHAR) IS NULL OR processes.name ILIKE :name  )',
+        {
+          name: filters.field && `%${filters.field}%`,
+        },
       )
 
-      return { count, processes: processesResponse }
-    } catch (e) {
-      new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    const count = await qb.getCount()
+    if (count === 0) {
+      throw new NotFoundException('Processes not found')
     }
+
+    const processes = await qb
+      .orderBy('processes.createdAt', 'DESC')
+      .take(limit)
+      .skip(offset)
+      .getMany()
+
+    const processesResponse = processes.map(
+      (process) => new ResponseProcessDto(process),
+    )
+
+    return { count, processes: processesResponse }
   }
 
   async findOne(id: number) {

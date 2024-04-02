@@ -262,24 +262,23 @@ export class UsersService {
       {
         state: filters.state,
       },
+    ).andWhere(
+      "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', users.firstName, users.secondName, users.firstLastName, users.secondLastName) ILIKE :term)",
+      {
+        term: filters.field && `%${filters.field.trim()}%`,
+      },
     )
-      .andWhere(
-        "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', users.firstName, users.secondName, users.firstLastName, users.secondLastName) ILIKE :term)",
-        {
-          term: filters.field && `%${filters.field.trim()}%`,
-        },
-      )
-      .orderBy('users.id', 'ASC')
-      .take(limit)
-      .skip(offset)
-      .getMany()
 
     const count = await qb.getCount()
     if (count === 0) {
       throw new NotFoundException('User not found')
     }
 
-    const users = await qb.getMany()
+    const users = await qb
+      .orderBy('users.id', 'ASC')
+      .take(limit)
+      .skip(offset)
+      .getMany()
 
     return {
       count,
