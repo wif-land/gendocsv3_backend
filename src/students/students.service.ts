@@ -8,7 +8,7 @@ import { CreateStudentsBulkDto } from './dto/create-students-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { StudentBadRequestError } from './errors/student-bad-request'
 import { StudentAlreadyExist } from './errors/student-already-exists'
-import { StudentError } from './errors/students-errors'
+import { StudentError } from './errors/student-error'
 import { StudentNotFoundError } from './errors/student-not-found'
 
 @Injectable()

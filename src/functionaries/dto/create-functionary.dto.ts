@@ -80,14 +80,6 @@ export class CreateFunctionaryDto {
   dni: string
 
   @ApiProperty({
-    description: 'Segundo nivel de educación',
-  })
-  @IsString({
-    message: 'secondLevelDegree is required',
-  })
-  secondLevelDegree: string
-
-  @ApiProperty({
     description: 'Tercer nivel de educación',
   })
   @IsString({

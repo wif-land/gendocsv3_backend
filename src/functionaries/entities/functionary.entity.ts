@@ -22,17 +22,6 @@ export class FunctionaryEntity extends BasePerson {
   dni: string
 
   @ApiProperty({
-    example: 'Bachillerato General',
-    description: 'Segundo nivel de educación',
-  })
-  @Column({
-    name: 'second_level_degree',
-    type: 'varchar',
-    length: 255,
-  })
-  secondLevelDegree: string
-
-  @ApiProperty({
     example: 'Ingeniería en Sistemas',
     description: 'Tecer nivel de educación',
   })

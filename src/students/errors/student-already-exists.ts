@@ -1,4 +1,4 @@
-import { StudentError } from './students-errors'
+import { StudentError } from './student-error'
 
 export class StudentAlreadyExist extends StudentError {
   constructor(detail: string, instance?: string) {
