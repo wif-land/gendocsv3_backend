@@ -1,10 +1,12 @@
-import { Column, Entity, OneToMany } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { BasePerson } from '../../shared/entities/base-person.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { CouncilAttendanceEntity } from '../../councils/entities/council-attendance.entity'
 import { PositionEntity } from '../../positions/entities/position.entity'
 import { DocumentFunctionaryEntity } from '../../documents/entities/document-functionary.entity'
 import { Career } from '../../careers/entites/careers.entity'
+import { GENDER } from '../../shared/enums/genders'
+import { DegreeEntity } from '../../degrees/entities/degree.entity'
 
 @Entity('functionaries')
 export class FunctionaryEntity extends BasePerson {
@@ -22,26 +24,56 @@ export class FunctionaryEntity extends BasePerson {
   dni: string
 
   @ApiProperty({
-    example: 'Ingeniería en Sistemas',
+    example: '1',
     description: 'Tecer nivel de educación',
   })
-  @Column({
-    name: 'third_level_degree',
-    type: 'varchar',
-    length: 255,
+  @ManyToOne(() => DegreeEntity, {
+    nullable: false,
+    eager: true,
   })
-  thirdLevelDegree: string
+  @JoinColumn({
+    name: 'third_level_degree_id',
+    referencedColumnName: 'id',
+  })
+  thirdLevelDegree: DegreeEntity
 
   @ApiProperty({
-    example: 'Maestría en Sistemas',
+    example: '3',
     description: 'Cuarto nivel de educación',
   })
-  @Column({
-    name: 'fourth_level_degree',
-    type: 'varchar',
-    length: 255,
+  @ManyToOne(() => DegreeEntity, {
+    nullable: false,
+    eager: true,
   })
-  fourthLevelDegree: string
+  @JoinColumn({
+    name: 'fourth_level_degree_id',
+    referencedColumnName: 'id',
+  })
+  fourthLevelDegree: DegreeEntity
+
+  @ApiProperty({
+    example: 'Masculino',
+    description: 'Género del funcionario',
+    enum: GENDER,
+  })
+  @Column({
+    name: 'gender',
+    enum: GENDER,
+    type: 'enum',
+    nullable: true,
+  })
+  gender: GENDER
+
+  @ApiProperty({
+    example: '1997-07-07',
+    description: 'Fecha de nacimiento',
+  })
+  @Column({
+    name: 'birthdate',
+    type: 'date',
+    nullable: true,
+  })
+  birthdate: Date
 
   @ApiProperty({
     example: true,

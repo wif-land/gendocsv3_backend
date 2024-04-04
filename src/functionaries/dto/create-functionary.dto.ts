@@ -83,9 +83,9 @@ export class CreateFunctionaryDto {
     description: 'Tercer nivel de educación',
   })
   @IsString({
-    message: 'thirdLevelDegree is required',
+    message: 'thirdLevelDegreeId is required',
   })
-  thirdLevelDegree: string
+  thirdLevelDegreeId: number
 
   @ApiProperty({
     description: 'Cuarto nivel de educación',
@@ -93,7 +93,7 @@ export class CreateFunctionaryDto {
   @IsString({
     message: 'fourthLevelDegree is required',
   })
-  fourthLevelDegree: string
+  fourthLevelDegreeId: number
 
   @ApiProperty({
     description: 'Estado del funcionario',

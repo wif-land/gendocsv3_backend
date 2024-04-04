@@ -32,7 +32,11 @@ export class FunctionariesService {
         `Funcionario con cédula ${createFunctionaryDto.dni} ya existe`,
       )
     }
-    const functionary = this.functionaryRepository.create(createFunctionaryDto)
+    const functionary = this.functionaryRepository.create({
+      ...createFunctionaryDto,
+      thirdLevelDegree: { id: createFunctionaryDto.thirdLevelDegreeId },
+      fourthLevelDegree: { id: createFunctionaryDto.fourthLevelDegreeId },
+    })
 
     if (!functionary) {
       throw new FunctionaryBadRequestError(
@@ -131,6 +135,8 @@ export class FunctionariesService {
     const functionary = await this.functionaryRepository.preload({
       id,
       ...updateFunctionaryDto,
+      thirdLevelDegree: { id: updateFunctionaryDto.thirdLevelDegreeId },
+      fourthLevelDegree: { id: updateFunctionaryDto.fourthLevelDegreeId },
     })
 
     if (!functionary) {
@@ -143,6 +149,12 @@ export class FunctionariesService {
   async bulkUpdate(
     updateFunctionariesBulkDto: UpdateFunctionariesBulkItemDto[],
   ) {
+    const functionariesToUpdate = updateFunctionariesBulkDto.map((funct) => ({
+      ...funct,
+      thirdLevelDegree: { id: funct.thirdLevelDegreeId },
+      fourthLevelDegree: { id: funct.fourthLevelDegreeId },
+    }))
+
     const queryRunner =
       this.functionaryRepository.manager.connection.createQueryRunner()
 
@@ -152,7 +164,7 @@ export class FunctionariesService {
       await queryRunner.startTransaction()
 
       const updatedFunctionaries = await this.functionaryRepository.upsert(
-        updateFunctionariesBulkDto,
+        functionariesToUpdate,
         {
           conflictPaths: ['dni'],
           skipUpdateIfNoValuesChanged: true,
