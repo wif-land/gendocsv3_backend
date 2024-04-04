@@ -1,26 +1,66 @@
 import { Injectable } from '@nestjs/common'
-// import { CreateDegreeDto } from './dto/create-degree.dto'
-// import { UpdateDegreeDto } from './dto/update-degree.dto'
+import { InjectRepository } from '@nestjs/typeorm'
+import { DegreeEntity } from './entities/degree.entity'
+import { Repository } from 'typeorm'
+import { CreateDegreeDto } from './dto/create-degree.dto'
+import { UpdateDegreeDto } from './dto/update-degree.dto'
+import { DegreeAlreadyExist } from './errors/degree-already-exists'
+import { DegreeBadRequestError } from './errors/degree-bad-request'
+import { DegreeNotFoundError } from './errors/degree-not-found'
 
 @Injectable()
 export class DegreesService {
-  // create(createDegreeDto: CreateDegreeDto) {
-  //   return 'This action adds a new degree'
-  // }
+  constructor(
+    @InjectRepository(DegreeEntity)
+    private readonly degreeRepository: Repository<DegreeEntity>,
+  ) {}
 
-  findAll() {
-    return `This action returns all degrees`
+  async create(createDegreeDto: CreateDegreeDto) {
+    if (
+      this.degreeRepository.findOneBy({
+        abbreviation: createDegreeDto.abbreviation,
+      })
+    ) {
+      throw new DegreeAlreadyExist(
+        `El título con abreviatura ${createDegreeDto.abbreviation} ya existe`,
+      )
+    }
+
+    const degree = this.degreeRepository.create(createDegreeDto)
+
+    if (!degree) {
+      throw new DegreeBadRequestError('Los datos del título son incorrectos')
+    }
+
+    return await this.degreeRepository.save(degree)
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} degree`
+  async findAll() {
+    const degrees = await this.degreeRepository.find()
+
+    return degrees
   }
 
-  // update(id: number, updateDegreeDto: UpdateDegreeDto) {
-  //   return `This action updates a #${id} degree`
-  // }
+  async findOne(id: number) {
+    const degree = await this.degreeRepository.findOneBy({ id })
 
-  remove(id: number) {
-    return `This action removes a #${id} degree`
+    if (!degree) {
+      throw new DegreeNotFoundError(`El título con id ${id} no existe`)
+    }
+
+    return degree
+  }
+
+  async update(id: number, updateDegreeDto: UpdateDegreeDto) {
+    const degree = await this.degreeRepository.preload({
+      id,
+      ...updateDegreeDto,
+    })
+
+    if (!degree) {
+      throw new DegreeNotFoundError(`El título con id ${id} no existe`)
+    }
+
+    return await this.degreeRepository.save(degree)
   }
 }
