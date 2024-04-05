@@ -33,6 +33,7 @@ import { NumerationDocumentModule } from './numeration-document/numeration-docum
 import { DocumentsModule } from './documents/documents.module'
 import { PositionsModule } from './positions/positions.module'
 import { DegreesModule } from './degrees/degrees.module'
+import { CitiesModule } from './cities/cities.module';
 
 dotenvConfig({ path: '.env' })
 
@@ -87,6 +88,7 @@ export default connectionSource
     DocumentsModule,
     PositionsModule,
     DegreesModule,
+    CitiesModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],

@@ -4,6 +4,7 @@ import { ApiProperty } from '@nestjs/swagger'
 import { Career } from '../../careers/entites/careers.entity'
 import { DocumentEntity } from '../../documents/entities/document.entity'
 import { GENDER } from '../../shared/enums/genders'
+import { CityEntity } from '../../cities/entities/city.entity'
 
 @Entity('students')
 export class StudentEntity extends BasePerson {
@@ -64,13 +65,17 @@ export class StudentEntity extends BasePerson {
 
   @ApiProperty({
     example: 'Machala',
-    description: 'Cantón de nacimiento',
+    description: 'Cantón de residencia del estudiante',
   })
-  @Column({
-    name: 'canton',
-    type: 'varchar',
+  @ManyToOne(() => CityEntity, {
+    nullable: false,
+    eager: false,
   })
-  canton: string
+  @JoinColumn({
+    name: 'canton_id',
+    referencedColumnName: 'id',
+  })
+  canton: CityEntity
 
   @ApiProperty({
     example: '78',

@@ -28,6 +28,7 @@ export class StudentsService {
     const student = this.studentRepository.create({
       ...createStudentDto,
       career: { id: createStudentDto.career },
+      canton: { id: createStudentDto.canton },
     })
 
     if (!student) {
@@ -147,6 +148,7 @@ export class StudentsService {
         ...updateStudentDto,
         id,
         career: { id: updateStudentDto.career },
+        canton: { id: updateStudentDto.canton },
       })
 
       if (!student) {

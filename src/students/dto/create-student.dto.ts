@@ -126,11 +126,12 @@ export class CreateStudentDto {
 
   @ApiProperty({
     description: 'Cantón de nacimiento',
+    type: Number,
   })
   @IsString({
     message: 'canton is required',
   })
-  canton: string
+  canton: number
 
   @ApiProperty({
     description: 'Creditos aprobados',
