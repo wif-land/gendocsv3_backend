@@ -3,22 +3,22 @@ import { CreateStudentDto } from './dto/create-student.dto'
 import { UpdateStudentDto } from './dto/update-student.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { Student } from './entities/student.entity'
-import { CreateStudentsBulkDto } from './dto/create-students-bulk.dto'
+import { StudentEntity } from './entities/student.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { StudentBadRequestError } from './errors/student-bad-request'
 import { StudentAlreadyExist } from './errors/student-already-exists'
 import { StudentError } from './errors/student-error'
 import { StudentNotFoundError } from './errors/student-not-found'
+import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
 
 @Injectable()
 export class StudentsService {
   constructor(
-    @InjectRepository(Student)
-    private readonly studentRepository: Repository<Student>,
+    @InjectRepository(StudentEntity)
+    private readonly studentRepository: Repository<StudentEntity>,
   ) {}
 
-  async create(createStudentDto: CreateStudentDto): Promise<Student> {
+  async create(createStudentDto: CreateStudentDto): Promise<StudentEntity> {
     if (this.studentRepository.findOneBy({ dni: createStudentDto.dni })) {
       throw new StudentAlreadyExist(
         `El estudiante con cédula ${createStudentDto.dni} ya existe`,
@@ -40,35 +40,24 @@ export class StudentsService {
   }
 
   async createBulk(
-    createStudentsBulkDto: CreateStudentsBulkDto,
+    createStudentsBulkDto: UpdateStudentsBulkItemDto[],
   ): Promise<boolean> {
     const queryRunner =
       this.studentRepository.manager.connection.createQueryRunner()
-    await queryRunner.startTransaction()
+    await queryRunner.connect()
 
     try {
-      for (const studentDto of createStudentsBulkDto.students) {
-        let student = await this.studentRepository.findOne({
-          where: { dni: studentDto.dni },
-        })
+      await queryRunner.startTransaction()
 
-        if (student) {
-          student = this.studentRepository.merge(student, {
-            ...studentDto,
-            career: { id: studentDto.career },
-          })
-        } else {
-          student = this.studentRepository.create({
-            ...studentDto,
-            career: { id: studentDto.career },
-          })
-        }
-
-        await queryRunner.manager.save(student)
-      }
+      await this.studentRepository.upsert(
+        createStudentsBulkDto as unknown as Partial<StudentEntity>[],
+        {
+          conflictPaths: ['dni'],
+          skipUpdateIfNoValuesChanged: true,
+        },
+      )
 
       await queryRunner.commitTransaction()
-      await queryRunner.release()
 
       return true
     } catch (error) {
@@ -105,7 +94,7 @@ export class StudentsService {
     }
   }
 
-  async findOne(id: number): Promise<Student> {
+  async findOne(id: number): Promise<StudentEntity> {
     const student = await this.studentRepository.findOneBy({ id })
 
     if (!student) {
@@ -152,7 +141,7 @@ export class StudentsService {
   async update(
     id: number,
     updateStudentDto: UpdateStudentDto,
-  ): Promise<Student> {
+  ): Promise<StudentEntity> {
     try {
       const student = await this.studentRepository.preload({
         ...updateStudentDto,

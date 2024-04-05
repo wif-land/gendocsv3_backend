@@ -8,9 +8,11 @@ import {
   IsBoolean,
   IsDate,
   IsPositive,
+  IsEnum,
 } from 'class-validator'
 import { DtoUtils } from '../../shared/utils/dtos'
 import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
+import { GENDER } from '../../shared/enums/genders'
 
 export class CreateStudentDto {
   @ApiProperty({
@@ -107,11 +109,10 @@ export class CreateStudentDto {
 
   @ApiProperty({
     description: 'Género',
+    enum: GENDER,
   })
-  @IsString({
-    message: 'gender is required',
-  })
-  gender: string
+  @IsEnum(GENDER)
+  gender: GENDER
 
   @ApiProperty({
     example: '1999-12-31',

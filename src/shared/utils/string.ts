@@ -1,10 +1,12 @@
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
-import { Student } from '../../students/entities/student.entity'
+import { StudentEntity } from '../../students/entities/student.entity'
 
 export const toFirstUpperCase = (text: string): string =>
   text.charAt(0).toUpperCase() + text.slice(1)
 
-export const getFullName = (entity: FunctionaryEntity | Student): string => {
+export const getFullName = (
+  entity: FunctionaryEntity | StudentEntity,
+): string => {
   const { firstName, secondName, firstLastName, secondLastName } = entity
   return `${firstName} ${secondName ? secondName : ''} ${firstLastName} ${
     secondLastName ? secondLastName : ''

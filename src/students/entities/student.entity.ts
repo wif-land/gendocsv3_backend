@@ -3,9 +3,10 @@ import { BasePerson } from '../../shared/entities/base-person.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { Career } from '../../careers/entites/careers.entity'
 import { DocumentEntity } from '../../documents/entities/document.entity'
+import { GENDER } from '../../shared/enums/genders'
 
 @Entity('students')
-export class Student extends BasePerson {
+export class StudentEntity extends BasePerson {
   @ApiProperty({
     example: '070747643',
     description: 'Cédula de identidad',
@@ -42,12 +43,14 @@ export class Student extends BasePerson {
   @ApiProperty({
     example: 'Masculino',
     description: 'Género',
+    enum: GENDER,
   })
   @Column({
     name: 'gender',
     type: 'varchar',
+    enum: GENDER,
   })
-  gender: string
+  gender: GENDER
 
   @ApiProperty({
     example: '1997-07-07',

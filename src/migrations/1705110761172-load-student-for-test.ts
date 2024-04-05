@@ -1,12 +1,14 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
-import { Student } from '../students/entities/student.entity'
+import { StudentEntity } from '../students/entities/student.entity'
 import { Career } from '../careers/entites/careers.entity'
+import { GENDER } from '../shared/enums/genders'
 
 export class LoadStudentForTest1705110761172 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const careerRepository = queryRunner.connection.getRepository(Career)
 
-    const studentRepository = queryRunner.connection.getRepository(Student)
+    const studentRepository =
+      queryRunner.connection.getRepository(StudentEntity)
 
     const careerForTest = {
       internshipHours: 180,
@@ -33,9 +35,11 @@ export class LoadStudentForTest1705110761172 implements MigrationInterface {
       dni: '1850994625',
       registration: '2001',
       folio: '2004',
-      gender: 'Masculino',
+      gender: GENDER.MALE,
       birthdate: new Date('1999-12-12'),
       canton: 'Ibarra',
+      vinculationHours: 280,
+      intershipHours: 96,
       approvedCredits: 0,
       isActive: true,
       bachelorDegree: 'Bachiller en Ciencias',
@@ -48,7 +52,8 @@ export class LoadStudentForTest1705110761172 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const careerRepository = queryRunner.connection.getRepository(Career)
-    const studentRepository = queryRunner.connection.getRepository(Student)
+    const studentRepository =
+      queryRunner.connection.getRepository(StudentEntity)
 
     const studentForTest = await studentRepository.findOne({
       where: { dni: '1850994625' },

@@ -34,8 +34,8 @@ export class FunctionariesService {
     }
     const functionary = this.functionaryRepository.create({
       ...createFunctionaryDto,
-      thirdLevelDegree: { id: createFunctionaryDto.thirdLevelDegreeId },
-      fourthLevelDegree: { id: createFunctionaryDto.fourthLevelDegreeId },
+      thirdLevelDegree: { id: createFunctionaryDto.thirdLevelDegree },
+      fourthLevelDegree: { id: createFunctionaryDto.fourthLevelDegree },
     })
 
     if (!functionary) {
@@ -135,8 +135,8 @@ export class FunctionariesService {
     const functionary = await this.functionaryRepository.preload({
       id,
       ...updateFunctionaryDto,
-      thirdLevelDegree: { id: updateFunctionaryDto.thirdLevelDegreeId },
-      fourthLevelDegree: { id: updateFunctionaryDto.fourthLevelDegreeId },
+      thirdLevelDegree: { id: updateFunctionaryDto.thirdLevelDegree },
+      fourthLevelDegree: { id: updateFunctionaryDto.fourthLevelDegree },
     })
 
     if (!functionary) {
@@ -146,15 +146,9 @@ export class FunctionariesService {
     return await this.functionaryRepository.save(functionary)
   }
 
-  async bulkUpdate(
+  async createBulk(
     updateFunctionariesBulkDto: UpdateFunctionariesBulkItemDto[],
   ) {
-    const functionariesToUpdate = updateFunctionariesBulkDto.map((funct) => ({
-      ...funct,
-      thirdLevelDegree: { id: funct.thirdLevelDegreeId },
-      fourthLevelDegree: { id: funct.fourthLevelDegreeId },
-    }))
-
     const queryRunner =
       this.functionaryRepository.manager.connection.createQueryRunner()
 
@@ -163,8 +157,8 @@ export class FunctionariesService {
     try {
       await queryRunner.startTransaction()
 
-      const updatedFunctionaries = await this.functionaryRepository.upsert(
-        functionariesToUpdate,
+      await this.functionaryRepository.upsert(
+        updateFunctionariesBulkDto as unknown as Partial<FunctionaryEntity>[],
         {
           conflictPaths: ['dni'],
           skipUpdateIfNoValuesChanged: true,
@@ -173,7 +167,7 @@ export class FunctionariesService {
 
       await queryRunner.commitTransaction()
 
-      return updatedFunctionaries
+      return true
     } catch (error) {
       await queryRunner.rollbackTransaction()
 
