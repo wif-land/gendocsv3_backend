@@ -6,6 +6,7 @@ COMPOSE_DEVELOP_FILE := docker-compose.develop.yaml
 COMPOSE_PRODUCTION_FILE := docker-compose.production.yaml
 REMOTE_DIR := /root/gendocsv3
 VM_USER := root
+BACKEND_DOCKER_IMAGE := leninner/gendocsv3:latest
 
 up:
 	docker compose -f $(COMPOSE_DEVELOP_FILE) --env-file $(ENV_FILE) up -d
@@ -25,7 +26,7 @@ deploy_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	echo "Copying files..."
 	scp $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) $(VM_USER)@$(VM_IP):$(REMOTE_DIR)/
 	echo "Deploying..."
-	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && docker compose -f $(REMOTE_DIR)/$(COMPOSE_PRODUCTION_FILE) --env-file $(REMOTE_DIR)/$(ENV_FILE_PRODUCTION) down backend && docker compose -f $(REMOTE_DIR)/$(COMPOSE_PRODUCTION_FILE) --env-file $(REMOTE_DIR)/$(ENV_FILE_PRODUCTION) up -d"
+	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && docker compose -f $(REMOTE_DIR)/$(COMPOSE_PRODUCTION_FILE) --env-file $(REMOTE_DIR)/$(ENV_FILE_PRODUCTION) down backend && docker rmi ${BACKEND_DOCKER_IMAGE} && docker compose -f $(REMOTE_DIR)/$(COMPOSE_PRODUCTION_FILE) --env-file $(REMOTE_DIR)/$(ENV_FILE_PRODUCTION) up -d"
 
 backup:
 	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && docker exec -it gendocsv3_postgres pg_dump -U postgres -d gendocsv3 > $(REMOTE_DIR)/backup_`date +'%Y%m%d%H%M%S'`.sql"
