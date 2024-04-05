@@ -25,3 +25,8 @@ Ejecuta el comando:
 ```bash
 make deploy_production VM_IP=<ip del servidor>
 ```
+
+Este comando ejecutará los siguientes pasos:
+
+1. Intentará crear una ruta en el servidor de producción para almacenar los archivos necesarios para el deploy.
+2. 

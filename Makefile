@@ -19,9 +19,13 @@ clean:
 	docker system prune -af
 
 deploy_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
+	echo "Deploying to production..."
+	echo "Creating remote directory..."
 	ssh $(VM_USER)@$(VM_IP) "mkdir -p $(REMOTE_DIR)"
+	echo "Copying files..."
 	scp $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) $(VM_USER)@$(VM_IP):$(REMOTE_DIR)/
-	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && docker compose -f $(REMOTE_DIR)/$(COMPOSE_PRODUCTION_FILE) --env-file $(REMOTE_DIR)/$(ENV_FILE_PRODUCTION) down && docker system prune -af && docker compose -f $(REMOTE_DIR)/$(COMPOSE_PRODUCTION_FILE) --env-file $(REMOTE_DIR)/$(ENV_FILE_PRODUCTION) up -d"
+	echo "Deploying..."
+	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && docker compose -f $(REMOTE_DIR)/$(COMPOSE_PRODUCTION_FILE) --env-file $(REMOTE_DIR)/$(ENV_FILE_PRODUCTION) down && docker system prune -af && docker compose -f $(REMOTE_DIR)/$(COMPOSE_PRODUCTION_FILE) --env-file $(REMOTE_DIR)/$(ENV_FILE_PRODUCTION) up -d \
 
 backup:
 	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && docker exec -it gendocsv3_postgres pg_dump -U postgres -d gendocsv3 > $(REMOTE_DIR)/backup_`date +'%Y%m%d%H%M%S'`.sql"
