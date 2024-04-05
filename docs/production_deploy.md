@@ -1,9 +1,15 @@
 # Paso a paso para hacer deploy a producción
 
-Tener instalado en el servidor de producción:
+Este paso a paso te ayudará a hacer deploy a producción del backend de tu proyecto. Asegúrate de seguir los pasos al pie de la letra para evitar problemas.
 
-- [ ] Docker
-- [ ] Docker Compose
+Ten en cuenta que este paso a paso está diseñado para hacerse manualmente, por lo que es importante que sigas cada paso con cuidado. Esto ya que el servidor de producción es un ambiente con Red Local y no se puede acceder a él de manera remota.
+
+## Consideraciones
+
+- El archivo `cd.yaml` contiene los comandos necesarios para hacer el build de la imagen de docker y subirla al registry de docker.
+- Este pipeline se ejecuta automáticamente cuando se crea una nueva `release` en el repositorio de github con una **tag** en formato `vX.Y.Z`.
+
+**Nota:** Recomendamos fervientemente que se maneje un versionado semántico para las releases.
 
 ## Antes de comenzar
 
