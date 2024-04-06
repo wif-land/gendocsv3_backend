@@ -38,7 +38,7 @@ export class PositionsController {
     return await this.positionsService.findOne(id)
   }
 
-  @Get('search/:field')
+  @Get('filter/:field')
   async findByField(
     @Param('field') field: string,
     @Query() paginationDto: PaginationDto,

@@ -125,12 +125,14 @@ export class UsersService {
             HttpStatus.CONFLICT,
           )
         }
+        userToUpdate.accessModules = modules.map((module) => module.id)
       }
 
       const userGetted = await this.userRepository.findOne({
         where: {
           id,
         },
+        relations: ['accessModules'],
       })
 
       if (!userGetted) {
@@ -163,6 +165,7 @@ export class UsersService {
         where: {
           id,
         },
+        relations: ['accessModules'],
       })
 
       if (!userUpdated) {
@@ -185,7 +188,13 @@ export class UsersService {
         accessModules: user.accessModules,
       }
 
-      return { user: userUpdated, accessToken: this.jwtService.sign(payload) }
+      return {
+        user: {
+          ...userUpdated,
+          accessModules: userUpdated.accessModules.map((module) => module.id),
+        },
+        accessToken: this.jwtService.sign(payload),
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

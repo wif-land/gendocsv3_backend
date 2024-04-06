@@ -18,6 +18,7 @@ import { ResponseProcessDto } from './dto/response-process.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateProcessBulkItemDto } from './dto/update-processes-bulk.dto'
 import { ProcessFiltersDto } from './dto/process-filters.dto'
+import { TemplateProcess } from '../templates/entities/template-processes.entity'
 
 @Injectable()
 export class ProcessesService {
@@ -142,9 +143,26 @@ export class ProcessesService {
 
       const processes = await qb.getMany()
 
+      // templates by processes ids
+      const temQb = this.dataSource
+        .createQueryBuilder(TemplateProcess, 'template')
+        .leftJoinAndSelect('template.process', 'process')
+        .leftJoinAndSelect('template.user', 'user')
+        .where('template.process.id IN (:...processesIds)', {
+          processesIds: processes.map((process) => process.id),
+        })
+
+      const templates = await temQb.getMany()
+
       if (!processes) {
         throw new HttpException('Processes not found', HttpStatus.NOT_FOUND)
       }
+
+      processes.forEach((process) => {
+        process.templateProcesses = templates.filter(
+          (template) => template.process.id === process.id,
+        )
+      })
 
       const processesResponse = processes.map(
         (process) => new ResponseProcessDto(process),
@@ -232,6 +250,7 @@ export class ProcessesService {
           'processes.submoduleYearModule',
           'submoduleYearModule',
         )
+        .leftJoinAndSelect('processes.templateProcesses', 'templates')
         .where('processes.id = :id', { id })
 
       const process = await qb.getOne()

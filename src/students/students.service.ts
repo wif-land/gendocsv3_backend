@@ -138,6 +138,8 @@ export class StudentsService {
         },
       )
       .orderBy('students.id', 'ASC')
+      .leftJoinAndSelect('students.career', 'career')
+      .leftJoinAndSelect('career.coordinator', 'coordinator')
       .take(limit)
       .skip(offset)
       .getMany()
@@ -161,7 +163,7 @@ export class StudentsService {
     updateStudentDto: UpdateStudentDto,
   ): Promise<Student> {
     try {
-      const student = await this.studentRepository.preload({
+      let student = await this.studentRepository.preload({
         ...updateStudentDto,
         id,
         career: { id: updateStudentDto.career },
@@ -171,7 +173,23 @@ export class StudentsService {
         throw new BadRequestException('Student not found')
       }
 
-      return await this.studentRepository.save(student)
+      student = await this.studentRepository.save(student)
+
+      const updatedStudent = await this.studentRepository
+        .createQueryBuilder('student')
+        .leftJoinAndSelect('student.career', 'career')
+        .leftJoinAndSelect('career.coordinator', 'coordinator')
+        .where('student.id = :id', { id })
+        .getOne()
+
+      if (!updatedStudent) {
+        throw new HttpException(
+          'Error retrieving updated student with career.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        )
+      }
+
+      return updatedStudent
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
