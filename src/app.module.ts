@@ -34,7 +34,7 @@ import { DocumentsModule } from './documents/documents.module'
 import { PositionsModule } from './positions/positions.module'
 import { DegreesModule } from './degrees/degrees.module'
 import { CitiesModule } from './cities/cities.module'
-import { DegreeCertificatesModule } from './degree-certificates/degree-certificates.module';
+import { DegreeCertificatesModule } from './degree-certificates/degree-certificates.module'
 
 dotenvConfig({ path: '.env' })
 
