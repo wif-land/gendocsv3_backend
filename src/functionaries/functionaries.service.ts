@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { CreateFunctionaryDto } from './dto/create-functionary.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -12,6 +6,10 @@ import { FunctionaryEntity } from './entities/functionary.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateFunctionaryDto } from './dto/update-functionary.dto'
 import { UpdateFunctionariesBulkItemDto } from './dto/update-functionaries-bulk.dto'
+import { FunctionaryAlreadyExist } from './errors/functionary-already-exists'
+import { FunctionaryBadRequestError } from './errors/functionary-bad-request'
+import { FunctionaryNotFoundError } from './errors/functionary-not-found'
+import { FunctionaryError } from './errors/functionary-error'
 import { FunctionaryFiltersDto } from './dto/functionary-filters.dto'
 
 @Injectable()
@@ -24,60 +22,64 @@ export class FunctionariesService {
   async create(
     createFunctionaryDto: CreateFunctionaryDto,
   ): Promise<FunctionaryEntity> {
-    try {
-      const functionary =
-        this.functionaryRepository.create(createFunctionaryDto)
+    const alreadyExist = await this.functionaryRepository.findOne({
+      where: {
+        dni: createFunctionaryDto.dni,
+      },
+    })
 
-      if (!functionary) {
-        throw new BadRequestException('Functionary not created')
-      }
-
-      return await this.functionaryRepository.save(functionary)
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (alreadyExist) {
+      throw new FunctionaryAlreadyExist(
+        `Funcionario con cédula ${createFunctionaryDto.dni} ya existe`,
+      )
     }
+    const functionary = this.functionaryRepository.create({
+      ...createFunctionaryDto,
+      thirdLevelDegree: { id: createFunctionaryDto.thirdLevelDegree },
+      fourthLevelDegree: { id: createFunctionaryDto.fourthLevelDegree },
+    })
+
+    if (!functionary) {
+      throw new FunctionaryBadRequestError(
+        'Error en la petición del funcionario',
+      )
+    }
+
+    return await this.functionaryRepository.save(functionary)
   }
 
   async findAll(paginationDto: PaginationDto) {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDto
 
-    try {
-      const functionaries = await this.functionaryRepository.find({
-        order: {
-          id: 'ASC',
-        },
-        take: limit,
-        skip: offset,
-      })
+    const functionaries = await this.functionaryRepository.find({
+      order: {
+        id: 'ASC',
+      },
+      take: limit,
+      skip: offset,
+    })
 
-      if (!functionaries) {
-        throw new NotFoundException('Functionaries not found')
-      }
+    if (!functionaries) {
+      throw new FunctionaryNotFoundError('No existen funcionarios registrados')
+    }
 
-      const count = await this.functionaryRepository.count()
+    const count = await this.functionaryRepository.count()
 
-      return {
-        count,
-        functionaries,
-      }
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    return {
+      count,
+      functionaries,
     }
   }
 
   async findOne(id: number): Promise<FunctionaryEntity> {
-    try {
-      const functionary = await this.functionaryRepository.findOneBy({ id })
+    const functionary = await this.functionaryRepository.findOneBy({ id })
 
-      if (!functionary) {
-        throw new NotFoundException('Functionary not found')
-      }
-
-      return functionary
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!functionary) {
+      throw new FunctionaryNotFoundError(`Funcionario con id ${id} no existe`)
     }
+
+    return functionary
   }
 
   async findByFilters(filters: FunctionaryFiltersDto) {
@@ -98,16 +100,17 @@ export class FunctionariesService {
       },
     )
 
-    const count = await qb.getCount()
-    if (count === 0) {
-      throw new NotFoundException('Functionaries not found')
-    }
-
     const functionaries = await qb
       .orderBy('functionaries.id', 'ASC')
       .take(limit)
       .skip(offset)
       .getMany()
+
+    const count = await qb.getCount()
+
+    if (functionaries.length === 0 || count === 0) {
+      throw new FunctionaryNotFoundError('No existen funcionarios registrados')
+    }
 
     return {
       count,
@@ -119,23 +122,21 @@ export class FunctionariesService {
     id: number,
     updateFunctionaryDto: UpdateFunctionaryDto,
   ): Promise<FunctionaryEntity> {
-    try {
-      const functionary = await this.functionaryRepository.preload({
-        id,
-        ...updateFunctionaryDto,
-      })
+    const functionary = await this.functionaryRepository.preload({
+      id,
+      ...updateFunctionaryDto,
+      thirdLevelDegree: { id: updateFunctionaryDto.thirdLevelDegree },
+      fourthLevelDegree: { id: updateFunctionaryDto.fourthLevelDegree },
+    })
 
-      if (!functionary) {
-        throw new NotFoundException('Functionary not found')
-      }
-
-      return await this.functionaryRepository.save(functionary)
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!functionary) {
+      throw new FunctionaryNotFoundError(`Funcionario con id ${id} no existe`)
     }
+
+    return await this.functionaryRepository.save(functionary)
   }
 
-  async bulkUpdate(
+  async createBulk(
     updateFunctionariesBulkDto: UpdateFunctionariesBulkItemDto[],
   ) {
     const queryRunner =
@@ -146,46 +147,39 @@ export class FunctionariesService {
     try {
       await queryRunner.startTransaction()
 
-      const updatedCouncils = []
-
-      for (const updateFunctionary of updateFunctionariesBulkDto) {
-        const functionary = await this.functionaryRepository.preload({
-          id: updateFunctionary.id,
-          ...updateFunctionary,
-        })
-
-        if (!functionary) {
-          throw new NotFoundException('Functionary not found')
-        }
-
-        updatedCouncils.push(await queryRunner.manager.save(functionary))
-      }
+      await this.functionaryRepository.upsert(
+        updateFunctionariesBulkDto as unknown as Partial<FunctionaryEntity>[],
+        {
+          conflictPaths: ['dni'],
+          skipUpdateIfNoValuesChanged: true,
+        },
+      )
 
       await queryRunner.commitTransaction()
 
-      return updatedCouncils
+      return true
     } catch (error) {
       await queryRunner.rollbackTransaction()
 
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+      throw new FunctionaryError({
+        statuscode: 500,
+        detail: error.message,
+        instance: 'functionaries.errors.FunctionariesService.bulkUpdate',
+      })
     }
   }
 
   async remove(id: number): Promise<boolean> {
-    try {
-      const functionary = await this.findOne(id)
+    const functionary = await this.findOne(id)
 
-      if (!functionary) {
-        throw new NotFoundException('Functionary not found')
-      }
-
-      functionary.isActive = false
-
-      await this.functionaryRepository.save(functionary)
-
-      return true
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!functionary) {
+      throw new FunctionaryNotFoundError('Functionary not found')
     }
+
+    functionary.isActive = false
+
+    await this.functionaryRepository.save(functionary)
+
+    return true
   }
 }

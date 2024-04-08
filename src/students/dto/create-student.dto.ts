@@ -7,9 +7,12 @@ import {
   IsString,
   IsBoolean,
   IsDate,
+  IsPositive,
+  IsEnum,
 } from 'class-validator'
 import { DtoUtils } from '../../shared/utils/dtos'
 import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
+import { GENDER } from '../../shared/enums/genders'
 
 export class CreateStudentDto {
   @ApiProperty({
@@ -106,11 +109,10 @@ export class CreateStudentDto {
 
   @ApiProperty({
     description: 'Género',
+    enum: GENDER,
   })
-  @IsString({
-    message: 'gender is required',
-  })
-  gender: string
+  @IsEnum(GENDER)
+  gender: GENDER
 
   @ApiProperty({
     example: '1999-12-31',
@@ -124,11 +126,12 @@ export class CreateStudentDto {
 
   @ApiProperty({
     description: 'Cantón de nacimiento',
+    type: Number,
   })
   @IsString({
     message: 'canton is required',
   })
-  canton: string
+  canton: number
 
   @ApiProperty({
     description: 'Creditos aprobados',
@@ -139,7 +142,7 @@ export class CreateStudentDto {
   approvedCredits: number
 
   @ApiProperty({
-    description: 'Estado del funcionario',
+    description: 'Estado del estudiante',
     required: false,
   })
   @IsBoolean({
@@ -147,6 +150,54 @@ export class CreateStudentDto {
   })
   @IsOptional()
   isActive?: boolean
+
+  @ApiProperty({
+    description: 'Título de bachiller del estudiante',
+  })
+  @IsString({
+    message: 'bachelorDegree is required',
+  })
+  bachelorDegree: string
+
+  @ApiProperty({
+    description: 'Fecha de inicio de estudios del estudiante',
+  })
+  @IsDate({
+    message: 'startStudiesDate is required',
+  })
+  @Type(() => Date)
+  startStudiesDate: Date
+
+  @ApiProperty({
+    description: 'Fecha de fin de estudios del estudiante',
+    required: false,
+  })
+  @IsDate({
+    message: 'there is a problem with endStudiesDate',
+  })
+  @IsOptional()
+  @Type(() => Date)
+  endStudiesDate: Date
+
+  @ApiProperty({
+    description: 'Horas de vinculación',
+    required: false,
+  })
+  @IsPositive({
+    message: 'there is a problem with vinculationHours',
+  })
+  @IsOptional()
+  vinculationHours?: number
+
+  @ApiProperty({
+    description: 'Horas de practicas',
+    required: false,
+  })
+  @IsPositive({
+    message: 'there is a problem with intershipHours',
+  })
+  @IsOptional()
+  intershipHours?: number
 
   @ApiProperty({
     description: 'Id de la carrera a la que pertenece el estudiante',

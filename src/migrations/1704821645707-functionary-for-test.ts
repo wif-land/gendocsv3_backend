@@ -1,8 +1,39 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
+import { DegreeEntity } from '../degrees/entities/degree.entity'
 
 export class FunctionaryForTest1704821645707 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const degreeRepository = queryRunner.connection.getRepository(DegreeEntity)
+    const degreesForTest = [
+      {
+        abbreviation: 'Ing.',
+        maleTitle: 'Ingeniero',
+        femaleTitle: 'Ingeniera',
+        degreeLevel: '3',
+      },
+      {
+        abbreviation: 'Msc.',
+        maleTitle: 'Magister',
+        femaleTitle: 'Magister',
+        degreeLevel: '4',
+      },
+      {
+        abbreviation: 'Phd.',
+        maleTitle: 'Doctor',
+        femaleTitle: 'Doctora',
+        degreeLevel: '4',
+      },
+      {
+        abbreviation: 'Lic.',
+        maleTitle: 'Licenciado',
+        femaleTitle: 'Licenciada',
+        degreeLevel: '3',
+      },
+    ]
+
+    await degreeRepository.save(degreesForTest)
+
     const functionaryRepository =
       queryRunner.connection.getRepository(FunctionaryEntity)
 
@@ -17,9 +48,8 @@ export class FunctionaryForTest1704821645707 implements MigrationInterface {
         phoneNumber: '0979424062',
         regularPhoneNumber: '784512',
         dni: '1850994623',
-        secondLevelDegree: 'Ingeniero',
-        thirdLevelDegree: 'Magister',
-        fourthLevelDegree: 'Phd',
+        thirdLevelDegree: { id: 1 },
+        fourthLevelDegree: { id: 2 },
         isActive: true,
       },
       {
@@ -32,9 +62,8 @@ export class FunctionaryForTest1704821645707 implements MigrationInterface {
         phoneNumber: '0979424063',
         regularPhoneNumber: '784511',
         dni: '1850994653',
-        secondLevelDegree: 'Ingeniero',
-        thirdLevelDegree: 'Magister',
-        fourthLevelDegree: 'Phd',
+        thirdLevelDegree: { id: 1 },
+        fourthLevelDegree: { id: 3 },
         isActive: true,
       },
     ]

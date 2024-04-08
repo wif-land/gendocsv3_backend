@@ -24,10 +24,10 @@ export class FunctionariesController {
   constructor(private readonly functionariesService: FunctionariesService) {}
 
   @Patch(`bulk`)
-  async bulkUpdate(
+  async createBulk(
     @Body() updateFunctionariesBulkDto: UpdateFunctionariesBulkItemDto[],
   ) {
-    return await this.functionariesService.bulkUpdate(
+    return await this.functionariesService.createBulk(
       updateFunctionariesBulkDto,
     )
   }

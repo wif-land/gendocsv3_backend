@@ -1,16 +1,33 @@
-import { HttpStatus } from '@nestjs/common'
+import { HttpException, HttpStatus } from '@nestjs/common'
 
 export interface IError {
-  message: string
   statuscode: HttpStatus
+  type?: string
+  title?: string
+  detail: string
+  instance: string
 }
 
-export class BaseError implements IError {
-  constructor(message: string, statuscode: HttpStatus) {
-    this.message = message
-    this.statuscode = statuscode
+export class BaseError extends HttpException implements IError {
+  constructor(
+    public statuscode: HttpStatus,
+    public type: string,
+    public title: string,
+    public detail: string,
+    public instance: string,
+  ) {
+    super(
+      {
+        statuscode,
+        type,
+        title,
+        detail,
+        instance,
+      },
+      statuscode,
+      {
+        cause: new Error(detail),
+      },
+    )
   }
-
-  message: string
-  statuscode: HttpStatus
 }

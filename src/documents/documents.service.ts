@@ -12,7 +12,7 @@ import { NumerationDocumentService } from '../numeration-document/numeration-doc
 import { VariablesService } from '../variables/variables.service'
 import { DocumentFunctionaryEntity } from './entities/document-functionary.entity'
 import { DefaultVariable } from '../shared/enums/default-variable'
-import { Student } from '../students/entities/student.entity'
+import { StudentEntity } from '../students/entities/student.entity'
 import { FilesService } from '../files/files.service'
 import { formatNumeration } from '../shared/utils/string'
 import { ResponseDocumentDto } from './dto/response-document'
@@ -116,7 +116,7 @@ export class DocumentsService {
 
       if (createDocumentDto.studentId) {
         const qb = this.dataSource
-          .createQueryBuilder(Student, 'student')
+          .createQueryBuilder(StudentEntity, 'student')
           .leftJoinAndSelect('student.career', 'career')
           .leftJoinAndSelect('career.coordinator', 'coordinator')
           .where('student.id = :id', { id: createDocumentDto.studentId })
