@@ -19,6 +19,7 @@ import { UpdateCouncilDto } from './dto/update-council.dto'
 import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
+import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
 
 @Injectable()
 export class CouncilsService {
@@ -80,7 +81,7 @@ export class CouncilsService {
       const councilInserted = await this.councilRepository.save(council)
 
       if (!hasAttendance) {
-        return await this.councilRepository.save(council)
+        return councilInserted
       }
 
       const promises = attendees.map((item) =>
@@ -160,54 +161,69 @@ export class CouncilsService {
     }
   }
 
-  async findByField(field: string, paginationDto: PaginationDto) {
+  async findByFilters(filters: CouncilFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { moduleId, limit = 10, offset = 0 } = paginationDto
-    const queryBuilder = this.dataSource.createQueryBuilder(
-      CouncilEntity,
-      'councils',
-    )
-    queryBuilder.leftJoinAndSelect('councils.user', 'user')
-    queryBuilder.leftJoinAndSelect('councils.module', 'module')
-    queryBuilder.leftJoinAndSelect(
-      'councils.submoduleYearModule',
-      'submoduleYearModule',
-    )
-    queryBuilder.leftJoinAndSelect('councils.attendance', 'attendance')
-    queryBuilder.leftJoinAndSelect('attendance.functionary', 'functionary')
-    queryBuilder.orderBy('councils.id', 'ASC')
-    queryBuilder.where(
-      '(UPPER(councils.name) like :termName or CAST(councils.id AS TEXT) = :termId) and module.id = :moduleId',
-      {
-        termName: `%${field.toUpperCase()}%`,
-        termId: field,
-        moduleId,
-      },
-    )
-    queryBuilder.take(limit)
-    queryBuilder.skip(offset)
+    const { moduleId, limit = 10, offset = 0 } = filters
 
-    const countQueryBuilder = this.dataSource.createQueryBuilder(
-      CouncilEntity,
-      'councils',
-    )
-    countQueryBuilder.leftJoin('councils.module', 'module')
-    countQueryBuilder.where(
-      '(UPPER(councils.name) like :termName or CAST(councils.id AS TEXT) = :termId) and module.id = :moduleId',
-      {
-        termName: `%${field.toUpperCase()}%`,
-        termId: field,
-        moduleId,
-      },
-    )
+    const qb = this.dataSource.createQueryBuilder(CouncilEntity, 'councils')
 
-    const count = await countQueryBuilder.getCount()
+    qb.leftJoinAndSelect('councils.user', 'user')
+      .leftJoinAndSelect('councils.module', 'module')
+      .leftJoinAndSelect('councils.submoduleYearModule', 'submoduleYearModule')
+      .leftJoinAndSelect('councils.attendance', 'attendance')
+      .leftJoinAndSelect('attendance.functionary', 'functionary')
+      .where('module.id = :moduleId', { moduleId })
+      .andWhere(
+        '( (:state :: BOOLEAN) IS NULL OR councils.isActive = (:state :: BOOLEAN) )',
+        {
+          state: filters.state,
+        },
+      )
+      .andWhere(
+        '( (:name :: VARCHAR) IS NULL OR councils.name ILIKE :name  )',
+        {
+          name: filters.name && `%${filters.name}%`,
+        },
+      )
+      .andWhere(
+        '( (:type :: VARCHAR) IS NULL OR councils.type = (:type :: VARCHAR) )',
+        {
+          type: filters.type,
+        },
+      )
 
-    const councils = await queryBuilder.getMany()
+    const endDate = new Date(filters.endDate || filters.startDate)
+    // eslint-disable-next-line no-magic-numbers
+    endDate.setHours(23, 59, 59, 999)
 
-    if (councils.length === 0) {
-      throw new NotFoundException('Council not found')
+    if (filters.dateType === DATE_TYPES.CREATION) {
+      qb.andWhere(
+        '( (:startDate :: DATE) IS NULL OR councils.createdAt BETWEEN (:startDate :: DATE) AND (:endDate :: DATE) )',
+        {
+          startDate: filters.startDate,
+          endDate,
+        },
+      )
+    } else if (filters.dateType === DATE_TYPES.EJECUTION) {
+      qb.andWhere(
+        '( (:startDate :: DATE) IS NULL OR councils.date BETWEEN (:startDate :: DATE) AND (:endDate :: DATE) )',
+        {
+          startDate: filters.startDate,
+          endDate,
+        },
+      )
     }
+
+    const count = await qb.getCount()
+    if (count === 0) {
+      throw new NotFoundException('Consejos no encontrados')
+    }
+
+    const councils = await qb
+      .orderBy('councils.id', 'ASC')
+      .take(limit)
+      .skip(offset)
+      .getMany()
 
     const mappedCouncils = councils.map(
       (council) => new ResponseCouncilsDto(council),

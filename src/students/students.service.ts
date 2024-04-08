@@ -13,6 +13,7 @@ import { Student } from './entities/student.entity'
 import { CreateStudentsBulkDto } from './dto/create-students-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
+import { StudentFiltersDto } from './dto/student-filters.dto'
 
 @Injectable()
 export class StudentsService {
@@ -118,31 +119,38 @@ export class StudentsService {
     }
   }
 
-  async findByField(field: string, paginationDTO: PaginationDto) {
+  async findByFilters(filters: StudentFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = paginationDTO
+    const { limit = 5, offset = 0 } = filters
 
-    const queryBuilder = this.studentRepository.createQueryBuilder('students')
+    const qb = this.studentRepository.createQueryBuilder('students')
 
-    const students = await queryBuilder
-      .where(
-        `UPPER(students.first_name) like :field 
-        or UPPER(students.second_name) like :field 
-        or UPPER(students.first_last_name) like :field 
-        or UPPER(students.second_last_name) like :field 
-        or students.dni like :field`,
-        { field: `%${field.toUpperCase()}%` },
+    qb.where(
+      '( (:state :: BOOLEAN) IS NULL OR students.isActive = (:state :: BOOLEAN) )',
+      {
+        state: filters.state,
+      },
+    )
+      .andWhere(
+        "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', students.firstName, students.secondName, students.firstLastName, students.secondLastName) ILIKE :term OR students.dni ILIKE :term )",
+        {
+          term: filters.field && `%${filters.field.trim()}%`,
+        },
       )
       .orderBy('students.id', 'ASC')
+      .leftJoinAndSelect('students.career', 'career')
+      .leftJoinAndSelect('career.coordinator', 'coordinator')
       .take(limit)
       .skip(offset)
       .getMany()
 
-    const count = await queryBuilder.getCount()
+    const count = await qb.getCount()
 
-    if (!students || !count) {
+    if (count === 0) {
       throw new NotFoundException('Students not found')
     }
+
+    const students = await qb.getMany()
 
     return {
       count,
@@ -155,7 +163,7 @@ export class StudentsService {
     updateStudentDto: UpdateStudentDto,
   ): Promise<Student> {
     try {
-      const student = await this.studentRepository.preload({
+      let student = await this.studentRepository.preload({
         ...updateStudentDto,
         id,
         career: { id: updateStudentDto.career },
@@ -165,7 +173,23 @@ export class StudentsService {
         throw new BadRequestException('Student not found')
       }
 
-      return await this.studentRepository.save(student)
+      student = await this.studentRepository.save(student)
+
+      const updatedStudent = await this.studentRepository
+        .createQueryBuilder('student')
+        .leftJoinAndSelect('student.career', 'career')
+        .leftJoinAndSelect('career.coordinator', 'coordinator')
+        .where('student.id = :id', { id })
+        .getOne()
+
+      if (!updatedStudent) {
+        throw new HttpException(
+          'Error retrieving updated student with career.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        )
+      }
+
+      return updatedStudent
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -212,7 +236,7 @@ export class StudentsService {
         throw new NotFoundException('Student not found')
       }
 
-      student.isActive = false
+      student.isActive = !student.isActive
 
       await this.studentRepository.save(student)
 

@@ -16,6 +16,7 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { ResponseProcessDto } from './dto/response-process.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateProcessBulkItemDto } from './dto/update-processes-bulk.dto'
+import { ProcessFiltersDto } from './dto/process-filters.dto'
 
 @ApiTags('Processes')
 @Controller('processes')
@@ -32,12 +33,9 @@ export class ProcessesController {
     return await this.processesService.create(createProcessDto)
   }
 
-  @Get(':field')
-  async findByField(
-    @Param('field') field: string,
-    @Query() paginationDto: PaginationDto,
-  ) {
-    return await this.processesService.findByField(field, paginationDto)
+  @Get('filter')
+  async findByFilters(@Query() filters: ProcessFiltersDto) {
+    return await this.processesService.findByFilters(filters)
   }
 
   // @ApiResponse({ type: ResponseProcessDto })

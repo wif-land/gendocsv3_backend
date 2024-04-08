@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { BaseAppEntity } from '../../shared/entities/base.entity'
-import { CouncilType, ICouncil } from '../interfaces/council.interface'
+import { COUNCIL_TYPES, ICouncil } from '../interfaces/council.interface'
 import { ApiProperty } from '@nestjs/swagger'
 import { ModuleEntity } from '../../modules/entities/modules.entity'
 import { UserEntity } from '../../users/entities/users.entity'
@@ -10,12 +10,12 @@ import { CouncilAttendanceEntity } from './council-attendance.entity'
 @Entity('councils')
 export class CouncilEntity extends BaseAppEntity implements ICouncil {
   @ApiProperty({
-    enum: CouncilType,
+    enum: COUNCIL_TYPES,
     enumName: 'CouncilType',
     description: 'Tipo de consejo',
   })
   @Column()
-  type: CouncilType
+  type: COUNCIL_TYPES
 
   @ApiProperty({
     description: 'Fecha del consejo',
