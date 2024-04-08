@@ -10,6 +10,7 @@ import { StudentAlreadyExist } from './errors/student-already-exists'
 import { StudentError } from './errors/student-error'
 import { StudentNotFoundError } from './errors/student-not-found'
 import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
+import { StudentFiltersDto } from './dto/student-filters.dto'
 
 @Injectable()
 export class StudentsService {
@@ -105,27 +106,33 @@ export class StudentsService {
     return student
   }
 
-  async findByField(field: string, paginationDTO: PaginationDto) {
+  async findByFilters(filters: StudentFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = paginationDTO
+    const { limit = 5, offset = 0 } = filters
 
-    const queryBuilder = this.studentRepository.createQueryBuilder('students')
+    const qb = this.studentRepository.createQueryBuilder('students')
 
-    const students = await queryBuilder
-      .where(
-        `UPPER(students.first_name) like :field 
-        or UPPER(students.second_name) like :field 
-        or UPPER(students.first_last_name) like :field 
-        or UPPER(students.second_last_name) like :field 
-        or students.dni like :field`,
-        { field: `%${field.toUpperCase()}%` },
+    qb.where(
+      '( (:state :: BOOLEAN) IS NULL OR students.isActive = (:state :: BOOLEAN) )',
+      {
+        state: filters.state,
+      },
+    )
+      .andWhere(
+        "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', students.firstName, students.secondName, students.firstLastName, students.secondLastName) ILIKE :term OR students.dni ILIKE :term )",
+        {
+          term: filters.field && `%${filters.field.trim()}%`,
+        },
       )
       .orderBy('students.id', 'ASC')
+      .leftJoinAndSelect('students.career', 'career')
+      .leftJoinAndSelect('career.coordinator', 'coordinator')
       .take(limit)
       .skip(offset)
       .getMany()
 
-    const count = await queryBuilder.getCount()
+    const count = await qb.getCount()
+    const students = await qb.getMany()
 
     if (!students || !count) {
       throw new StudentNotFoundError(
@@ -144,7 +151,7 @@ export class StudentsService {
     updateStudentDto: UpdateStudentDto,
   ): Promise<StudentEntity> {
     try {
-      const student = await this.studentRepository.preload({
+      let student = await this.studentRepository.preload({
         ...updateStudentDto,
         id,
         career: { id: updateStudentDto.career },
@@ -155,7 +162,24 @@ export class StudentsService {
         throw new StudentNotFoundError('Estudiante no encontrado')
       }
 
-      return await this.studentRepository.save(student)
+      student = await this.studentRepository.save(student)
+
+      const updatedStudent = await this.studentRepository
+        .createQueryBuilder('student')
+        .leftJoinAndSelect('student.career', 'career')
+        .leftJoinAndSelect('career.coordinator', 'coordinator')
+        .where('student.id = :id', { id })
+        .getOne()
+
+      if (!updatedStudent) {
+        throw new StudentError({
+          statuscode: 500,
+          detail: 'Error al actualizar los datos del estudiante',
+          instance: 'students.errors.StudentsService.update',
+        })
+      }
+
+      return updatedStudent
     } catch (error) {
       throw new StudentError({
         statuscode: 500,

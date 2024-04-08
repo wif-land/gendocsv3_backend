@@ -90,7 +90,7 @@ export class CareersService {
       const career = await this.careerRepository.preload({
         id,
         ...data,
-        coordinator: { id: data.coordinator },
+        coordinator: { id: data.coordinator || coordinatorId },
       })
 
       if (!career) {

@@ -10,6 +10,7 @@ import { FunctionaryAlreadyExist } from './errors/functionary-already-exists'
 import { FunctionaryBadRequestError } from './errors/functionary-bad-request'
 import { FunctionaryNotFoundError } from './errors/functionary-not-found'
 import { FunctionaryError } from './errors/functionary-error'
+import { FunctionaryFiltersDto } from './dto/functionary-filters.dto'
 
 @Injectable()
 export class FunctionariesService {
@@ -81,42 +82,31 @@ export class FunctionariesService {
     return functionary
   }
 
-  async findByField(field: string, paginationDto: PaginationDto) {
+  async findByFilters(filters: FunctionaryFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = paginationDto
+    const { limit = 10, offset = 0 } = filters
 
-    const terms = field.split(' ').filter((term) => term.length > 0)
-    const queryBuilder =
-      this.functionaryRepository.createQueryBuilder('functionaries')
+    const qb = this.functionaryRepository.createQueryBuilder('functionaries')
 
-    const searchConditions = terms
-      .map(
-        (term) => ` 
-      (UPPER(functionaries.first_name) LIKE :${term} 
-      OR UPPER(functionaries.second_name) LIKE :${term} 
-      OR UPPER(functionaries.first_last_name) LIKE :${term} 
-      OR UPPER(functionaries.second_last_name) LIKE :${term}
-      OR functionaries.dni LIKE :${term})
-    `,
-      )
-      .join(' AND ')
-
-    const parameters = terms.reduce(
-      (acc, term) => ({
-        ...acc,
-        [term]: `%${term.toUpperCase()}%`,
-      }),
-      {},
+    qb.where(
+      '( (:state :: BOOLEAN) IS NULL OR functionaries.isActive = (:state :: BOOLEAN) )',
+      {
+        state: filters.state,
+      },
+    ).andWhere(
+      "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', functionaries.firstName, functionaries.secondName, functionaries.firstLastName, functionaries.secondLastName) ILIKE :term OR functionaries.dni ILIKE :term )",
+      {
+        term: filters.field && `%${filters.field.trim()}%`,
+      },
     )
 
-    const functionaries = await queryBuilder
-      .where(searchConditions, parameters)
+    const functionaries = await qb
       .orderBy('functionaries.id', 'ASC')
       .take(limit)
       .skip(offset)
       .getMany()
 
-    const count = await queryBuilder.getCount()
+    const count = await qb.getCount()
 
     if (functionaries.length === 0 || count === 0) {
       throw new FunctionaryNotFoundError('No existen funcionarios registrados')

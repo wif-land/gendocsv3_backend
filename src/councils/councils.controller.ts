@@ -15,6 +15,7 @@ import { CouncilEntity } from './entities/council.entity'
 import { UpdateCouncilDto } from './dto/update-council.dto'
 import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { CouncilFiltersDto } from './dto/council-filters.dto'
 
 @ApiTags('Councils')
 @Controller('councils')
@@ -38,12 +39,9 @@ export class CouncilsController {
     return this.councilsService.findAllAndCount(paginationDto)
   }
 
-  @Get(':field')
-  async findByField(
-    @Param('field') field: string,
-    @Query() paginationDto: PaginationDto,
-  ) {
-    return this.councilsService.findByField(field, paginationDto)
+  @Get('filter')
+  async findByFilters(@Query() filters: CouncilFiltersDto) {
+    return this.councilsService.findByFilters(filters)
   }
 
   @Patch(':id')

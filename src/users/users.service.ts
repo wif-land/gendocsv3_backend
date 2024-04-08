@@ -12,6 +12,7 @@ import { genSalt, hash } from 'bcrypt'
 import { JwtService } from '@nestjs/jwt'
 import { UserAccessModulesService } from '../users-access-modules/users-access-modules.service'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { UserFiltersDto } from './dto/user-filters.dto'
 
 @Injectable()
 export class UsersService {
@@ -124,12 +125,14 @@ export class UsersService {
             HttpStatus.CONFLICT,
           )
         }
+        userToUpdate.accessModules = modules.map((module) => module.id)
       }
 
       const userGetted = await this.userRepository.findOne({
         where: {
           id,
         },
+        relations: ['accessModules'],
       })
 
       if (!userGetted) {
@@ -162,6 +165,7 @@ export class UsersService {
         where: {
           id,
         },
+        relations: ['accessModules'],
       })
 
       if (!userUpdated) {
@@ -184,7 +188,13 @@ export class UsersService {
         accessModules: user.accessModules,
       }
 
-      return { user: userUpdated, accessToken: this.jwtService.sign(payload) }
+      return {
+        user: {
+          ...userUpdated,
+          accessModules: userUpdated.accessModules.map((module) => module.id),
+        },
+        accessToken: this.jwtService.sign(payload),
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -250,30 +260,34 @@ export class UsersService {
     }
   }
 
-  async findByField(field: string, paginationDto: PaginationDto) {
+  async findByFilters(filters: UserFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = paginationDto
+    const { limit = 5, offset = 0 } = filters
 
-    const queryBuilder = this.userRepository.createQueryBuilder('users')
+    const qb = this.userRepository.createQueryBuilder('users')
 
-    const users = await queryBuilder
-      .where(
-        `UPPER(users.first_name) like :field 
-        or UPPER(users.second_name) like :field 
-        or UPPER(users.first_last_name) like :field 
-        or UPPER(users.second_last_name) like :field`,
-        { field: `%${field.toUpperCase()}%` },
-      )
+    qb.where(
+      '( (:state :: BOOLEAN) IS NULL OR users.isActive = (:state :: BOOLEAN) )',
+      {
+        state: filters.state,
+      },
+    ).andWhere(
+      "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', users.firstName, users.secondName, users.firstLastName, users.secondLastName) ILIKE :term)",
+      {
+        term: filters.field && `%${filters.field.trim()}%`,
+      },
+    )
+
+    const count = await qb.getCount()
+    if (count === 0) {
+      throw new NotFoundException('User not found')
+    }
+
+    const users = await qb
       .orderBy('users.id', 'ASC')
       .take(limit)
       .skip(offset)
       .getMany()
-
-    const count = await queryBuilder.getCount()
-
-    if (users.length === 0 || count === 0) {
-      throw new NotFoundException('User not found')
-    }
 
     return {
       count,
