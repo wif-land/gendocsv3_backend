@@ -1,12 +1,12 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { RolesType } from '../../auth/decorators/roles-decorator'
 import { ModuleEntity } from '../../modules/entities/modules.entity'
-import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { Process } from '../../processes/entities/process.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { DocumentEntity } from '../../documents/entities/document.entity'
 import { ApiProperty } from '@nestjs/swagger'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('users')
 export class UserEntity extends BaseAppEntity {

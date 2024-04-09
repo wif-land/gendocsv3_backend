@@ -1,12 +1,12 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { Process } from '../../processes/entities/process.entity'
 import { UserEntity } from '../../users/entities/users.entity'
 import { DocumentEntity } from '../../documents/entities/document.entity'
 
 @Entity('templates_processes')
-export class TemplateProcess extends BaseApp {
+export class TemplateProcess extends BaseAppEntity {
   @ApiProperty({
     example: 'Plantilla de prueba',
     description: 'Nombre de la plantilla',

@@ -1,5 +1,5 @@
 import { Column, Entity } from 'typeorm'
-import { BaseAppEntity } from '../../shared/entities/base.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('submodules')
 export class Submodule extends BaseAppEntity {

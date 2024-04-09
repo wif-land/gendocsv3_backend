@@ -1,8 +1,8 @@
 import { Column, Entity } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('certificate_status')
-export class CertificateStatusEntity extends BaseApp {
+export class CertificateStatusEntity extends BaseAppEntity {
   @Column({
     name: 'code',
     type: 'varchar',

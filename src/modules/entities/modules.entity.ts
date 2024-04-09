@@ -1,10 +1,10 @@
 import { Submodule } from '../../submodules/entities/submodule.entity'
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
-import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { YearModuleEntity } from '../../year-module/entities/year-module.entity'
 import { Process } from '../../processes/entities/process.entity'
 import { CouncilEntity } from '../../councils/entities/council.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('modules')
 export class ModuleEntity extends BaseAppEntity {

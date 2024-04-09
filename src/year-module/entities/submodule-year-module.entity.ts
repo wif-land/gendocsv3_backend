@@ -1,11 +1,11 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { YearModuleEntity } from './year-module.entity'
 import { Process } from '../../processes/entities/process.entity'
 
 @Entity('submodule_year_module')
-export class SubmoduleYearModuleEntity extends BaseApp {
+export class SubmoduleYearModuleEntity extends BaseAppEntity {
   @ApiProperty({
     example: 'procesos',
     description: 'Nombre del directorio',

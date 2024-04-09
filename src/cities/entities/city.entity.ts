@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { ProvinceEntity } from './province.entity'
 
 @Entity('cities')
-export class CityEntity extends BaseApp {
+export class CityEntity extends BaseAppEntity {
   @ApiProperty({
     type: String,
     description: 'Nombre de la ciudad',

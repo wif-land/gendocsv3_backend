@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { StudentEntity } from '../../students/entities/student.entity'
 import { Career } from '../../careers/entites/careers.entity'
 import { CertificateTypeEntity } from './certificate-type.entity'
@@ -8,7 +8,7 @@ import { DegreeModalityEntity } from './degree-modality.entity'
 import { RoomEntity } from './room.entity'
 
 @Entity('degree_certificates')
-export class DegreeCertificate extends BaseApp {
+export class DegreeCertificateEntity extends BaseAppEntity {
   @Column({
     name: 'number',
     type: 'varchar',

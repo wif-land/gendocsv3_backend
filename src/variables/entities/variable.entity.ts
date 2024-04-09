@@ -1,9 +1,9 @@
 import { Column, Entity } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
 
 @Entity('variables')
-export class VariableEntity extends BaseApp {
+export class VariableEntity extends BaseAppEntity {
   @ApiProperty({
     example: '{{SALUDO}}',
     description: 'Variable',

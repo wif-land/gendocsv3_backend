@@ -1,8 +1,8 @@
 import { Column, Entity } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('degrees')
-export class DegreeEntity extends BaseApp {
+export class DegreeEntity extends BaseAppEntity {
   @Column({
     name: 'abbreviation',
     type: 'varchar',

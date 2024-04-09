@@ -1,8 +1,8 @@
 import { Column } from 'typeorm'
 import { ApiProperty } from '@nestjs/swagger'
-import { BaseApp } from './base-app.entity'
+import { BaseAppEntity } from './base-app.entity'
 
-export class BasePerson extends BaseApp {
+export class BasePerson extends BaseAppEntity {
   @ApiProperty({
     example: 'Juan',
     description: 'Primer nombre',
