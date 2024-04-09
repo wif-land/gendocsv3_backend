@@ -7,7 +7,7 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { NumerationDocumentEntity } from '../../numeration-document/entities/numeration-document.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 import { StudentEntity } from '../../students/entities/student.entity'
@@ -15,7 +15,7 @@ import { UserEntity } from '../../users/entities/users.entity'
 import { DocumentFunctionaryEntity } from './document-functionary.entity'
 
 @Entity('documents')
-export class DocumentEntity extends BaseApp {
+export class DocumentEntity extends BaseAppEntity {
   @ApiProperty({
     example: '1',
     description: 'Id de la numeración del documento',

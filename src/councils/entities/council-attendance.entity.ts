@@ -1,11 +1,11 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
-import { BaseAppEntity } from '../../shared/entities/base.entity'
 import {
   CouncilAttendanceRole,
   ICouncilAttendance,
 } from '../interfaces/council-attendance.interface'
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 import { CouncilEntity } from './council.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('council_attendance')
 export class CouncilAttendanceEntity

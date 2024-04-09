@@ -5,7 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
-export class BaseApp extends BaseEntity {
+export class BaseAppEntity extends BaseEntity {
   @ApiProperty({
     example: '1',
     description: 'Identificador único',

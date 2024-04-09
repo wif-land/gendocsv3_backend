@@ -1,11 +1,11 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 import { DocumentEntity } from './document.entity'
 
 @Entity('document_functionaries')
-export class DocumentFunctionaryEntity extends BaseApp {
+export class DocumentFunctionaryEntity extends BaseAppEntity {
   @ApiProperty({
     example: '1',
     description: 'Id del documento',

@@ -1,11 +1,11 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
-import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { COUNCIL_TYPES, ICouncil } from '../interfaces/council.interface'
 import { ApiProperty } from '@nestjs/swagger'
 import { ModuleEntity } from '../../modules/entities/modules.entity'
 import { UserEntity } from '../../users/entities/users.entity'
 import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
 import { CouncilAttendanceEntity } from './council-attendance.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('councils')
 export class CouncilEntity extends BaseAppEntity implements ICouncil {
