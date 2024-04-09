@@ -7,21 +7,21 @@ import {
   IsOptional,
   ValidateIf,
 } from 'class-validator'
-import { CouncilType, ICouncil } from '../interfaces/council.interface'
+import { COUNCIL_TYPES, ICouncil } from '../interfaces/council.interface'
 import { ApiProperty } from '@nestjs/swagger'
 import { CreateAttendanceDto } from './create-attendance.dto'
 
 export class CreateCouncilDto implements ICouncil {
   @ApiProperty({
-    enum: CouncilType,
+    enum: COUNCIL_TYPES,
     enumName: 'CouncilType',
     description: 'Council type',
   })
   @IsNotEmpty({ message: 'Council type is required' })
-  @IsEnum(CouncilType, {
+  @IsEnum(COUNCIL_TYPES, {
     message: 'Council type must be EXTRAORDINARY or ORDINARY',
   })
-  type: CouncilType
+  type: COUNCIL_TYPES
 
   @ApiProperty({
     description: 'Council date',

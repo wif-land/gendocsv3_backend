@@ -1,10 +1,10 @@
-export enum CouncilType {
+export enum COUNCIL_TYPES {
   EXTRAORDINARY = 'EXTRAORDINARY',
   ORDINARY = 'ORDINARY',
 }
 
 export interface ICouncil {
   name: string
-  type: CouncilType
+  type: COUNCIL_TYPES
   date: Date
 }

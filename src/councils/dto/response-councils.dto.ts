@@ -1,6 +1,6 @@
 import { CouncilAttendanceEntity } from '../entities/council-attendance.entity'
 import { CouncilEntity } from '../entities/council.entity'
-import { CouncilType } from '../interfaces/council.interface'
+import { COUNCIL_TYPES } from '../interfaces/council.interface'
 
 export class ResponseCouncilsDto {
   id: number
@@ -14,7 +14,7 @@ export class ResponseCouncilsDto {
   attendees: CouncilAttendanceEntity[]
   isActive: boolean
   isArchived: boolean
-  type: CouncilType
+  type: COUNCIL_TYPES
 
   constructor(council: CouncilEntity) {
     this.id = council.id
