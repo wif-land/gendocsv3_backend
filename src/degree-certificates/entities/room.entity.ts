@@ -1,6 +1,7 @@
-import { Column } from 'typeorm'
+import { Column, Entity } from 'typeorm'
 import { BaseApp } from '../../shared/entities/base-app.entity'
 
+@Entity('rooms')
 export class RoomEntity extends BaseApp {
   @Column({
     name: 'name',

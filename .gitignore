@@ -405,3 +405,4 @@ postgres-data/
 credentials.json
 
 .env*
+pnpm-lock.yaml

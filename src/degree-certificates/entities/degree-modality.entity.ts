@@ -1,6 +1,7 @@
-import { Column } from 'typeorm'
+import { Column, Entity } from 'typeorm'
 import { BaseApp } from '../../shared/entities/base-app.entity'
 
+@Entity('degree_modalities')
 export class DegreeModalityEntity extends BaseApp {
   @Column({
     name: 'code',
