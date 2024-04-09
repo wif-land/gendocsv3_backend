@@ -18,4 +18,11 @@ export class CertificateTypeEntity extends BaseAppEntity {
     unique: true,
   })
   name: string
+
+  @Column({
+    name: 'is_active',
+    type: 'boolean',
+    default: true,
+  })
+  isActive: boolean
 }

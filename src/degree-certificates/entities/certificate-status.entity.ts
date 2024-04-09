@@ -15,7 +15,6 @@ export class CertificateStatusEntity extends BaseAppEntity {
     name: 'male_name',
     type: 'varchar',
     length: 100,
-    unique: true,
   })
   maleName: string
 
@@ -23,7 +22,13 @@ export class CertificateStatusEntity extends BaseAppEntity {
     name: 'female_name',
     type: 'varchar',
     length: 100,
-    unique: true,
   })
   femaleName: string
+
+  @Column({
+    name: 'is_active',
+    type: 'boolean',
+    default: true,
+  })
+  isActive: boolean
 }
