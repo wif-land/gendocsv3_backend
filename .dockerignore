@@ -10,3 +10,4 @@ README.md
 Makefile
 .husky
 postgres-data/
+docs/
