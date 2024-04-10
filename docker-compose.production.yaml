@@ -1,5 +1,3 @@
-version: '3.0'
-
 services:
   postgres:
     container_name: gendocsv3_postgres
@@ -27,9 +25,20 @@ services:
       - DATABASE_USERNAME=${DATABASE_USERNAME}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
     ports:
-      - 8000:${APP_PORT}
+      - 3002:${APP_PORT}
     depends_on:
       - postgres
+    networks:
+      - gendocs-network
+
+  frontend:
+    container_name: gendocsv3_frontend
+    image: ${FRONTEND_DOCKER_IMAGE}
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=backend/api
+    ports:
+      - 8000:3000
     networks:
       - gendocs-network
 
