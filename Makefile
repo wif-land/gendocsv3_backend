@@ -1,4 +1,4 @@
-.PHONY: up down clean deploy_production backup generate_ssh_key
+.PHONY: up down clean prepare_production backup generate_ssh_key deploy_all_production deploy_backend_production deploy_frontend_production deploy_db_production
 
 ENV_FILE := .env
 ENV_FILE_PRODUCTION := .env.production
@@ -23,7 +23,7 @@ down:
 clean:
 	docker system prune -af
 
-deploy_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
+prepare_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@echo "Deploying to production..."
 	@make create_remote_directory
 	@make copy_files
@@ -40,14 +40,14 @@ deploy_backend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Mak
 	@echo "Deploying backend to production..."
 	@ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && \
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down backend && \
-														docker rmi ${BACKEND_DOCKER_IMAGE} && \
+														docker rmi ${BACKEND_DOCKER_IMAGE} | true && \
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d backend"
 
 deploy_frontend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@echo "Deploying frontend to production..."
 	@ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && \
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down frontend && \
-														docker rmi ${FRONTEND_DOCKER_IMAGE} && \
+														docker rmi ${FRONTEND_DOCKER_IMAGE} | true && \
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d frontend"
 
 deploy_db_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
@@ -56,9 +56,8 @@ deploy_db_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down postgres && \
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d postgres"
 
-deploy_all_production:
-	@make deploy_production
-	@make run_migrations
+deploy_all_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
+	@make prepare_production
 	@make deploy_backend_production
 	@make deploy_frontend_production
 	@echo "Deployed successfully!"

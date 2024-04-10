@@ -36,7 +36,7 @@ services:
     image: ${FRONTEND_DOCKER_IMAGE}
     restart: always
     environment:
-      - NEXT_PUBLIC_API_URL=backend/api
+      - NEXT_PUBLIC_API_URL=https://localhost:3002/api
     ports:
       - 8000:3000
     networks:
