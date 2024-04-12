@@ -3,7 +3,7 @@ import { CreateCareerDto } from './dto/create-career.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Not, Repository } from 'typeorm'
 import { CareerEntity } from './entites/careers.entity'
-import { PromiseApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class CareersService {
@@ -12,7 +12,7 @@ export class CareersService {
     private readonly careerRepository: Repository<CareerEntity>,
   ) {}
 
-  async create(data: CreateCareerDto): PromiseApiResponse<CareerEntity> {
+  async create(data: CreateCareerDto): Promise<ApiResponse<CareerEntity>> {
     try {
       if (data.isActive) {
         const existingCareer = await this.careerRepository.findOne({
@@ -53,7 +53,7 @@ export class CareersService {
     }
   }
 
-  async findAll(): PromiseApiResponse<CareerEntity[]> {
+  async findAll(): Promise<ApiResponse<CareerEntity[]>> {
     try {
       const carrers = await this.careerRepository.find({
         order: {
@@ -73,7 +73,7 @@ export class CareersService {
   async update(
     id: number,
     data: Partial<CreateCareerDto>,
-  ): PromiseApiResponse<CareerEntity> {
+  ): Promise<ApiResponse<CareerEntity>> {
     try {
       let coordinatorId: number
       if (data.coordinator === undefined) {

@@ -10,7 +10,7 @@ import { ProvinceAlreadyExistsError } from './errors/province-already-exists'
 import { CityAlreadyExistsError } from './errors/city-already-exists'
 import { CityNotFoundError } from './errors/city-not-found'
 import { ProvinceNotFoundError } from './errors/province-not-found'
-import { PromiseApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class CitiesService {
@@ -23,7 +23,7 @@ export class CitiesService {
 
   async createProvince(
     createProvinceDto: CreateProvinceDto,
-  ): PromiseApiResponse<ProvinceEntity> {
+  ): Promise<ApiResponse<ProvinceEntity>> {
     const alreadyExist = await this.provinceRepository.findOneBy({
       name: createProvinceDto.name,
     })
@@ -50,7 +50,7 @@ export class CitiesService {
 
   async createCity(
     createCityDto: CreateCityDto,
-  ): PromiseApiResponse<CityEntity> {
+  ): Promise<ApiResponse<CityEntity>> {
     const province = await this.provinceRepository.findOne({
       where: { id: createCityDto.provinceId },
     })
@@ -89,7 +89,7 @@ export class CitiesService {
     }
   }
 
-  async findAllCities(): PromiseApiResponse<CityEntity[]> {
+  async findAllCities(): Promise<ApiResponse<CityEntity[]>> {
     const cities = await this.cityRepository.find()
 
     return {
@@ -98,7 +98,7 @@ export class CitiesService {
     }
   }
 
-  async findAllProvinces(): PromiseApiResponse<ProvinceEntity[]> {
+  async findAllProvinces(): Promise<ApiResponse<ProvinceEntity[]>> {
     const provinces = await this.provinceRepository.find()
 
     return {
@@ -109,7 +109,7 @@ export class CitiesService {
 
   async findCitiesByProvince(
     provinceId: number,
-  ): PromiseApiResponse<CityEntity[]> {
+  ): Promise<ApiResponse<CityEntity[]>> {
     const province = await this.provinceRepository.findOne({
       where: { id: provinceId },
     })
@@ -136,7 +136,7 @@ export class CitiesService {
     }
   }
 
-  async findOneCity(id: number): PromiseApiResponse<CityEntity> {
+  async findOneCity(id: number): Promise<ApiResponse<CityEntity>> {
     const city = await this.cityRepository.findOne({ where: { id } })
 
     if (!city) {
@@ -152,7 +152,7 @@ export class CitiesService {
   async updateCity(
     id: number,
     updateCityDto: UpdateCityDto,
-  ): PromiseApiResponse<CityEntity> {
+  ): Promise<ApiResponse<CityEntity>> {
     const province = await this.provinceRepository.findOne({
       where: { id: updateCityDto.provinceId },
     })
@@ -183,7 +183,7 @@ export class CitiesService {
   async updateProvince(
     id: number,
     updateProvinceDto: CreateProvinceDto,
-  ): PromiseApiResponse<ProvinceEntity> {
+  ): Promise<ApiResponse<ProvinceEntity>> {
     const province = await this.provinceRepository.preload({
       ...updateProvinceDto,
       id,

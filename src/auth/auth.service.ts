@@ -4,7 +4,7 @@ import { UserEntity } from '../users/entities/users.entity'
 import { JwtService } from '@nestjs/jwt'
 import { compareSync } from 'bcrypt'
 import { ModuleEntity } from '../modules/entities/modules.entity'
-import { PromiseApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class AuthService {
@@ -13,10 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(
-    email: string,
-    password: string,
-  ): Promise<PromiseApiResponse<string>> {
+  async login(email: string, password: string): Promise<ApiResponse<string>> {
     const user = await this.usersService.getByEmail(email)
     const validUser = this.validateUser(user, password)
 

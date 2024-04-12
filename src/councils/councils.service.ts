@@ -20,7 +20,7 @@ import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
-import { PromiseApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class CouncilsService {
@@ -42,7 +42,8 @@ export class CouncilsService {
 
   async create(
     createCouncilDto: CreateCouncilDto,
-  ): PromiseApiResponse<CouncilEntity | unknown> {
+  ): Promise<ApiResponse<CouncilEntity | unknown>> {
+    // Define the return type of the method
     const { attendees = [], ...councilData } = createCouncilDto
     const hasAttendance = attendees.length > 0
 
@@ -129,10 +130,12 @@ export class CouncilsService {
     }
   }
 
-  async findAllAndCount(paginationDto: PaginationDto): PromiseApiResponse<{
-    count: number
-    councils: ResponseCouncilsDto[]
-  }> {
+  async findAllAndCount(paginationDto: PaginationDto): Promise<
+    ApiResponse<{
+      count: number
+      councils: ResponseCouncilsDto[]
+    }>
+  > {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = paginationDto
     try {
@@ -176,10 +179,12 @@ export class CouncilsService {
     }
   }
 
-  async findByFilters(filters: CouncilFiltersDto): PromiseApiResponse<{
-    count: number
-    councils: ResponseCouncilsDto[]
-  }> {
+  async findByFilters(filters: CouncilFiltersDto): Promise<
+    ApiResponse<{
+      count: number
+      councils: ResponseCouncilsDto[]
+    }>
+  > {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = filters
 
@@ -256,7 +261,7 @@ export class CouncilsService {
   async update(
     id: number,
     updateCouncilDto: UpdateCouncilDto,
-  ): PromiseApiResponse<CouncilEntity> {
+  ): Promise<ApiResponse<CouncilEntity>> {
     const queryBuilder = this.dataSource.createQueryBuilder(
       CouncilEntity,
       'councils',
@@ -294,7 +299,7 @@ export class CouncilsService {
 
   async updateBulk(
     updateCouncilsBulkDto: UpdateCouncilBulkItemDto[],
-  ): PromiseApiResponse<CouncilEntity[]> {
+  ): Promise<ApiResponse<CouncilEntity[]>> {
     const queryRunner =
       this.councilRepository.manager.connection.createQueryRunner()
 
