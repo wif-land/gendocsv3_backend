@@ -7,6 +7,7 @@ import { UpdateDegreeDto } from './dto/update-degree.dto'
 import { DegreeAlreadyExist } from './errors/degree-already-exists'
 import { DegreeBadRequestError } from './errors/degree-bad-request'
 import { DegreeNotFoundError } from './errors/degree-not-found'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class DegreesService {
@@ -15,7 +16,9 @@ export class DegreesService {
     private readonly degreeRepository: Repository<DegreeEntity>,
   ) {}
 
-  async create(createDegreeDto: CreateDegreeDto) {
+  async create(
+    createDegreeDto: CreateDegreeDto,
+  ): Promise<ApiResponse<DegreeEntity>> {
     if (
       this.degreeRepository.findOneBy({
         abbreviation: createDegreeDto.abbreviation,
@@ -32,26 +35,40 @@ export class DegreesService {
       throw new DegreeBadRequestError('Los datos del título son incorrectos')
     }
 
-    return await this.degreeRepository.save(degree)
+    const newDegree = await this.degreeRepository.save(degree)
+
+    return {
+      message: 'Título creado correctamente',
+      data: newDegree,
+    }
   }
 
-  async findAll() {
+  async findAll(): Promise<ApiResponse<DegreeEntity[]>> {
     const degrees = await this.degreeRepository.find()
 
-    return degrees
+    return {
+      message: 'Lista de títulos',
+      data: degrees,
+    }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<ApiResponse<DegreeEntity>> {
     const degree = await this.degreeRepository.findOneBy({ id })
 
     if (!degree) {
       throw new DegreeNotFoundError(`El título con id ${id} no existe`)
     }
 
-    return degree
+    return {
+      message: 'Detalle del título',
+      data: degree,
+    }
   }
 
-  async update(id: number, updateDegreeDto: UpdateDegreeDto) {
+  async update(
+    id: number,
+    updateDegreeDto: UpdateDegreeDto,
+  ): Promise<ApiResponse<DegreeEntity>> {
     const degree = await this.degreeRepository.preload({
       id,
       ...updateDegreeDto,
@@ -61,6 +78,11 @@ export class DegreesService {
       throw new DegreeNotFoundError(`El título con id ${id} no existe`)
     }
 
-    return await this.degreeRepository.save(degree)
+    const degreeUpdated = await this.degreeRepository.save(degree)
+
+    return {
+      message: 'Título actualizado correctamente',
+      data: degreeUpdated,
+    }
   }
 }
