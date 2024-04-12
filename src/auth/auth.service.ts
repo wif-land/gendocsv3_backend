@@ -4,6 +4,7 @@ import { UserEntity } from '../users/entities/users.entity'
 import { JwtService } from '@nestjs/jwt'
 import { compareSync } from 'bcrypt'
 import { ModuleEntity } from '../modules/entities/modules.entity'
+import { PromiseApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class AuthService {
@@ -15,7 +16,7 @@ export class AuthService {
   async login(
     email: string,
     password: string,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<PromiseApiResponse<string>> {
     const user = await this.usersService.getByEmail(email)
     const validUser = this.validateUser(user, password)
 
@@ -40,10 +41,13 @@ export class AuthService {
       isActive: user.isActive,
     }
 
-    return { accessToken: this.jwtService.sign(payload) }
+    return {
+      message: 'Usuario autenticado',
+      data: this.jwtService.sign(payload),
+    }
   }
 
-  private validateUser(user: UserEntity, passwordToVerify: string): boolean {
+  private validateUser(user: UserEntity, passwordToVerify: string) {
     return user && this.checkPassword(passwordToVerify, user.password)
   }
 

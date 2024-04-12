@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger'
 import { CouncilAttendanceEntity } from '../../councils/entities/council-attendance.entity'
 import { PositionEntity } from '../../positions/entities/position.entity'
 import { DocumentFunctionaryEntity } from '../../documents/entities/document-functionary.entity'
-import { Career } from '../../careers/entites/careers.entity'
+import { CareerEntity } from '../../careers/entites/careers.entity'
 import { GENDER } from '../../shared/enums/genders'
 import { DegreeEntity } from '../../degrees/entities/degree.entity'
 
@@ -114,9 +114,9 @@ export class FunctionaryEntity extends BasePerson {
   documentFunctionaries: DocumentFunctionaryEntity[]
 
   @ApiProperty({
-    type: () => Career,
+    type: () => CareerEntity,
     isArray: true,
   })
-  @OneToMany(() => Career, (career) => career.coordinator)
-  careers: Career[]
+  @OneToMany(() => CareerEntity, (career) => career.coordinator)
+  careers: CareerEntity[]
 }

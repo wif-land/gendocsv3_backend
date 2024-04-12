@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { StudentEntity } from '../../students/entities/student.entity'
-import { Career } from '../../careers/entites/careers.entity'
+import { CareerEntity } from '../../careers/entites/careers.entity'
 import { CertificateTypeEntity } from './certificate-type.entity'
 import { CertificateStatusEntity } from './certificate-status.entity'
 import { DegreeModalityEntity } from './degree-modality.entity'
@@ -43,14 +43,14 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   })
   student: StudentEntity
 
-  @ManyToOne(() => Career, {
+  @ManyToOne(() => CareerEntity, {
     eager: true,
   })
   @JoinColumn({
     name: 'career_id',
     referencedColumnName: 'id',
   })
-  career: Career
+  career: CareerEntity
 
   @ManyToOne(() => CertificateTypeEntity)
   @JoinColumn({

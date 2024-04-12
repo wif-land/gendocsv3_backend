@@ -20,6 +20,7 @@ import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
+import { PromiseApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class CouncilsService {
@@ -39,7 +40,9 @@ export class CouncilsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createCouncilDto: CreateCouncilDto) {
+  async create(
+    createCouncilDto: CreateCouncilDto,
+  ): PromiseApiResponse<CouncilEntity | unknown> {
     const { attendees = [], ...councilData } = createCouncilDto
     const hasAttendance = attendees.length > 0
 
@@ -81,7 +84,10 @@ export class CouncilsService {
       const councilInserted = await this.councilRepository.save(council)
 
       if (!hasAttendance) {
-        return councilInserted
+        return {
+          message: 'Consejo creado exitosamente',
+          data: councilInserted,
+        }
       }
 
       const promises = attendees.map((item) =>
@@ -112,15 +118,21 @@ export class CouncilsService {
       )
 
       return {
-        ...councilInserted,
-        attendance: attendanceResult,
+        message: 'Consejo creado exitosamente',
+        data: {
+          ...councilInserted,
+          attendance: attendanceResult,
+        },
       }
     } catch (error) {
       throw error
     }
   }
 
-  async findAllAndCount(paginationDto: PaginationDto) {
+  async findAllAndCount(paginationDto: PaginationDto): PromiseApiResponse<{
+    count: number
+    councils: ResponseCouncilsDto[]
+  }> {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = paginationDto
     try {
@@ -153,15 +165,21 @@ export class CouncilsService {
       const councils = await queryBuilder.getMany()
 
       return {
-        count,
-        councils: councils.map((council) => new ResponseCouncilsDto(council)),
+        message: 'Consejos encontrados',
+        data: {
+          count,
+          councils: councils.map((council) => new ResponseCouncilsDto(council)),
+        },
       }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findByFilters(filters: CouncilFiltersDto) {
+  async findByFilters(filters: CouncilFiltersDto): PromiseApiResponse<{
+    count: number
+    councils: ResponseCouncilsDto[]
+  }> {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = filters
 
@@ -229,10 +247,16 @@ export class CouncilsService {
       (council) => new ResponseCouncilsDto(council),
     )
 
-    return { count, councils: mappedCouncils }
+    return {
+      message: 'Consejos encontrados',
+      data: { count, councils: mappedCouncils },
+    }
   }
 
-  async update(id: number, updateCouncilDto: UpdateCouncilDto) {
+  async update(
+    id: number,
+    updateCouncilDto: UpdateCouncilDto,
+  ): PromiseApiResponse<CouncilEntity> {
     const queryBuilder = this.dataSource.createQueryBuilder(
       CouncilEntity,
       'councils',
@@ -260,19 +284,24 @@ export class CouncilsService {
       throw new NotFoundException(`Council not found with id ${id}`)
     }
 
-    await this.councilRepository.save(updatedCouncil)
+    const councilUpdated = await this.councilRepository.save(updatedCouncil)
 
-    return updatedCouncil
+    return {
+      message: 'Consejo actualizado exitosamente',
+      data: councilUpdated,
+    }
   }
 
-  async updateBulk(updateCouncilsBulkDto: UpdateCouncilBulkItemDto[]) {
+  async updateBulk(
+    updateCouncilsBulkDto: UpdateCouncilBulkItemDto[],
+  ): PromiseApiResponse<CouncilEntity[]> {
     const queryRunner =
       this.councilRepository.manager.connection.createQueryRunner()
 
     await queryRunner.startTransaction()
 
     try {
-      const updatedCouncils = []
+      const updatedCouncils: CouncilEntity[] = []
       for (const councilDto of updateCouncilsBulkDto) {
         const { id, ...councilData } = councilDto
         const hasNameChanged = councilData.name !== undefined
@@ -310,7 +339,10 @@ export class CouncilsService {
       await queryRunner.commitTransaction()
       await queryRunner.release()
 
-      return updatedCouncils
+      return {
+        message: 'Consejos actualizados exitosamente',
+        data: updatedCouncils,
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

@@ -19,6 +19,7 @@ import { UpdateRoomDto } from './dto/update-room.dto'
 import { DegreeCertificateEntity } from './entities/degree-certificate.entity'
 import { CreateDegreeCertificateDto } from './dto/create-degree-certificate.dto'
 import { UpdateDegreeCertificateDto } from './dto/update-degree-certificate.dto'
+import { PromiseApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -39,11 +40,18 @@ export class DegreeCertificatesService {
     private readonly roomRepository: Repository<RoomEntity>,
   ) {}
 
-  async findAll() {
-    return await this.degreeCertificateRepository.find()
+  async findAll(): PromiseApiResponse<DegreeCertificateEntity[]> {
+    const degreeCertificates = await this.degreeCertificateRepository.find()
+
+    return {
+      message: 'Listado de certificados obtenido exitosamente',
+      data: degreeCertificates,
+    }
   }
 
-  async create(dto: CreateDegreeCertificateDto) {
+  async create(
+    dto: CreateDegreeCertificateDto,
+  ): PromiseApiResponse<DegreeCertificateEntity> {
     if (this.degreeCertificateRepository.findOneBy({ number: dto.number })) {
       throw new DegreeCertificateAlreadyExist(
         `El certificado con número ${dto.number} ya existe`,
@@ -66,10 +74,20 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.degreeCertificateRepository.save(degreeCertificate)
+    const newCertificate = await this.degreeCertificateRepository.save(
+      degreeCertificate,
+    )
+
+    return {
+      message: 'Certificado creado correctamente',
+      data: newCertificate,
+    }
   }
 
-  async update(id: number, dto: UpdateDegreeCertificateDto) {
+  async update(
+    id: number,
+    dto: UpdateDegreeCertificateDto,
+  ): PromiseApiResponse<DegreeCertificateEntity> {
     const degreeCertificate = await this.degreeCertificateRepository.preload({
       id,
       student: { id: dto.studentId },
@@ -87,7 +105,14 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.degreeCertificateRepository.save(degreeCertificate)
+    const certificateUpdated = await this.degreeCertificateRepository.save(
+      degreeCertificate,
+    )
+
+    return {
+      message: 'Certificado actualizado correctamente',
+      data: certificateUpdated,
+    }
   }
 
   async findAllCertificateStatus() {
@@ -149,8 +174,15 @@ export class DegreeCertificatesService {
     })
   }
 
-  async findAllCertificateTypes() {
-    return await this.certificateTypeRepository.find()
+  async findAllCertificateTypes(): Promise<
+    PromiseApiResponse<CertificateTypeEntity[]>
+  > {
+    const certificateTypes = await this.certificateTypeRepository.find()
+
+    return {
+      message: 'Listado de tipos de certificado obtenido exitosamente',
+      data: certificateTypes,
+    }
   }
 
   async createCertificateType(dto: CreateCertificateTypeDto) {
