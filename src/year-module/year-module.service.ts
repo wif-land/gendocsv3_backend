@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { CreateYearModuleDto } from './dto/create-year-module.dto'
-import { UpdateYearModuleDto } from './dto/update-year-module.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { YearModuleEntity } from './entities/year-module.entity'
 import { Repository } from 'typeorm'
@@ -93,21 +92,5 @@ export class YearModuleService {
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
-  }
-
-  findAll() {
-    return `This action returns all yearModule`
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} yearModule`
-  }
-
-  update(id: number, updateYearModuleDto: UpdateYearModuleDto) {
-    return `This action updates a #${id} yearModule ${updateYearModuleDto}`
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} yearModule`
   }
 }
