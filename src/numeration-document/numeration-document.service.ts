@@ -279,10 +279,15 @@ export class NumerationDocumentService {
 
           numerationDocument.state = NumerationState.USED
 
-          return await this.dataSource.manager.save(
+          const entity = await this.dataSource.manager.save(
             NumerationDocumentEntity,
             numerationDocument,
           )
+
+          return {
+            message: 'Numeración creada exitosamente',
+            data: entity,
+          }
         }
       }
     } catch (error) {

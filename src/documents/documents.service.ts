@@ -39,7 +39,7 @@ export class DocumentsService {
     let document = undefined
     let documentFunctionaries
 
-    const numeration = await this.numerationDocumentService.create({
+    const { data: numeration } = await this.numerationDocumentService.create({
       number: createDocumentDto.number,
       councilId: createDocumentDto.councilId,
     })
