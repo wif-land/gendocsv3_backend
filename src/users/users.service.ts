@@ -78,19 +78,19 @@ export class UsersService {
 
       let userSaved = await this.userRepository.save(userEntity)
 
-      const { modules } = await this.userAccessModulesService.create({
+      const { data } = await this.userAccessModulesService.create({
         userId: userSaved.id,
         modulesIds: user.accessModules,
       })
 
-      if (modules.length === 0) {
+      if (data.modules.length === 0) {
         throw new HttpException(
           'No se pudo crear asignar los modulos al usuario',
           HttpStatus.CONFLICT,
         )
       }
 
-      userEntity.accessModules = modules
+      userEntity.accessModules = data.modules
 
       userSaved = await this.userRepository.save(userEntity)
 
@@ -124,18 +124,18 @@ export class UsersService {
       const hasAccessModules = !!user.accessModules
 
       if (hasAccessModules) {
-        const { modules } = await this.userAccessModulesService.update({
+        const { data } = await this.userAccessModulesService.update({
           userId: id,
           modulesIds: user.accessModules,
         })
 
-        if (modules.length === 0) {
+        if (data.modules.length === 0) {
           throw new HttpException(
             'No se pudo actualizar los modulos del usuario',
             HttpStatus.CONFLICT,
           )
         }
-        userToUpdate.accessModules = modules.map((module) => module.id)
+        userToUpdate.accessModules = data.modules.map((module) => module.id)
       }
 
       const userGetted = await this.userRepository.findOne({

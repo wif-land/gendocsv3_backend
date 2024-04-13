@@ -10,7 +10,7 @@ import {
 } from 'typeorm'
 
 @Entity('users_access_modules')
-export class UserAccessModule {
+export class UserAccessModuleEntity {
   @PrimaryColumn({
     name: 'user_id',
   })

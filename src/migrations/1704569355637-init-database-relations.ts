@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
-import { UserAccessModule } from '../users-access-modules/entities/user-access-module.entity'
+import { UserAccessModuleEntity } from '../users-access-modules/entities/user-access-module.entity'
 import { SubmoduleModuleEntity } from '../submodules-modules/entities/submodule-module.entity'
 
 export class InitDatabaseRelations1704569355637 implements MigrationInterface {
@@ -9,7 +9,7 @@ export class InitDatabaseRelations1704569355637 implements MigrationInterface {
     const submodulesModuleRepository =
       connection.getRepository(SubmoduleModuleEntity)
     const userAccessModuleRepository =
-      connection.getRepository(UserAccessModule)
+      connection.getRepository(UserAccessModuleEntity)
 
     const modulesAndSubModulesRelationsToInsert = [
       { moduleId: 1, submoduleId: 1 },
@@ -84,7 +84,7 @@ export class InitDatabaseRelations1704569355637 implements MigrationInterface {
     const submodulesModuleRepository =
       connection.getRepository(SubmoduleModuleEntity)
     const userAccessModuleRepository =
-      connection.getRepository(UserAccessModule)
+      connection.getRepository(UserAccessModuleEntity)
 
     await submodulesModuleRepository.delete({})
     await userAccessModuleRepository.delete({})

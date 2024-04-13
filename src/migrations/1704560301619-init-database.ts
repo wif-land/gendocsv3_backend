@@ -3,7 +3,7 @@ import { UserEntity } from '../users/entities/users.entity'
 import { ModuleEntity } from '../modules/entities/modules.entity'
 import { SubmoduleEntity } from '../submodules/entities/submodule.entity'
 import { SubmoduleModuleEntity } from '../submodules-modules/entities/submodule-module.entity'
-import { UserAccessModule } from '../users-access-modules/entities/user-access-module.entity'
+import { UserAccessModuleEntity } from '../users-access-modules/entities/user-access-module.entity'
 
 export class InitDatabase1704560301619 implements MigrationInterface {
   name?: string
@@ -159,7 +159,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     const submodulesModuleRepository =
       connection.getRepository(SubmoduleModuleEntity)
     const userAccessModuleRepository =
-      connection.getRepository(UserAccessModule)
+      connection.getRepository(UserAccessModuleEntity)
 
     await userRepository.delete({})
     await moduleRepository.delete({})
