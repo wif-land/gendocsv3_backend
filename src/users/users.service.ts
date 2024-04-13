@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt'
 import { UserAccessModulesService } from '../users-access-modules/users-access-modules.service'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UserFiltersDto } from './dto/user-filters.dto'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class UsersService {
@@ -26,7 +27,7 @@ export class UsersService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getByEmail(email: string): Promise<UserEntity> {
+  async getByEmail(email: string): Promise<ApiResponse<UserEntity>> {
     try {
       const user = await this.userRepository.findOne({
         where: {
@@ -42,13 +43,16 @@ export class UsersService {
         )
       }
 
-      return user
+      return {
+        message: 'Usuario encontrado',
+        data: user,
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async create(user: CreateUserDTO) {
+  async create(user: CreateUserDTO): Promise<ApiResponse<unknown>> {
     try {
       const password = await this.generateSaltPassword(user.password)
 
@@ -98,15 +102,21 @@ export class UsersService {
       }
 
       return {
-        ...userSaved,
-        accessModules: userSaved.accessModules.map((module) => module.id),
+        message: 'Usuario creado correctamente',
+        data: {
+          ...userSaved,
+          accessModules: userSaved.accessModules.map((module) => module.id),
+        },
       }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async update(id: number, user: Partial<CreateUserDTO>) {
+  async update(
+    id: number,
+    user: Partial<CreateUserDTO>,
+  ): Promise<ApiResponse<unknown>> {
     try {
       let userToUpdate = user
       let password = ''
@@ -189,18 +199,21 @@ export class UsersService {
       }
 
       return {
-        user: {
-          ...userUpdated,
-          accessModules: userUpdated.accessModules.map((module) => module.id),
+        message: 'Usuario actualizado',
+        data: {
+          user: {
+            ...userUpdated,
+            accessModules: userUpdated.accessModules.map((module) => module.id),
+          },
+          accessToken: this.jwtService.sign(payload),
         },
-        accessToken: this.jwtService.sign(payload),
       }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: number): Promise<ApiResponse> {
     try {
       await this.userRepository.update(
         {
@@ -211,13 +224,18 @@ export class UsersService {
         },
       )
 
-      return true
+      return {
+        message: 'Usuario eliminado',
+        data: {
+          success: true,
+        },
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto): Promise<ApiResponse<unknown>> {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDto
     try {
@@ -252,15 +270,20 @@ export class UsersService {
       const count = await this.userRepository.count()
 
       return {
-        count,
-        users: usersFound,
+        message: 'Usuarios encontrados',
+        data: { count, users: usersFound },
       }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findByFilters(filters: UserFiltersDto) {
+  async findByFilters(filters: UserFiltersDto): Promise<
+    ApiResponse<{
+      count: number
+      users: UserEntity[]
+    }>
+  > {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = filters
 
@@ -290,8 +313,11 @@ export class UsersService {
       .getMany()
 
     return {
-      count,
-      users,
+      message: 'Usuarios encontrados',
+      data: {
+        count,
+        users,
+      },
     }
   }
 

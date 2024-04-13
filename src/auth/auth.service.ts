@@ -14,7 +14,7 @@ export class AuthService {
   ) {}
 
   async login(email: string, password: string): Promise<ApiResponse<string>> {
-    const user = await this.usersService.getByEmail(email)
+    const { data: user } = await this.usersService.getByEmail(email)
     const validUser = this.validateUser(user, password)
 
     if (!validUser) {
