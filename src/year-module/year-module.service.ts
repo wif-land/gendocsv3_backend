@@ -35,19 +35,24 @@ export class YearModuleService {
         )
       }
 
-      const yearModule = this.yearModuleRepository.create(createYearModuleDto)
-      yearModule.driveId = await this.gcpService.createFolderByParentId(
+      const { data: driveId } = await this.gcpService.createFolderByParentId(
         createYearModuleDto.year.toString(),
         createYearModuleDto.module.driveId,
       )
 
+      const yearModule = this.yearModuleRepository.create({
+        ...createYearModuleDto,
+        driveId,
+      })
+
       const auxYearModule = await this.yearModuleRepository.save(yearModule)
 
       if (createYearModuleDto.module.code === 'COMM') {
-        const actasDirectory = await this.gcpService.createFolderByParentId(
-          'Actas de grado',
-          auxYearModule.driveId,
-        )
+        const { data: actasDirectory } =
+          await this.gcpService.createFolderByParentId(
+            'Actas de grado',
+            auxYearModule.driveId,
+          )
 
         const actasSubmodule = this.submoduleYearModuleRepository.create({
           name: 'Actas de grado',
@@ -57,10 +62,11 @@ export class YearModuleService {
 
         await this.submoduleYearModuleRepository.save(actasSubmodule)
       } else {
-        const processesDirectory = await this.gcpService.createFolderByParentId(
-          'Procesos',
-          auxYearModule.driveId,
-        )
+        const { data: processesDirectory } =
+          await this.gcpService.createFolderByParentId(
+            'Procesos',
+            auxYearModule.driveId,
+          )
 
         const processesSubmodule = this.submoduleYearModuleRepository.create({
           name: 'Procesos',
@@ -70,10 +76,11 @@ export class YearModuleService {
 
         await this.submoduleYearModuleRepository.save(processesSubmodule)
 
-        const councilsDirectory = await this.gcpService.createFolderByParentId(
-          'Consejos',
-          auxYearModule.driveId,
-        )
+        const { data: councilsDirectory } =
+          await this.gcpService.createFolderByParentId(
+            'Consejos',
+            auxYearModule.driveId,
+          )
 
         const councilsSubmodule = this.submoduleYearModuleRepository.create({
           name: 'Consejos',

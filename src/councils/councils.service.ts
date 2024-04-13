@@ -69,7 +69,7 @@ export class CouncilsService {
         throw new NotFoundException('Submodule year module not found')
       }
 
-      const driveId = await this.filesService.createFolderByParentId(
+      const { data: driveId } = await this.filesService.createFolderByParentId(
         councilData.name,
         submoduleYearModule.driveId,
       )

@@ -39,7 +39,7 @@ export class TemplatesService {
 
       const process = await qb.getOne()
 
-      const templateId =
+      const { data: templateId } =
         await this.filesService.createDocumentByParentIdAndCopy(
           createTemplateDto.name,
           process.driveId,
@@ -183,7 +183,7 @@ export class TemplatesService {
           throw new BadRequestException('Process not found')
         }
 
-        const templateId = await this.filesService.moveAsset(
+        const { data: templateId } = await this.filesService.moveAsset(
           template.driveId,
           process.driveId,
         )

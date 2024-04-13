@@ -71,10 +71,11 @@ export class ProcessesService {
         throw new BadRequestException('Process not created')
       }
 
-      const processFolderId = await this.fileService.createFolderByParentId(
-        process.name,
-        submoduleYearModule.driveId,
-      )
+      const { data: processFolderId } =
+        await this.fileService.createFolderByParentId(
+          process.name,
+          submoduleYearModule.driveId,
+        )
 
       if (!processFolderId) {
         throw new BadRequestException('Process folder not created')
