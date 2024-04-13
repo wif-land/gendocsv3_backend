@@ -12,6 +12,7 @@ import { Repository } from 'typeorm'
 import { PositionEntity } from './entities/position.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class PositionsService {
@@ -22,7 +23,9 @@ export class PositionsService {
     private readonly functionaryRepository: Repository<FunctionaryEntity>,
   ) {}
 
-  async create(createPositionDto: CreatePositionDto): Promise<PositionEntity> {
+  async create(
+    createPositionDto: CreatePositionDto,
+  ): Promise<ApiResponse<PositionEntity>> {
     try {
       const functionaryId = await this.functionaryRepository.findOne({
         where: { dni: createPositionDto.functionary },
@@ -44,13 +47,21 @@ export class PositionsService {
         relations: ['functionary'],
       })
 
-      return detailedPosition
+      return {
+        message: 'Posición creada exitosamente',
+        data: detailedPosition,
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto): Promise<
+    ApiResponse<{
+      count: number
+      positions: PositionEntity[]
+    }>
+  > {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDto
 
@@ -70,15 +81,15 @@ export class PositionsService {
       const count = await this.positionRepository.count()
 
       return {
-        count,
-        positions,
+        message: 'Posiciones encontradas exitosamente',
+        data: { count, positions },
       }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findOne(id: number): Promise<PositionEntity> {
+  async findOne(id: number): Promise<ApiResponse<PositionEntity>> {
     try {
       const position = await this.positionRepository.findOneBy({ id })
 
@@ -86,13 +97,24 @@ export class PositionsService {
         throw new NotFoundException('Position not found')
       }
 
-      return position
+      return {
+        message: 'Posición encontrada exitosamente',
+        data: position,
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findByField(field: string, paginationDTO: PaginationDto) {
+  async findByField(
+    field: string,
+    paginationDTO: PaginationDto,
+  ): Promise<
+    ApiResponse<{
+      count: number
+      positions: PositionEntity[]
+    }>
+  > {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDTO
 
@@ -117,15 +139,15 @@ export class PositionsService {
     }
 
     return {
-      count,
-      positions,
+      message: 'Posiciones encontradas exitosamente',
+      data: { count, positions },
     }
   }
 
   async update(
     id: number,
     updatePositionDto: UpdatePositionDto,
-  ): Promise<PositionEntity> {
+  ): Promise<ApiResponse<PositionEntity>> {
     try {
       const functionarieId = await this.functionaryRepository.findOne({
         where: { dni: updatePositionDto.functionary },
@@ -141,25 +163,41 @@ export class PositionsService {
         throw new NotFoundException('Position not found')
       }
 
-      return await this.positionRepository.save(position)
+      const positionUpdated = await this.positionRepository.save(position)
+
+      return {
+        message: 'Posición actualizada exitosamente',
+        data: positionUpdated,
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: number): Promise<ApiResponse> {
     try {
       await this.positionRepository.delete({ id })
-      return true
+
+      return {
+        message: 'Posición eliminada exitosamente',
+        data: {
+          success: true,
+        },
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async removeBulk(ids): Promise<boolean> {
+  async removeBulk(ids: number[]): Promise<ApiResponse> {
     try {
-      await this.positionRepository.delete(ids)
-      return true
+      this.positionRepository.delete(ids)
+      return {
+        message: 'Posiciones eliminadas exitosamente',
+        data: {
+          success: true,
+        },
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
