@@ -1,4 +1,4 @@
-import { Submodule } from '../../submodules/entities/submodule.entity'
+import { SubmoduleEntity } from '../../submodules/entities/submodule.entity'
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { ApiProperty } from '@nestjs/swagger'
 import { YearModuleEntity } from '../../year-module/entities/year-module.entity'
@@ -76,7 +76,7 @@ export class ModuleEntity extends BaseAppEntity {
   })
   defaultTemplateDriveId: string
 
-  @ManyToMany(() => Submodule, {
+  @ManyToMany(() => SubmoduleEntity, {
     eager: true,
     onDelete: 'NO ACTION',
     onUpdate: 'NO ACTION',
@@ -86,7 +86,7 @@ export class ModuleEntity extends BaseAppEntity {
     joinColumn: { name: 'module_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'submodule_id', referencedColumnName: 'id' },
   })
-  submodules?: Submodule[]
+  submodules?: SubmoduleEntity[]
 
   @ApiProperty({
     example: '1',

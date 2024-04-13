@@ -1,5 +1,5 @@
 import { ModuleEntity } from '../../modules/entities/modules.entity'
-import { Submodule } from '../../submodules/entities/submodule.entity'
+import { SubmoduleEntity } from '../../submodules/entities/submodule.entity'
 import {
   CreateDateColumn,
   Entity,
@@ -23,7 +23,7 @@ export class SubmodulesModule {
   })
   moduleId: number
 
-  @ManyToOne(() => Submodule, {
+  @ManyToOne(() => SubmoduleEntity, {
     onDelete: 'NO ACTION',
     onUpdate: 'NO ACTION',
   })
@@ -31,7 +31,7 @@ export class SubmodulesModule {
     name: 'submodule_id',
     referencedColumnName: 'id',
   })
-  submodule: Submodule[]
+  submodule: SubmoduleEntity[]
 
   @ManyToOne(() => ModuleEntity, {
     onDelete: 'NO ACTION',
