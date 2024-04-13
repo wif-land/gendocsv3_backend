@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm'
 import { UserEntity } from '../users/entities/users.entity'
 import { ModuleEntity } from '../modules/entities/modules.entity'
 import { SubmoduleEntity } from '../submodules/entities/submodule.entity'
-import { SubmodulesModule } from '../submodules-modules/entities/submodule-module.entity'
+import { SubmoduleModuleEntity } from '../submodules-modules/entities/submodule-module.entity'
 import { UserAccessModule } from '../users-access-modules/entities/user-access-module.entity'
 
 export class InitDatabase1704560301619 implements MigrationInterface {
@@ -157,7 +157,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     const moduleRepository = connection.getRepository(ModuleEntity)
     const submoduleRepository = connection.getRepository(SubmoduleEntity)
     const submodulesModuleRepository =
-      connection.getRepository(SubmodulesModule)
+      connection.getRepository(SubmoduleModuleEntity)
     const userAccessModuleRepository =
       connection.getRepository(UserAccessModule)
 

@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 import { UserAccessModule } from '../users-access-modules/entities/user-access-module.entity'
-import { SubmodulesModule } from '../submodules-modules/entities/submodule-module.entity'
+import { SubmoduleModuleEntity } from '../submodules-modules/entities/submodule-module.entity'
 
 export class InitDatabaseRelations1704569355637 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const connection = queryRunner.connection
 
     const submodulesModuleRepository =
-      connection.getRepository(SubmodulesModule)
+      connection.getRepository(SubmoduleModuleEntity)
     const userAccessModuleRepository =
       connection.getRepository(UserAccessModule)
 
@@ -82,7 +82,7 @@ export class InitDatabaseRelations1704569355637 implements MigrationInterface {
     const connection = queryRunner.connection
 
     const submodulesModuleRepository =
-      connection.getRepository(SubmodulesModule)
+      connection.getRepository(SubmoduleModuleEntity)
     const userAccessModuleRepository =
       connection.getRepository(UserAccessModule)
 

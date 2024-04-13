@@ -10,7 +10,7 @@ import {
 } from 'typeorm'
 
 @Entity('submodules_modules')
-export class SubmodulesModule {
+export class SubmoduleModuleEntity {
   @PrimaryColumn({
     name: 'submodule_id',
     type: 'int',
