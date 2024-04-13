@@ -156,10 +156,12 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     const userRepository = connection.getRepository(UserEntity)
     const moduleRepository = connection.getRepository(ModuleEntity)
     const submoduleRepository = connection.getRepository(SubmoduleEntity)
-    const submodulesModuleRepository =
-      connection.getRepository(SubmoduleModuleEntity)
-    const userAccessModuleRepository =
-      connection.getRepository(UserAccessModuleEntity)
+    const submodulesModuleRepository = connection.getRepository(
+      SubmoduleModuleEntity,
+    )
+    const userAccessModuleRepository = connection.getRepository(
+      UserAccessModuleEntity,
+    )
 
     await userRepository.delete({})
     await moduleRepository.delete({})

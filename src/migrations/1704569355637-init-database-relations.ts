@@ -6,10 +6,12 @@ export class InitDatabaseRelations1704569355637 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const connection = queryRunner.connection
 
-    const submodulesModuleRepository =
-      connection.getRepository(SubmoduleModuleEntity)
-    const userAccessModuleRepository =
-      connection.getRepository(UserAccessModuleEntity)
+    const submodulesModuleRepository = connection.getRepository(
+      SubmoduleModuleEntity,
+    )
+    const userAccessModuleRepository = connection.getRepository(
+      UserAccessModuleEntity,
+    )
 
     const modulesAndSubModulesRelationsToInsert = [
       { moduleId: 1, submoduleId: 1 },
@@ -81,10 +83,12 @@ export class InitDatabaseRelations1704569355637 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     const connection = queryRunner.connection
 
-    const submodulesModuleRepository =
-      connection.getRepository(SubmoduleModuleEntity)
-    const userAccessModuleRepository =
-      connection.getRepository(UserAccessModuleEntity)
+    const submodulesModuleRepository = connection.getRepository(
+      SubmoduleModuleEntity,
+    )
+    const userAccessModuleRepository = connection.getRepository(
+      UserAccessModuleEntity,
+    )
 
     await submodulesModuleRepository.delete({})
     await userAccessModuleRepository.delete({})

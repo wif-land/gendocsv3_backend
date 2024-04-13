@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Not, Repository } from 'typeorm'
 import { CareerEntity } from './entites/careers.entity'
 import { ApiResponse } from '../shared/interfaces/response.interface'
+import { UpdateCareerDto } from './dto/update-carreer.dto'
 
 @Injectable()
 export class CareersService {
@@ -72,16 +73,16 @@ export class CareersService {
 
   async update(
     id: number,
-    data: Partial<CreateCareerDto>,
+    data: UpdateCareerDto,
   ): Promise<ApiResponse<CareerEntity>> {
     try {
       let coordinatorId: number
-      if (data.coordinator === undefined) {
+      if (data.coordinator == null) {
         coordinatorId = (await this.careerRepository.findOneBy({ id }))
           .coordinator.id
       }
 
-      if (data !== undefined && data.isActive) {
+      if (data.isActive) {
         const existingCareer = await this.careerRepository.findOne({
           where: {
             coordinator: { id: data.coordinator || coordinatorId },
@@ -104,11 +105,11 @@ export class CareersService {
         coordinator: { id: data.coordinator || coordinatorId },
       })
 
-      if (!career) {
+      const careerUpdated = await this.careerRepository.save(career)
+
+      if (!careerUpdated) {
         throw new HttpException('Carrera no encontrada', HttpStatus.BAD_REQUEST)
       }
-
-      const careerUpdated = await this.careerRepository.save(career)
 
       return {
         message: 'Carrera actualizada con éxito',
