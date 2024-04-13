@@ -9,7 +9,7 @@ import { CreateProcessDto } from './dto/create-process.dto'
 import { UpdateProcessDto } from './dto/update-process.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, DataSource } from 'typeorm'
-import { Process } from './entities/process.entity'
+import { ProcessEntity } from './entities/process.entity'
 import { FilesService } from '../files/files.service'
 import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
@@ -19,12 +19,13 @@ import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateProcessBulkItemDto } from './dto/update-processes-bulk.dto'
 import { ProcessFiltersDto } from './dto/process-filters.dto'
 import { TemplateProcess } from '../templates/entities/template-processes.entity'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class ProcessesService {
   constructor(
-    @InjectRepository(Process)
-    private readonly processRepository: Repository<Process>,
+    @InjectRepository(ProcessEntity)
+    private readonly processRepository: Repository<ProcessEntity>,
 
     @InjectRepository(YearModuleEntity)
     private readonly yearModuleRepository: Repository<YearModuleEntity>,
@@ -37,7 +38,9 @@ export class ProcessesService {
     private readonly fileService: FilesService,
   ) {}
 
-  async create(createProcessDto: CreateProcessDto) {
+  async create(
+    createProcessDto: CreateProcessDto,
+  ): Promise<ApiResponse<ResponseProcessDto>> {
     try {
       const year = new Date().getFullYear()
 
@@ -85,16 +88,19 @@ export class ProcessesService {
 
       const processRespon = await this.processRepository.save(process)
 
-      return new ResponseProcessDto(processRespon)
+      return {
+        message: 'Proceso creado exitosamente',
+        data: new ResponseProcessDto(processRespon),
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<ApiResponse<ResponseProcessDto[]>> {
     try {
       const qb = this.dataSource
-        .createQueryBuilder(Process, 'processes')
+        .createQueryBuilder(ProcessEntity, 'processes')
         .leftJoinAndSelect('processes.user', 'user')
         .leftJoinAndSelect('processes.module', 'module')
         .leftJoinAndSelect(
@@ -109,19 +115,27 @@ export class ProcessesService {
         throw new NotFoundException('Processes not found')
       }
 
-      return processes.map((process) => new ResponseProcessDto(process))
+      return {
+        message: 'Procesos encontrados exitosamente',
+        data: processes.map((process) => new ResponseProcessDto(process)),
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async getProcessesByModuleId(paginationDto: PaginationDto) {
+  async getProcessesByModuleId(paginationDto: PaginationDto): Promise<
+    ApiResponse<{
+      count: number
+      processes: ResponseProcessDto[]
+    }>
+  > {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = paginationDto
 
     try {
       const qb = this.dataSource
-        .createQueryBuilder(Process, 'processes')
+        .createQueryBuilder(ProcessEntity, 'processes')
         .leftJoinAndSelect('processes.user', 'user')
         .leftJoinAndSelect('processes.module', 'module')
         .leftJoinAndSelect(
@@ -136,7 +150,7 @@ export class ProcessesService {
       qb.skip(offset)
 
       const countqb = this.dataSource
-        .createQueryBuilder(Process, 'processes')
+        .createQueryBuilder(ProcessEntity, 'processes')
         .leftJoinAndSelect('processes.module', 'module')
         .where('module.id = :moduleId', { moduleId })
 
@@ -169,18 +183,26 @@ export class ProcessesService {
         (process) => new ResponseProcessDto(process),
       )
 
-      return { count, processes: processesResponse }
+      return {
+        message: 'Procesos encontrados exitosamente',
+        data: { count, processes: processesResponse },
+      }
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findByFilters(filters: ProcessFiltersDto) {
+  async findByFilters(filters: ProcessFiltersDto): Promise<
+    ApiResponse<{
+      count: number
+      processes: ResponseProcessDto[]
+    }>
+  > {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = filters
 
     const qb = this.dataSource
-      .createQueryBuilder(Process, 'processes')
+      .createQueryBuilder(ProcessEntity, 'processes')
       .leftJoinAndSelect('processes.user', 'user')
       .leftJoinAndSelect('processes.module', 'module')
       .leftJoinAndSelect('processes.submoduleYearModule', 'submoduleYearModule')
@@ -214,13 +236,16 @@ export class ProcessesService {
       (process) => new ResponseProcessDto(process),
     )
 
-    return { count, processes: processesResponse }
+    return {
+      message: 'Procesos encontrados exitosamente',
+      data: { count, processes: processesResponse },
+    }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<ApiResponse<ResponseProcessDto>> {
     try {
       const qb = this.dataSource
-        .createQueryBuilder(Process, 'processes')
+        .createQueryBuilder(ProcessEntity, 'processes')
         .leftJoinAndSelect('processes.user', 'user')
         .leftJoinAndSelect('processes.module', 'module')
         .leftJoinAndSelect(
@@ -235,16 +260,22 @@ export class ProcessesService {
         throw new NotFoundException('Process not found')
       }
 
-      return new ResponseProcessDto(process)
+      return {
+        message: 'Proceso encontrado exitosamente',
+        data: new ResponseProcessDto(process),
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async update(id: number, updateProcessDto: UpdateProcessDto) {
+  async update(
+    id: number,
+    updateProcessDto: UpdateProcessDto,
+  ): Promise<ApiResponse<ResponseProcessDto>> {
     try {
       const qb = this.dataSource
-        .createQueryBuilder(Process, 'processes')
+        .createQueryBuilder(ProcessEntity, 'processes')
         .leftJoinAndSelect('processes.user', 'user')
         .leftJoinAndSelect('processes.module', 'module')
         .leftJoinAndSelect(
@@ -278,27 +309,32 @@ export class ProcessesService {
 
       const responseProcess = await this.processRepository.save(updatedProcess)
 
-      return new ResponseProcessDto(responseProcess)
+      return {
+        message: 'Proceso actualizado exitosamente',
+        data: new ResponseProcessDto(responseProcess),
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async updateBulk(updateProcessesBulkDto: UpdateProcessBulkItemDto[]) {
+  async updateBulk(
+    updateProcessesBulkDto: UpdateProcessBulkItemDto[],
+  ): Promise<ApiResponse<ProcessEntity[]>> {
     const queryRunner =
       this.processRepository.manager.connection.createQueryRunner()
 
     await queryRunner.startTransaction()
 
     try {
-      const updatedProcesses = []
+      const updatedProcesses: ProcessEntity[] = []
       for (const processDto of updateProcessesBulkDto) {
         const { id, ...processData } = processDto
         const hasNameChanged = processData.name !== undefined
 
         if (hasNameChanged) {
           const queryBuilder = this.dataSource.createQueryBuilder(
-            Process,
+            ProcessEntity,
             'processes',
           )
           queryBuilder.where('processes.id = :id', { id })
@@ -329,13 +365,16 @@ export class ProcessesService {
       await queryRunner.commitTransaction()
       await queryRunner.release()
 
-      return updatedProcesses
+      return {
+        message: 'Procesos actualizados exitosamente',
+        data: updatedProcesses,
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: number): Promise<ApiResponse> {
     try {
       const process = await this.findOne(id)
 
@@ -345,7 +384,12 @@ export class ProcessesService {
 
       await this.processRepository.delete(id)
 
-      return true
+      return {
+        message: 'Proceso eliminado exitosamente',
+        data: {
+          success: true,
+        },
+      }
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

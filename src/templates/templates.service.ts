@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, Repository } from 'typeorm'
 import { TemplateProcess } from './entities/template-processes.entity'
 import { FilesService } from '../files/files.service'
-import { Process } from '../processes/entities/process.entity'
+import { ProcessEntity } from '../processes/entities/process.entity'
 import { ResponseTemplateDto } from './dto/response-template.dto'
 
 @Injectable()
@@ -33,7 +33,7 @@ export class TemplatesService {
       })
 
       const qb = this.dataSource
-        .createQueryBuilder(Process, 'process')
+        .createQueryBuilder(ProcessEntity, 'process')
         .leftJoinAndSelect('process.module', 'module')
         .where('process.id = :id', { id: createTemplateDto.processId })
 
@@ -173,7 +173,7 @@ export class TemplatesService {
         updateTemplateDto.processId !== template.process.id
       ) {
         const qb = this.dataSource
-          .createQueryBuilder(Process, 'process')
+          .createQueryBuilder(ProcessEntity, 'process')
           .leftJoinAndSelect('process.module', 'module')
           .where('process.id = :id', { id: updateTemplateDto.processId })
 

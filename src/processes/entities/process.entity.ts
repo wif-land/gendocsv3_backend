@@ -7,7 +7,7 @@ import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 
 @Entity('processes')
-export class Process extends BaseAppEntity {
+export class ProcessEntity extends BaseAppEntity {
   @ApiProperty({
     example: 'Proceso de prueba',
     description: 'Nombre del proceso',

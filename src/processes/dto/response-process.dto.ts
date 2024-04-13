@@ -1,5 +1,5 @@
 import { ResponseTemplateDto } from '../../templates/dto/response-template.dto'
-import { Process } from '../entities/process.entity'
+import { ProcessEntity } from '../entities/process.entity'
 
 export class ResponseProcessDto {
   id: number
@@ -13,7 +13,7 @@ export class ResponseProcessDto {
   submoduleYearModuleId: number
   templateProcesses: ResponseTemplateDto[]
 
-  constructor(process: Process) {
+  constructor(process: ProcessEntity) {
     this.id = process.id
     this.createdAt = process.createdAt
     this.updatedAt = process.updatedAt
