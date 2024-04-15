@@ -53,7 +53,12 @@ export class DegreeCertificatesService {
       order: { currentYear: 'DESC' },
     })
 
-    const submoduleYearModule = await this.subModuleYeatModuleRepository.
+    // const submoduleYearModule =
+    //   await this.subModuleYeatModuleRepository.findOne({
+    //     where: {
+    //       systemYear: { id: systemYear.id },
+    //     },
+    //   })
 
     const lastDegreeCertificate =
       await this.degreeCertificateRepository.findOne({
