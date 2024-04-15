@@ -49,9 +49,9 @@ export class DegreeCertificatesService {
   ) {}
 
   async generateNumeration(): Promise<ApiResponse<number>> {
-    const systemYear = await this.systemYearRepository.findOne({
-      order: { currentYear: 'DESC' },
-    })
+    // const systemYear = await this.systemYearRepository.findOne({
+    //   order: { currentYear: 'DESC' },
+    // })
 
     // const submoduleYearModule =
     //   await this.subModuleYeatModuleRepository.findOne({
