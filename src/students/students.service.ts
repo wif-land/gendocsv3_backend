@@ -6,7 +6,7 @@ import { Repository } from 'typeorm'
 import { StudentEntity } from './entities/student.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { StudentBadRequestError } from './errors/student-bad-request'
-import { StudentAlreadyExist } from './errors/student-already-exists'
+import { StudentAlreadyExists } from './errors/student-already-exists'
 import { StudentError } from './errors/student-error'
 import { StudentNotFoundError } from './errors/student-not-found'
 import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
@@ -24,7 +24,7 @@ export class StudentsService {
     createStudentDto: CreateStudentDto,
   ): Promise<ApiResponse<StudentEntity>> {
     if (this.studentRepository.findOneBy({ dni: createStudentDto.dni })) {
-      throw new StudentAlreadyExist(
+      throw new StudentAlreadyExists(
         `El estudiante con cédula ${createStudentDto.dni} ya existe`,
       )
     }
@@ -202,7 +202,6 @@ export class StudentsService {
 
       if (!updatedStudent) {
         throw new StudentError({
-          statuscode: 500,
           detail: 'Error al actualizar los datos del estudiante',
           instance: 'students.errors.StudentsService.update',
         })
@@ -214,7 +213,6 @@ export class StudentsService {
       }
     } catch (error) {
       throw new StudentError({
-        statuscode: 500,
         detail: error.message,
         instance: 'students.errors.StudentsService.update',
       })

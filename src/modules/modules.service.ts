@@ -6,6 +6,7 @@ import { CreateModuleDTO } from './dto/create-module.dto'
 import { GcpService } from '../gcp/gcp.service'
 import { YearModuleService } from '../year-module/year-module.service'
 import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ModulesNotFound } from './errors/module-not-found'
 
 @Injectable()
 export class ModulesService {
@@ -16,6 +17,19 @@ export class ModulesService {
     private readonly gcpService: GcpService,
     private readonly yearModuleService: YearModuleService,
   ) {}
+
+  async getCurrentYearModule(moduleCode: string) {
+    const module = this.moduleRepository.findOneByOrFail({
+      code: moduleCode,
+    })
+
+    if (!module) {
+      throw new ModulesNotFound(
+        'Modulo no encontrado',
+        'modules.errors.ModulesNotFoundError',
+      )
+    }
+  }
 
   async create(module: CreateModuleDTO): Promise<ApiResponse<ModuleEntity>> {
     try {

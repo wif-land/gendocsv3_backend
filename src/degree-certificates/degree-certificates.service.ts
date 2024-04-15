@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { CertificateStatusEntity } from './entities/certificate-status.entity'
 import { Repository } from 'typeorm'
 import { CreateCertificateStatusDto } from './dto/create-certificate-status.dto'
-import { DegreeCertificateAlreadyExist } from './errors/degree-certificate-exists'
+import { DegreeCertificateAlreadyExists } from './errors/degree-certificate-exists'
 import { DegreeCertificateBadRequestError } from './errors/degree-certificate-bad-request'
 import { UpdateCertificateStatusDto } from './dto/update-certificate-status.dto'
 import { DegreeCertificateNotFoundError } from './errors/degree-certificate-not-found'
@@ -20,10 +20,18 @@ import { DegreeCertificateEntity } from './entities/degree-certificate.entity'
 import { CreateDegreeCertificateDto } from './dto/create-degree-certificate.dto'
 import { UpdateDegreeCertificateDto } from './dto/update-degree-certificate.dto'
 import { ApiResponse } from '../shared/interfaces/response.interface'
+import { SystemYearEntity } from '../year-module/entities/system-year'
+import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
 
 @Injectable()
 export class DegreeCertificatesService {
   constructor(
+    @InjectRepository(SystemYearEntity)
+    private readonly systemYearRepository: Repository<SystemYearEntity>,
+
+    @InjectRepository(SubmoduleYearModuleEntity)
+    private readonly subModuleYeatModuleRepository: Repository<SubmoduleYearModuleEntity>,
+
     @InjectRepository(DegreeCertificateEntity)
     private readonly degreeCertificateRepository: Repository<DegreeCertificateEntity>,
 
@@ -40,6 +48,26 @@ export class DegreeCertificatesService {
     private readonly roomRepository: Repository<RoomEntity>,
   ) {}
 
+  async generateNumeration(): Promise<ApiResponse<number>> {
+    const systemYear = await this.systemYearRepository.findOne({
+      order: { currentYear: 'DESC' },
+    })
+
+    const submoduleYearModule = await this.subModuleYeatModuleRepository.
+
+    const lastDegreeCertificate =
+      await this.degreeCertificateRepository.findOne({
+        order: { number: 'DESC' },
+      })
+
+    const number = lastDegreeCertificate ? lastDegreeCertificate.number + 1 : 1
+
+    return {
+      message: 'Numeración generada correctamente',
+      data: number,
+    }
+  }
+
   async findAll(): Promise<ApiResponse<DegreeCertificateEntity[]>> {
     const degreeCertificates = await this.degreeCertificateRepository.find()
 
@@ -53,7 +81,7 @@ export class DegreeCertificatesService {
     dto: CreateDegreeCertificateDto,
   ): Promise<ApiResponse<DegreeCertificateEntity>> {
     if (this.degreeCertificateRepository.findOneBy({ number: dto.number })) {
-      throw new DegreeCertificateAlreadyExist(
+      throw new DegreeCertificateAlreadyExists(
         `El certificado con número ${dto.number} ya existe`,
       )
     }
@@ -134,7 +162,7 @@ export class DegreeCertificatesService {
         code: dto.code,
       })
     ) {
-      throw new DegreeCertificateAlreadyExist(
+      throw new DegreeCertificateAlreadyExists(
         `El estado de certificado con código ${dto.code} ya existe`,
       )
     }
@@ -220,7 +248,7 @@ export class DegreeCertificatesService {
         code: dto.code,
       })
     ) {
-      throw new DegreeCertificateAlreadyExist(
+      throw new DegreeCertificateAlreadyExists(
         `El tipo de certificado con código ${dto.code} ya existe`,
       )
     }
@@ -307,7 +335,7 @@ export class DegreeCertificatesService {
         code: dto.code,
       })
     ) {
-      throw new DegreeCertificateAlreadyExist(
+      throw new DegreeCertificateAlreadyExists(
         `La modalidad de grado con código ${dto.code} ya existe`,
       )
     }
@@ -390,7 +418,7 @@ export class DegreeCertificatesService {
         name: dto.name,
       })
     ) {
-      throw new DegreeCertificateAlreadyExist(
+      throw new DegreeCertificateAlreadyExists(
         `El salón con nombre ${dto.name} ya existe`,
       )
     }

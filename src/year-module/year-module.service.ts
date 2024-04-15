@@ -5,6 +5,9 @@ import { YearModuleEntity } from './entities/year-module.entity'
 import { Repository } from 'typeorm'
 import { GcpService } from '../gcp/gcp.service'
 import { SubmoduleYearModuleEntity } from './entities/submodule-year-module.entity'
+import { SystemYearEntity } from './entities/system-year'
+import { YearModuleAlreadyExists } from './errors/year-module-already-exists'
+import { YearModuleError } from './errors/year-module-error'
 
 @Injectable()
 export class YearModuleService {
@@ -15,8 +18,38 @@ export class YearModuleService {
     @InjectRepository(SubmoduleYearModuleEntity)
     private submoduleYearModuleRepository: Repository<SubmoduleYearModuleEntity>,
 
+    @InjectRepository(SystemYearEntity)
+    private readonly systemYearRepository: Repository<SystemYearEntity>,
+
     private gcpService: GcpService,
   ) {}
+
+  async setCurrentSystemYear(year: number) {
+    try {
+      const currentYear = await this.systemYearRepository.findOneBy({
+        currentYear: year,
+      })
+
+      if (currentYear) {
+        throw new YearModuleAlreadyExists(
+          `El sistema ya está configurado para el año ${year}`,
+        )
+      } else {
+        await this.systemYearRepository.insert({ currentYear: year })
+      }
+    } catch (e) {
+      throw new YearModuleError({
+        detail: e.message,
+        instance: 'yearModule.errors.setCurrentSystemYear',
+      })
+    }
+  }
+
+  async getCurrentSystemYear() {
+    return await this.systemYearRepository.findOne({
+      order: { currentYear: 'DESC' },
+    })
+  }
 
   async create(createYearModuleDto: CreateYearModuleDto) {
     try {

@@ -4,6 +4,7 @@ import { ModuleEntity } from '../modules/entities/modules.entity'
 import { SubmoduleEntity } from '../submodules/entities/submodule.entity'
 import { SubmoduleModuleEntity } from '../submodules-modules/entities/submodule-module.entity'
 import { UserAccessModuleEntity } from '../users-access-modules/entities/user-access-module.entity'
+import { SystemYearEntity } from '../year-module/entities/system-year'
 
 export class InitDatabase1704560301619 implements MigrationInterface {
   name?: string
@@ -12,8 +13,11 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     const connection = queryRunner.connection
 
     const userRepository = connection.getRepository(UserEntity)
+    const systemYearRepository = connection.getRepository(SystemYearEntity)
     const moduleRepository = connection.getRepository(ModuleEntity)
     const submoduleRepository = connection.getRepository(SubmoduleEntity)
+
+    const systemYear = 2024
 
     const adminUser = [
       {
@@ -136,6 +140,10 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     await queryRunner2.startTransaction()
 
     await queryRunner2.manager.save(
+      systemYearRepository.save({ currentYear: systemYear }),
+    )
+
+    await queryRunner2.manager.save(
       adminUser.map((u) => userRepository.create(u as UserEntity)),
     )
     await queryRunner2.manager.save(
@@ -154,6 +162,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     const connection = queryRunner.connection
 
     const userRepository = connection.getRepository(UserEntity)
+    const systemYearRepository = connection.getRepository(SystemYearEntity)
     const moduleRepository = connection.getRepository(ModuleEntity)
     const submoduleRepository = connection.getRepository(SubmoduleEntity)
     const submodulesModuleRepository = connection.getRepository(
@@ -164,6 +173,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     )
 
     await userRepository.delete({})
+    await systemYearRepository.delete({})
     await moduleRepository.delete({})
     await submoduleRepository.delete({})
     await submodulesModuleRepository.delete({})

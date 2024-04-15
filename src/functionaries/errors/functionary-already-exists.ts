@@ -1,6 +1,6 @@
 import { FunctionaryError } from './functionary-error'
 
-export class FunctionaryAlreadyExist extends FunctionaryError {
+export class FunctionaryAlreadyExists extends FunctionaryError {
   constructor(detail: string, instance?: string) {
     super({
       statuscode: 409,
@@ -8,7 +8,7 @@ export class FunctionaryAlreadyExist extends FunctionaryError {
       title: 'Funcionario ya existente',
       detail:
         detail || 'El funcionario ya se encuentra registrado en el sistema',
-      instance: instance || 'functionaries.errors.FunctionaryAlreadyExist',
+      instance: instance || 'functionaries.errors.FunctionaryAlreadyExists',
     })
   }
 }

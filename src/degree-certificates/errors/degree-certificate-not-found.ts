@@ -1,4 +1,4 @@
-import { DegreeCertificateError } from './degree-certificate'
+import { DegreeCertificateError } from './degree-certificate-error'
 
 export class DegreeCertificateNotFoundError extends DegreeCertificateError {
   constructor(detail: string, instance?: string) {

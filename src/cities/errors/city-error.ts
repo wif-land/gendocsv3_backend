@@ -3,7 +3,7 @@ import { BaseError, IError } from '../../shared/utils/error'
 export class CityError extends BaseError {
   constructor({
     statuscode,
-    type = 'Error en el servicio de ciudades',
+    type = 'city-module-error',
     title = 'Error en el servicio de ciudades',
     detail,
     instance,
