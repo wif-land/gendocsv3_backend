@@ -1,7 +1,7 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { RolesType } from '../../auth/decorators/roles-decorator'
 import { ModuleEntity } from '../../modules/entities/modules.entity'
-import { Process } from '../../processes/entities/process.entity'
+import { ProcessEntity } from '../../processes/entities/process.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { DocumentEntity } from '../../documents/entities/document.entity'
@@ -126,10 +126,10 @@ export class UserEntity extends BaseAppEntity {
   @ApiProperty({
     example: '1',
     description: 'Procesos asociados al usuario',
-    type: () => Process,
+    type: () => ProcessEntity,
   })
-  @OneToMany(() => Process, (process) => process.user)
-  processes: Process[]
+  @OneToMany(() => ProcessEntity, (process) => process.user)
+  processes: ProcessEntity[]
 
   @ApiProperty({
     example: '1',

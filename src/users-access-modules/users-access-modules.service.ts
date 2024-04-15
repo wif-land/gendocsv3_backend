@@ -1,24 +1,30 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { UserAccessModule } from './entities/user-access-module.entity'
+import { UserAccessModuleEntity } from './entities/user-access-module.entity'
 import { DataSource, Repository } from 'typeorm'
 import { CreateUserAccessModuleDto } from './dto/create-user-access-module.dto'
 import { ModuleEntity } from '../modules/entities/modules.entity'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class UserAccessModulesService {
   constructor(
-    @InjectRepository(UserAccessModule)
-    private userAccessModulesRepository: Repository<UserAccessModule>,
+    @InjectRepository(UserAccessModuleEntity)
+    private userAccessModulesRepository: Repository<UserAccessModuleEntity>,
 
     private dataSource: DataSource,
   ) {}
 
-  async create(createUserAccessModuleDto: CreateUserAccessModuleDto) {
+  async create(createUserAccessModuleDto: CreateUserAccessModuleDto): Promise<
+    ApiResponse<{
+      userAccessModules: UserAccessModuleEntity[]
+      modules: ModuleEntity[]
+    }>
+  > {
     try {
       const { userId, modulesIds } = createUserAccessModuleDto
 
-      const userAccessModules: UserAccessModule[] = []
+      const userAccessModules: UserAccessModuleEntity[] = []
       const modules: ModuleEntity[] = []
 
       for (const moduleId of modulesIds) {
@@ -59,19 +65,27 @@ export class UserAccessModulesService {
       }
 
       return {
-        userAccessModules,
-        modules,
+        message: 'Acceso a usuarios creado correctamente',
+        data: {
+          userAccessModules,
+          modules,
+        },
       }
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async update(createUserAccessModuleDto: CreateUserAccessModuleDto) {
+  async update(createUserAccessModuleDto: CreateUserAccessModuleDto): Promise<
+    ApiResponse<{
+      userAccessModules: UserAccessModuleEntity[]
+      modules: ModuleEntity[]
+    }>
+  > {
     const { userId, modulesIds } = createUserAccessModuleDto
     const modules: ModuleEntity[] = []
 
-    const userAccessModules: UserAccessModule[] = []
+    const userAccessModules: UserAccessModuleEntity[] = []
     try {
       const user = await this.dataSource
         .createQueryBuilder()
@@ -127,15 +141,18 @@ export class UserAccessModulesService {
       }
 
       return {
-        userAccessModules,
-        modules,
+        message: 'Acceso a usuarios actualizado correctamente',
+        data: {
+          userAccessModules,
+          modules,
+        },
       }
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<ApiResponse<UserAccessModuleEntity[]>> {
     try {
       const userAccessModules = await this.userAccessModulesRepository.find()
 
@@ -146,13 +163,18 @@ export class UserAccessModulesService {
         )
       }
 
-      return userAccessModules
+      return {
+        message: 'Lista de accesos a usuarios',
+        data: userAccessModules,
+      }
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findModulesByUserId(userId: string) {
+  async findModulesByUserId(
+    userId: string,
+  ): Promise<ApiResponse<ModuleEntity[]>> {
     try {
       const userAccessModules = await this.dataSource
         .createQueryBuilder()
@@ -169,13 +191,16 @@ export class UserAccessModulesService {
         )
       }
 
-      return userAccessModules
+      return {
+        message: 'Listado de modulos por usuario',
+        data: userAccessModules,
+      }
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async remove(userId: number, moduleId: number): Promise<boolean> {
+  async remove(userId: number, moduleId: number): Promise<ApiResponse> {
     try {
       const userAccessModule = await this.userAccessModulesRepository.findOne({
         where: {
@@ -193,20 +218,32 @@ export class UserAccessModulesService {
 
       await this.userAccessModulesRepository.remove(userAccessModule)
 
-      return true
+      return {
+        message: 'Acceso a usuario eliminado correctamente',
+        data: {
+          success: true,
+        },
+      }
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async removeByUserId(userId: string) {
+  async removeByUserId(userId: string): Promise<ApiResponse> {
     try {
       const qb = this.dataSource.createQueryBuilder()
-      return await qb
+      await qb
         .delete()
-        .from(UserAccessModule)
+        .from(UserAccessModuleEntity)
         .where('userId = :userId', { userId })
         .execute()
+
+      return {
+        message: 'Accesos a usuario eliminados correctamente',
+        data: {
+          success: true,
+        },
+      }
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

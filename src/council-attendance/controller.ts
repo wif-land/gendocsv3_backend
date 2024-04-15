@@ -15,4 +15,11 @@ import { ApiTags } from '@nestjs/swagger'
 @Controller('council-attendance')
 export class CouncilsAttendanceController {
   constructor(private readonly councilsService: CouncilsAttendanceService) {}
+
+  @Get('default/:moduleId')
+  async getDefaultAttendance(
+    @Param('moduleId', ParseIntPipe) moduleId: number,
+  ) {
+    return await this.councilsService.getDefaultAttendance(moduleId)
+  }
 }

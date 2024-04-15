@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { BasePerson } from '../../shared/entities/base-person.entity'
 import { ApiProperty } from '@nestjs/swagger'
-import { Career } from '../../careers/entites/careers.entity'
+import { CareerEntity } from '../../careers/entites/careers.entity'
 import { DocumentEntity } from '../../documents/entities/document.entity'
 import { GENDER } from '../../shared/enums/genders'
 import { CityEntity } from '../../cities/entities/city.entity'
@@ -156,7 +156,7 @@ export class StudentEntity extends BasePerson {
     example: '1',
     description: 'Carrera a la que pertenece el estudiante',
   })
-  @ManyToOne(() => Career, {
+  @ManyToOne(() => CareerEntity, {
     nullable: false,
     eager: true,
   })
@@ -164,7 +164,7 @@ export class StudentEntity extends BasePerson {
     name: 'career_id',
     referencedColumnName: 'id',
   })
-  career: Career
+  career: CareerEntity
 
   @OneToMany(() => DocumentEntity, (document) => document.student)
   documents: DocumentEntity[]

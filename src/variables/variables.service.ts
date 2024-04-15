@@ -14,6 +14,7 @@ import { DataSource, Repository } from 'typeorm'
 import { PositionEntity } from '../positions/entities/position.entity'
 import { VariableEntity } from './entities/variable.entity'
 import { InjectRepository } from '@nestjs/typeorm'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class VariablesService {
@@ -23,7 +24,9 @@ export class VariablesService {
     private dataSource: DataSource,
   ) {}
 
-  async create(createVariableDto: CreateVariableDto) {
+  async create(
+    createVariableDto: CreateVariableDto,
+  ): Promise<ApiResponse<VariableEntity>> {
     try {
       const alreadyExists = await this.variableRepository.findOne({
         where: { variable: createVariableDto.variable },
@@ -39,29 +42,51 @@ export class VariablesService {
         throw new BadRequestException('Variable not created')
       }
 
-      return await this.variableRepository.save(variable)
+      const newVariable = await this.variableRepository.save(variable)
+
+      return {
+        message: 'Variable creada con éxito',
+        data: newVariable,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<ApiResponse<VariableEntity[]>> {
     try {
-      return await this.variableRepository.find()
+      const variables = await this.variableRepository.find()
+
+      return {
+        message: 'Variables encontradas con éxito',
+        data: variables,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<ApiResponse<VariableEntity>> {
     try {
-      return await this.variableRepository.findOne({ where: { id } })
+      const variable = await this.variableRepository.findOne({ where: { id } })
+
+      if (!variable) {
+        throw new BadRequestException('Variable not found')
+      }
+
+      return {
+        message: 'Variable encontrada con éxito',
+        data: variable,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async update(id: number, updateVariableDto: UpdateVariableDto) {
+  async update(
+    id: number,
+    updateVariableDto: UpdateVariableDto,
+  ): Promise<ApiResponse<VariableEntity>> {
     try {
       const alreadyExists = await this.variableRepository.findOne({
         where: { variable: updateVariableDto.variable },
@@ -71,21 +96,38 @@ export class VariablesService {
         throw new BadRequestException('Variable already exists')
       }
 
-      return await this.variableRepository.update(id, updateVariableDto)
+      const variable = await this.variableRepository.save({
+        id,
+        ...updateVariableDto,
+      })
+
+      return {
+        message: 'Variable actualizada con éxito',
+        data: variable,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number): Promise<ApiResponse> {
     try {
-      return await this.variableRepository.delete(id)
+      await this.variableRepository.delete(id)
+
+      return {
+        message: 'Variable eliminada con éxito',
+        data: {
+          success: true,
+        },
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async getGeneralVariables(document: DocumentEntity) {
+  async getGeneralVariables(
+    document: DocumentEntity,
+  ): Promise<ApiResponse<{ [DefaultVariable: string]: string }>> {
     try {
       const variables = {
         [DefaultVariable.CREADOPOR]: `${document.user.firstName} ${document.user.firstLastName}`,
@@ -95,13 +137,18 @@ export class VariablesService {
         [DefaultVariable.YEAR]: document.createdAt.getFullYear().toString(),
       }
 
-      return variables
+      return {
+        message: 'Variables generales encontradas con éxito',
+        data: variables,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async getCouncilVariables(document: DocumentEntity) {
+  async getCouncilVariables(
+    document: DocumentEntity,
+  ): Promise<ApiResponse<{ [DefaultVariable: string]: string }>> {
     try {
       const functionary = document.numerationDocument.council.attendance.find(
         (attendance) => attendance.isPresident,
@@ -125,13 +172,18 @@ export class VariablesService {
         [DefaultVariable.RESPONSABLE]: `${getFullName(functionary)}`,
       }
 
-      return variables
+      return {
+        message: 'Variables de consejo encontradas con éxito',
+        data: variables,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async getStudentVariables(document: DocumentEntity) {
+  async getStudentVariables(
+    document: DocumentEntity,
+  ): Promise<ApiResponse<{ [DefaultVariable: string]: string }>> {
     try {
       const variables = {
         [DefaultVariable.ESTUDIANTE]: getFullName(document.student),
@@ -153,7 +205,10 @@ export class VariablesService {
         ),
       }
 
-      return variables
+      return {
+        message: 'Variables de estudiante encontradas con éxito',
+        data: variables,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -161,7 +216,7 @@ export class VariablesService {
 
   async getFunctionaryVariables(
     documentFunctionaries: DocumentFunctionaryEntity[],
-  ) {
+  ): Promise<ApiResponse<{ [DefaultVariable: string]: string }>> {
     try {
       const variables = {}
       documentFunctionaries.forEach(
@@ -172,13 +227,18 @@ export class VariablesService {
           ] = getFullName(documentFunctionary.functionary)),
       )
 
-      return variables
+      return {
+        message: 'Variables de docentes encontradas con éxito',
+        data: variables,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async getPositionVariables() {
+  async getPositionVariables(): Promise<
+    ApiResponse<{ [DefaultVariable: string]: string }>
+  > {
     try {
       const variables = {}
 
@@ -194,17 +254,22 @@ export class VariablesService {
           (variables[position.variable] = getFullName(position.functionary)),
       )
 
-      return variables
+      return {
+        message: 'Variables de posiciones encontradas con éxito',
+        data: variables,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async getCustomVariables() {
+  async getCustomVariables(): Promise<
+    ApiResponse<{ [DefaultVariable: string]: string }>
+  > {
     try {
-      const variables: object = {}
+      const variables: { [DefaultVariable: string]: string } = {}
 
-      const customVariables = await this.findAll()
+      const { data: customVariables } = await this.findAll()
 
       customVariables.forEach(
         (customVariable) =>
@@ -212,7 +277,10 @@ export class VariablesService {
           (variables[customVariable.variable] = customVariable.value),
       )
 
-      return variables
+      return {
+        message: 'Variables personalizadas encontradas con éxito',
+        data: variables,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }

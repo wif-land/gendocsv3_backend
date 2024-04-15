@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { GoogleAuth } from 'google-auth-library'
 import { docs, docs_v1 } from '@googleapis/docs'
 import { drive, drive_v3 } from '@googleapis/drive'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class GcpService {
@@ -29,7 +30,7 @@ export class GcpService {
     })
   }
 
-  async createDocument(title: string): Promise<string> {
+  async createDocument(title: string): Promise<ApiResponse<string>> {
     const { data } = await this.drive.files.create({
       requestBody: {
         name: title,
@@ -38,13 +39,16 @@ export class GcpService {
       },
     })
 
-    return data.id
+    return {
+      message: 'Documento creado con éxito',
+      data: data.id,
+    }
   }
 
   async createDocumentByParentId(
     title: string,
     parentId: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse<string>> {
     const { data } = await this.drive.files.create({
       requestBody: {
         name: title,
@@ -53,14 +57,17 @@ export class GcpService {
       },
     })
 
-    return data.id
+    return {
+      message: 'Subdocumento creado con éxito',
+      data: data.id,
+    }
   }
 
   async createDocumentByParentIdAndCopy(
     title: string,
     parentId: string,
     documentId: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse<string>> {
     const { data } = await this.drive.files.copy({
       fileId: documentId,
       requestBody: {
@@ -68,10 +75,16 @@ export class GcpService {
         parents: [parentId],
       },
     })
-    return data.id
+    return {
+      message: 'Subdocumento creado y copiado con éxito',
+      data: data.id,
+    }
   }
 
-  async renameAsset(assetId: string, title: string): Promise<string> {
+  async renameAsset(
+    assetId: string,
+    title: string,
+  ): Promise<ApiResponse<string>> {
     const { data } = await this.drive.files.update({
       fileId: assetId,
       requestBody: {
@@ -79,20 +92,29 @@ export class GcpService {
       },
     })
 
-    return data.id
+    return {
+      message: 'Documento renombrado con éxito',
+      data: data.id,
+    }
   }
 
-  async moveAsset(assetId: string, parentId: string): Promise<string> {
+  async moveAsset(
+    assetId: string,
+    parentId: string,
+  ): Promise<ApiResponse<string>> {
     const { data } = await this.drive.files.update({
       fileId: assetId,
       addParents: parentId,
       removeParents: this.configService.get('gcp.rootDriveFolderId'),
     })
 
-    return data.id
+    return {
+      message: 'Documento movido con éxito',
+      data: data.id,
+    }
   }
 
-  async createFolder(title: string): Promise<string> {
+  async createFolder(title: string): Promise<ApiResponse<string>> {
     const { data } = await this.drive.files.create({
       requestBody: {
         name: title,
@@ -101,13 +123,16 @@ export class GcpService {
       },
     })
 
-    return data.id
+    return {
+      message: 'Carpeta creada con éxito',
+      data: data.id,
+    }
   }
 
   async createFolderByParentId(
     title: string,
     parentId: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse<string>> {
     const { data } = await this.drive.files.create({
       requestBody: {
         name: title,
@@ -116,13 +141,16 @@ export class GcpService {
       },
     })
 
-    return data.id
+    return {
+      message: 'Subcarpeta creada con éxito',
+      data: data.id,
+    }
   }
 
   async replaceTextOnDocument(
     data: object,
     documentId: string,
-  ): Promise<boolean> {
+  ): Promise<ApiResponse> {
     try {
       const requests = Object.keys(data).map((key) => ({
         replaceAllText: {
@@ -141,19 +169,29 @@ export class GcpService {
         },
       })
 
-      return true
+      return {
+        message: 'Texto reemplazado con éxito',
+        data: {
+          success: true,
+        },
+      }
     } catch (error) {
       throw new Error(error.message)
     }
   }
 
-  async remove(assetId: string): Promise<boolean> {
+  async remove(assetId: string): Promise<ApiResponse> {
     try {
       await this.drive.files.delete({
         fileId: assetId,
       })
 
-      return true
+      return {
+        message: 'Documento eliminado con éxito',
+        data: {
+          success: true,
+        },
+      }
     } catch (error) {
       throw new Error(error.message)
     }

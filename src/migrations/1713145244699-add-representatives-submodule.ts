@@ -1,11 +1,12 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
-import { Submodule } from '../submodules/entities/submodule.entity'
+import { SubmoduleEntity } from '../submodules/entities/submodule.entity'
 
 export class AddRepresentativesSubmodule1713145244699
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const submoduleRepository = queryRunner.connection.getRepository(Submodule)
+    const submoduleRepository =
+      queryRunner.connection.getRepository(SubmoduleEntity)
 
     const representivesSubmodule = {
       name: 'Representantes',
@@ -23,7 +24,8 @@ export class AddRepresentativesSubmodule1713145244699
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const submoduleRepository = queryRunner.connection.getRepository(Submodule)
+    const submoduleRepository =
+      queryRunner.connection.getRepository(SubmoduleEntity)
     const representivesSubmodule = await submoduleRepository.findOne({
       where: { name: 'Representantes' },
     })

@@ -5,6 +5,7 @@ import { ModuleEntity } from './entities/modules.entity'
 import { CreateModuleDTO } from './dto/create-module.dto'
 import { GcpService } from '../gcp/gcp.service'
 import { YearModuleService } from '../year-module/year-module.service'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class ModulesService {
@@ -16,7 +17,7 @@ export class ModulesService {
     private readonly yearModuleService: YearModuleService,
   ) {}
 
-  async create(module: CreateModuleDTO): Promise<ModuleEntity> {
+  async create(module: CreateModuleDTO): Promise<ApiResponse<ModuleEntity>> {
     try {
       const findModule = await this.moduleRepository.findOne({
         where: {
@@ -28,13 +29,18 @@ export class ModulesService {
         throw new HttpException('Module already exists', HttpStatus.CONFLICT)
       }
 
-      return await this.moduleRepository.create(module).save()
+      const newModule = await this.moduleRepository.create(module).save()
+
+      return {
+        message: 'Módulo creado exitosamente',
+        data: newModule,
+      }
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(): Promise<ModuleEntity[]> {
+  async findAll(): Promise<ApiResponse<ModuleEntity[]>> {
     try {
       const modules = await this.moduleRepository.find({
         where: {
@@ -46,13 +52,16 @@ export class ModulesService {
         throw new HttpException('Modules not found', HttpStatus.NOT_FOUND)
       }
 
-      return modules
+      return {
+        message: 'Módulos encontrados exitosamente',
+        data: modules,
+      }
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async setFolders() {
+  async setFolders(): Promise<ApiResponse> {
     try {
       const modules = await this.moduleRepository.find({
         where: {
@@ -96,7 +105,13 @@ export class ModulesService {
         }
       }
 
-      return 'Folders created successfully'
+      return {
+        message:
+          'Carpetas creadas exitosamente para los módulos con documentos',
+        data: {
+          success: true,
+        },
+      }
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

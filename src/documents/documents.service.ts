@@ -17,6 +17,7 @@ import { FilesService } from '../files/files.service'
 import { formatNumeration } from '../shared/utils/string'
 import { ResponseDocumentDto } from './dto/response-document'
 import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class DocumentsService {
@@ -38,7 +39,7 @@ export class DocumentsService {
     let document = undefined
     let documentFunctionaries
 
-    const numeration = await this.numerationDocumentService.create({
+    const { data: numeration } = await this.numerationDocumentService.create({
       number: createDocumentDto.number,
       councilId: createDocumentDto.councilId,
     })
@@ -192,7 +193,12 @@ export class DocumentsService {
     }
   }
 
-  async findAll(paginationDto: PaginationV2Dto) {
+  async findAll(paginationDto: PaginationV2Dto): Promise<
+    ApiResponse<{
+      count: number
+      documents: ResponseDocumentDto[]
+    }>
+  > {
     const {
       // eslint-disable-next-line no-magic-numbers
       rowsPerPage = 10,
@@ -226,17 +232,20 @@ export class DocumentsService {
       })
 
       return {
-        count,
-        documents: documents.map(
-          (document) => new ResponseDocumentDto(document),
-        ),
+        message: 'Lista de documentos',
+        data: {
+          count,
+          documents: documents.map(
+            (document) => new ResponseDocumentDto(document),
+          ),
+        },
       }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<ApiResponse<ResponseDocumentDto>> {
     try {
       const document = await this.documentsRepository.findOne({
         where: { id },
@@ -255,13 +264,18 @@ export class DocumentsService {
         throw new NotFoundException('Document not found')
       }
 
-      return new ResponseDocumentDto(document)
+      const newDocument = new ResponseDocumentDto(document)
+
+      return {
+        message: 'Documento encontrado',
+        data: newDocument,
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number): Promise<ApiResponse> {
     try {
       const document = await this.documentsRepository.findOne({
         where: { id },
@@ -282,7 +296,17 @@ export class DocumentsService {
 
       await this.filesService.remove(document.driveId)
 
-      return await this.documentsRepository.delete(document.id)
+      const isDeleted = await this.documentsRepository.delete(document.id)
+
+      return {
+        message:
+          isDeleted.affected > 0
+            ? 'Documento eliminado'
+            : 'Error al eliminar el documento',
+        data: {
+          success: isDeleted.affected > 0,
+        },
+      }
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }

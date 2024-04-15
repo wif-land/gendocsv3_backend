@@ -2,22 +2,25 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { CreateSubmodulesModuleDto } from './dto/create-submodule-module.dto'
 import { UpdateSubmodulesModuleDto } from './dto/update-submodule-module.dto'
 import { DataSource, Repository } from 'typeorm'
-import { SubmodulesModule } from './entities/submodule-module.entity'
+import { SubmoduleModuleEntity } from './entities/submodule-module.entity'
 import { InjectRepository } from '@nestjs/typeorm'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class SubmodulesModulesService {
   constructor(
-    @InjectRepository(SubmodulesModule)
-    private submodulesModulesRepository: Repository<SubmodulesModule>,
+    @InjectRepository(SubmoduleModuleEntity)
+    private submodulesModulesRepository: Repository<SubmoduleModuleEntity>,
 
     private dataSource: DataSource,
   ) {}
 
-  async create(createSubmodulesModuleDto: CreateSubmodulesModuleDto) {
+  async create(
+    createSubmodulesModuleDto: CreateSubmodulesModuleDto,
+  ): Promise<ApiResponse<SubmoduleModuleEntity[]>> {
     try {
       const { moduleId, submoduleIds } = createSubmodulesModuleDto
-      const submodulesModules: SubmodulesModule[] = []
+      const submodulesModules: SubmoduleModuleEntity[] = []
 
       for (const submoduleId of submoduleIds) {
         const submodulesModuleCreated = this.submodulesModulesRepository.create(
@@ -40,13 +43,16 @@ export class SubmodulesModulesService {
         }
       }
 
-      return submodulesModules
+      return {
+        message: 'Submodulos creados correctamente',
+        data: submodulesModules,
+      }
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<ApiResponse<SubmoduleModuleEntity[]>> {
     try {
       const submodulesModules = await this.submodulesModulesRepository.find()
 
@@ -57,17 +63,22 @@ export class SubmodulesModulesService {
         )
       }
 
-      return submodulesModules
+      return {
+        message: 'Submodulos encontrados correctamente',
+        data: submodulesModules,
+      }
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async update(updateSubmodulesModuleDto: UpdateSubmodulesModuleDto) {
+  async update(
+    updateSubmodulesModuleDto: UpdateSubmodulesModuleDto,
+  ): Promise<ApiResponse<SubmoduleModuleEntity[]>> {
     try {
       const { moduleId, submoduleIds } = updateSubmodulesModuleDto
 
-      const submodulesModules: SubmodulesModule[] = []
+      const submodulesModules: SubmoduleModuleEntity[] = []
       await this.submodulesModulesRepository.delete({
         moduleId,
       })
@@ -93,13 +104,16 @@ export class SubmodulesModulesService {
         submodulesModules.push(submodulesModule)
       }
 
-      return submodulesModules
+      return {
+        message: 'Submodulos actualizados correctamente',
+        data: submodulesModules,
+      }
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async remove(moduleId: number, submoduleId: number): Promise<boolean> {
+  async remove(moduleId: number, submoduleId: number): Promise<ApiResponse> {
     try {
       const submodulesModule = await this.submodulesModulesRepository.findOne({
         where: {
@@ -117,23 +131,33 @@ export class SubmodulesModulesService {
 
       await this.submodulesModulesRepository.remove(submodulesModule)
 
-      return true
+      return {
+        message: 'Submodulo eliminado correctamente',
+        data: {
+          success: true,
+        },
+      }
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async removeAll(moduleId: number): Promise<boolean> {
+  async removeAll(moduleId: number): Promise<ApiResponse> {
     try {
       const qb = await this.dataSource.createQueryBuilder()
 
       await qb
         .delete()
-        .from(SubmodulesModule)
+        .from(SubmoduleModuleEntity)
         .where('module_id = :moduleId', { moduleId })
         .execute()
 
-      return true
+      return {
+        message: 'Submodulos eliminados correctamente',
+        data: {
+          success: true,
+        },
+      }
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

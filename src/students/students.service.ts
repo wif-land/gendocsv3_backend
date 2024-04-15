@@ -11,6 +11,7 @@ import { StudentError } from './errors/student-error'
 import { StudentNotFoundError } from './errors/student-not-found'
 import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
 import { StudentFiltersDto } from './dto/student-filters.dto'
+import { ApiResponse } from '../shared/interfaces/response.interface'
 
 @Injectable()
 export class StudentsService {
@@ -19,7 +20,9 @@ export class StudentsService {
     private readonly studentRepository: Repository<StudentEntity>,
   ) {}
 
-  async create(createStudentDto: CreateStudentDto): Promise<StudentEntity> {
+  async create(
+    createStudentDto: CreateStudentDto,
+  ): Promise<ApiResponse<StudentEntity>> {
     if (this.studentRepository.findOneBy({ dni: createStudentDto.dni })) {
       throw new StudentAlreadyExist(
         `El estudiante con cédula ${createStudentDto.dni} ya existe`,
@@ -38,12 +41,17 @@ export class StudentsService {
       )
     }
 
-    return await this.studentRepository.save(student)
+    const newStudent = await this.studentRepository.save(student)
+
+    return {
+      message: 'Estudiante creado correctamente',
+      data: newStudent,
+    }
   }
 
   async createBulk(
     createStudentsBulkDto: UpdateStudentsBulkItemDto[],
-  ): Promise<boolean> {
+  ): Promise<ApiResponse> {
     const queryRunner =
       this.studentRepository.manager.connection.createQueryRunner()
     await queryRunner.connect()
@@ -61,7 +69,12 @@ export class StudentsService {
 
       await queryRunner.commitTransaction()
 
-      return true
+      return {
+        message: 'Estudiantes creados correctamente',
+        data: {
+          success: true,
+        },
+      }
     } catch (error) {
       await queryRunner.rollbackTransaction()
       await queryRunner.release()
@@ -73,7 +86,12 @@ export class StudentsService {
     }
   }
 
-  async findAll(paginationDTO: PaginationDto) {
+  async findAll(paginationDTO: PaginationDto): Promise<
+    ApiResponse<{
+      count: number
+      students: StudentEntity[]
+    }>
+  > {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDTO
     const students = await this.studentRepository.find({
@@ -91,22 +109,30 @@ export class StudentsService {
     const count = await this.studentRepository.count()
 
     return {
-      count,
-      students,
+      message: 'Estudiantes encontrados',
+      data: { count, students },
     }
   }
 
-  async findOne(id: number): Promise<StudentEntity> {
+  async findOne(id: number): Promise<ApiResponse<StudentEntity>> {
     const student = await this.studentRepository.findOneBy({ id })
 
     if (!student) {
       throw new StudentNotFoundError(`Estudiante con id ${id} no encontrado`)
     }
 
-    return student
+    return {
+      message: 'Estudiante encontrado',
+      data: student,
+    }
   }
 
-  async findByFilters(filters: StudentFiltersDto) {
+  async findByFilters(filters: StudentFiltersDto): Promise<
+    ApiResponse<{
+      count: number
+      students: StudentEntity[]
+    }>
+  > {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = filters
 
@@ -141,15 +167,18 @@ export class StudentsService {
     }
 
     return {
-      count,
-      students,
+      message: 'Estudiantes encontrados',
+      data: {
+        count,
+        students,
+      },
     }
   }
 
   async update(
     id: number,
     updateStudentDto: UpdateStudentDto,
-  ): Promise<StudentEntity> {
+  ): Promise<ApiResponse<StudentEntity>> {
     try {
       let student = await this.studentRepository.preload({
         ...updateStudentDto,
@@ -179,7 +208,10 @@ export class StudentsService {
         })
       }
 
-      return updatedStudent
+      return {
+        message: 'Estudiante actualizado correctamente',
+        data: updatedStudent,
+      }
     } catch (error) {
       throw new StudentError({
         statuscode: 500,
@@ -189,8 +221,8 @@ export class StudentsService {
     }
   }
 
-  async remove(id: number): Promise<boolean> {
-    const student = await this.findOne(id)
+  async remove(id: number): Promise<ApiResponse> {
+    const { data: student } = await this.findOne(id)
 
     if (!student) {
       throw new StudentNotFoundError('Estudiante no encontrado')
@@ -200,6 +232,13 @@ export class StudentsService {
 
     await this.studentRepository.save(student)
 
-    return true
+    {
+      return {
+        message: 'Estudiante eliminado correctamente',
+        data: {
+          success: true,
+        },
+      }
+    }
   }
 }
