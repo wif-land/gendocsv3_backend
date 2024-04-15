@@ -24,5 +24,9 @@ export class CouncilsAttendanceService {
     @Inject(FilesService)
     private readonly filesService: FilesService,
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
+
+  async getDefaultAttendance(moduleId: number) {
+    console.log(moduleId)
+  }
 }

@@ -24,7 +24,7 @@ export class NumerationDocumentService {
     private readonly councilRepository: Repository<CouncilEntity>,
 
     private readonly dataSource: DataSource,
-  ) { }
+  ) {}
 
   async verifyCouncilExists(councilId: number) {
     const council = await this.dataSource.manager.findOne(CouncilEntity, {
@@ -203,7 +203,7 @@ export class NumerationDocumentService {
         if (
           (!numerationsByCouncil || numerationsByCouncil.length === 0) &&
           createNumerationDocumentDto.number <=
-          numerationsByYearModule[0].number
+            numerationsByYearModule[0].number
         ) {
           throw new BadRequestException(
             'El número ya es parte de la numeración de otro consejo o ya está en uso',
@@ -217,7 +217,7 @@ export class NumerationDocumentService {
           (numerationsByYearModule[0].council.id ===
             createNumerationDocumentDto.councilId &&
             numerationsByYearModule[0].number <
-            createNumerationDocumentDto.number)
+              createNumerationDocumentDto.number)
         ) {
           if (
             createNumerationDocumentDto.number >
