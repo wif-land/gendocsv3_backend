@@ -5,6 +5,7 @@ import { YearModuleEntity } from '../../year-module/entities/year-module.entity'
 import { Process } from '../../processes/entities/process.entity'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
+import { CouncilAttendanceEntity } from '../../councils/entities/council-attendance.entity'
 
 @Entity('modules')
 export class ModuleEntity extends BaseAppEntity {
@@ -75,6 +76,13 @@ export class ModuleEntity extends BaseAppEntity {
     nullable: true,
   })
   defaultTemplateDriveId: string
+
+  @OneToMany(
+    () => CouncilAttendanceEntity,
+    (councilAttendance) => councilAttendance.module,
+    { eager: true }
+  )
+  defaultAttendance: CouncilAttendanceEntity[]
 
   @ManyToMany(() => Submodule, {
     eager: true,

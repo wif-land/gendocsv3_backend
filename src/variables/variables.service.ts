@@ -9,7 +9,6 @@ import { DocumentEntity } from '../documents/entities/document.entity'
 import { DefaultVariable } from '../shared/enums/default-variable'
 import { formatDate, formatDateText } from '../shared/utils/date'
 import { getFullName, formatNumeration } from '../shared/utils/string'
-import { CouncilAttendanceRole } from '../councils/interfaces/council-attendance.interface'
 import { DocumentFunctionaryEntity } from '../documents/entities/document-functionary.entity'
 import { DataSource, Repository } from 'typeorm'
 import { PositionEntity } from '../positions/entities/position.entity'
@@ -22,7 +21,7 @@ export class VariablesService {
     @InjectRepository(VariableEntity)
     private readonly variableRepository: Repository<VariableEntity>,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   async create(createVariableDto: CreateVariableDto) {
     try {
@@ -105,7 +104,7 @@ export class VariablesService {
   async getCouncilVariables(document: DocumentEntity) {
     try {
       const functionary = document.numerationDocument.council.attendance.find(
-        (attendance) => attendance.role === CouncilAttendanceRole.PRESIDENT,
+        (attendance) => attendance.isPresident,
       ).functionary
 
       if (!functionary) {
@@ -167,10 +166,10 @@ export class VariablesService {
       const variables = {}
       documentFunctionaries.forEach(
         (documentFunctionary, index) =>
-          // eslint-disable-next-line no-extra-parens
-          (variables[
-            DefaultVariable.DOCENTE_N.replace('$i', (index + 1).toString())
-          ] = getFullName(documentFunctionary.functionary)),
+        // eslint-disable-next-line no-extra-parens
+        (variables[
+          DefaultVariable.DOCENTE_N.replace('$i', (index + 1).toString())
+        ] = getFullName(documentFunctionary.functionary)),
       )
 
       return variables

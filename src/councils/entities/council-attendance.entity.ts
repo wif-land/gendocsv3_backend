@@ -1,17 +1,15 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
-import {
-  CouncilAttendanceRole,
-  ICouncilAttendance,
-} from '../interfaces/council-attendance.interface'
+import { ICouncilAttendance } from '../interfaces/council-attendance.interface'
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 import { CouncilEntity } from './council.entity'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
+import { ModuleEntity } from '../../modules/entities/modules.entity'
+import { StudentEntity } from '../../students/entities/student.entity'
 
 @Entity('council_attendance')
 export class CouncilAttendanceEntity
   extends BaseAppEntity
-  implements ICouncilAttendance
-{
+  implements ICouncilAttendance {
   @Column({
     name: 'has_attended',
     type: 'boolean',
@@ -27,16 +25,58 @@ export class CouncilAttendanceEntity
   hasBeenNotified: boolean
 
   @Column({
-    type: 'enum',
-    enum: CouncilAttendanceRole,
-    default: CouncilAttendanceRole.MEMBER,
+    name: 'surrogate_to',
+    type: 'int',
+    nullable: true,
   })
-  role: CouncilAttendanceRole
+  surrogateTo?: CouncilAttendanceEntity
+
+  @Column({
+    name: 'position_name',
+    nullable: true,
+  })
+  positionName?: string
+
+  @Column({
+    name: 'position_order',
+    nullable: true,
+    type: 'smallint'
+  })
+  positionOrder?: number
+
+  @Column({
+    name: 'is_president',
+    type: 'boolean',
+    default: false,
+  })
+  isPresident: boolean
+
+  @ManyToOne(() => ModuleEntity, (module) => module.defaultAttendance, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+    nullable: true,
+  })
+  @JoinColumn({
+    name: 'module_id',
+    referencedColumnName: 'id',
+  })
+  module: ModuleEntity
+
+  @ManyToOne(() => StudentEntity, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+    nullable: true,
+  })
+  @JoinColumn({
+    name: 'student_id',
+    referencedColumnName: 'id',
+  })
+  student: StudentEntity
 
   @ManyToOne(() => CouncilEntity, (council) => council.attendance, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn({
     name: 'council_id',
@@ -47,7 +87,7 @@ export class CouncilAttendanceEntity
   @ManyToOne(() => FunctionaryEntity, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn({
     name: 'functionary_id',
