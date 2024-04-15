@@ -80,7 +80,7 @@ export class ModuleEntity extends BaseAppEntity {
   @OneToMany(
     () => CouncilAttendanceEntity,
     (councilAttendance) => councilAttendance.module,
-    { eager: true }
+    { eager: true },
   )
   defaultAttendance: CouncilAttendanceEntity[]
 

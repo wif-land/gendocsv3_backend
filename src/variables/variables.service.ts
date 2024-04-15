@@ -21,7 +21,7 @@ export class VariablesService {
     @InjectRepository(VariableEntity)
     private readonly variableRepository: Repository<VariableEntity>,
     private dataSource: DataSource,
-  ) { }
+  ) {}
 
   async create(createVariableDto: CreateVariableDto) {
     try {
@@ -166,10 +166,10 @@ export class VariablesService {
       const variables = {}
       documentFunctionaries.forEach(
         (documentFunctionary, index) =>
-        // eslint-disable-next-line no-extra-parens
-        (variables[
-          DefaultVariable.DOCENTE_N.replace('$i', (index + 1).toString())
-        ] = getFullName(documentFunctionary.functionary)),
+          // eslint-disable-next-line no-extra-parens
+          (variables[
+            DefaultVariable.DOCENTE_N.replace('$i', (index + 1).toString())
+          ] = getFullName(documentFunctionary.functionary)),
       )
 
       return variables

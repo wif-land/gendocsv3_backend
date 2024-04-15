@@ -14,7 +14,6 @@ import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { NumerationState } from '../shared/enums/numeration-state'
 import { DocumentEntity } from '../documents/entities/document.entity'
 import { NumerationByCouncil } from './dto/numeration-by-council.dto'
-import { CouncilAttendanceRole } from '../councils/interfaces/council-attendance.interface'
 
 @Injectable()
 export class NumerationDocumentService {
@@ -37,9 +36,7 @@ export class NumerationDocumentService {
   }
 
   async validateCouncilPresident(council: CouncilEntity) {
-    const hasPresident = council.attendance.find(
-      (a) => a.isPresident
-    )
+    const hasPresident = council.attendance.find((a) => a.isPresident)
     if (!hasPresident) {
       throw new BadRequestException(
         'El consejo no tiene un presidente asignado',
@@ -163,7 +160,6 @@ export class NumerationDocumentService {
       )
 
       await this.validateCouncilPresident(council)
-
 
       const yearModule = await this.getYearModule(council)
 

@@ -9,7 +9,8 @@ import { StudentEntity } from '../../students/entities/student.entity'
 @Entity('council_attendance')
 export class CouncilAttendanceEntity
   extends BaseAppEntity
-  implements ICouncilAttendance {
+  implements ICouncilAttendance
+{
   @Column({
     name: 'has_attended',
     type: 'boolean',
@@ -40,7 +41,7 @@ export class CouncilAttendanceEntity
   @Column({
     name: 'position_order',
     nullable: true,
-    type: 'smallint'
+    type: 'smallint',
   })
   positionOrder?: number
 
