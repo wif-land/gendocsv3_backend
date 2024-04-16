@@ -9,7 +9,7 @@ import { CouncilEntity } from '../councils/entities/council.entity'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
 
 @Injectable()
-export class CouncilsAttendanceService {
+export class AttendanceService {
   constructor(
     @InjectRepository(CouncilEntity)
     private readonly councilRepository: Repository<CouncilEntity>,
@@ -24,9 +24,44 @@ export class CouncilsAttendanceService {
     @Inject(FilesService)
     private readonly filesService: FilesService,
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
-  async getDefaultAttendance(moduleId: number) {
-    console.log(moduleId)
+  async getDefaultByModule(moduleId: number) {
+    const defaultAttendance = await this.councilAttendanceRepository.find({
+      where: {
+        council: {
+          id: null
+        },
+        module: {
+          id: moduleId
+        }
+      },
+      relations: ['functionary', 'student'],
+      select: ['student', 'functionary', 'positionOrder', 'positionName', 'id', 'createdAt', 'updatedAt', 'isPresident'],
+      order: {
+        positionOrder: 'ASC'
+      }
+    })
+
+    return defaultAttendance
+  }
+
+  async create(body: any) {
+    return await this.councilAttendanceRepository.save(body)
+  }
+
+  async getByCouncil(councilId: number) {
+    return await this.councilAttendanceRepository.find({
+      where: {
+        council: {
+          id: councilId
+        }
+      },
+      relations: ['functionary', 'student'],
+      select: ['student', 'functionary', 'positionOrder', 'positionName', 'id', 'createdAt', 'updatedAt', 'isPresident'],
+      order: {
+        positionOrder: 'ASC'
+      }
+    })
   }
 }

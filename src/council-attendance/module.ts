@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { CouncilsAttendanceService } from './service'
+import { AttendanceService } from './service'
 import { CouncilsAttendanceController } from './controller'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { FilesModule } from '../files/files.module'
@@ -21,6 +21,6 @@ import { CouncilEntity } from '../councils/entities/council.entity'
     ]),
   ],
   controllers: [CouncilsAttendanceController],
-  providers: [CouncilsAttendanceService],
+  providers: [AttendanceService],
 })
-export class CouncilsAttendanceModule {}
+export class CouncilsAttendanceModule { }
