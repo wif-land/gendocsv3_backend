@@ -23,4 +23,4 @@ import { CouncilEntity } from '../councils/entities/council.entity'
   controllers: [CouncilsAttendanceController],
   providers: [AttendanceService],
 })
-export class CouncilsAttendanceModule { }
+export class CouncilsAttendanceModule {}

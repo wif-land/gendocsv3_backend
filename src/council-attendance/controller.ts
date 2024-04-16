@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common'
 import { AttendanceService } from './service'
 import { ApiTags } from '@nestjs/swagger'
+import { DefaultCreationDTO } from './dto/default-creation.dto'
 
 @ApiTags('Attendance')
 @Controller('attendance')
@@ -25,9 +26,7 @@ export class CouncilsAttendanceController {
   }
 
   @Get('council/:councilId')
-  async getByCouncil(
-    @Param('councilId', ParseIntPipe) councilId: number,
-  ) {
+  async getByCouncil(@Param('councilId', ParseIntPipe) councilId: number) {
     return {
       message: 'Success',
       data: await this.attendanceService.getByCouncil(councilId),
@@ -39,6 +38,14 @@ export class CouncilsAttendanceController {
     return {
       message: 'Creado exitosamente',
       data: await this.attendanceService.create(body),
+    }
+  }
+
+  @Post('default')
+  async createDefault(@Body() body: DefaultCreationDTO) {
+    return {
+      message: 'Representante por defecto creado exitosamente',
+      data: await this.attendanceService.createDefault(body)
     }
   }
 }

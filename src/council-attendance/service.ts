@@ -7,6 +7,7 @@ import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-yea
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { CouncilEntity } from '../councils/entities/council.entity'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
+import { DefaultCreationDTO } from './dto/default-creation.dto'
 
 @Injectable()
 export class AttendanceService {
@@ -30,17 +31,26 @@ export class AttendanceService {
     const defaultAttendance = await this.councilAttendanceRepository.find({
       where: {
         council: {
-          id: null
+          id: null,
         },
         module: {
-          id: moduleId
-        }
+          id: moduleId,
+        },
       },
       relations: ['functionary', 'student'],
-      select: ['student', 'functionary', 'positionOrder', 'positionName', 'id', 'createdAt', 'updatedAt', 'isPresident'],
+      select: [
+        'student',
+        'functionary',
+        'positionOrder',
+        'positionName',
+        'id',
+        'createdAt',
+        'updatedAt',
+        'isPresident',
+      ],
       order: {
-        positionOrder: 'ASC'
-      }
+        positionOrder: 'ASC',
+      },
     })
 
     return defaultAttendance
@@ -50,18 +60,31 @@ export class AttendanceService {
     return await this.councilAttendanceRepository.save(body)
   }
 
+  async createDefault(body: DefaultCreationDTO) {
+    return await this.create(body)
+  }
+
   async getByCouncil(councilId: number) {
     return await this.councilAttendanceRepository.find({
       where: {
         council: {
-          id: councilId
-        }
+          id: councilId,
+        },
       },
       relations: ['functionary', 'student'],
-      select: ['student', 'functionary', 'positionOrder', 'positionName', 'id', 'createdAt', 'updatedAt', 'isPresident'],
+      select: [
+        'student',
+        'functionary',
+        'positionOrder',
+        'positionName',
+        'id',
+        'createdAt',
+        'updatedAt',
+        'isPresident',
+      ],
       order: {
-        positionOrder: 'ASC'
-      }
+        positionOrder: 'ASC',
+      },
     })
   }
 }

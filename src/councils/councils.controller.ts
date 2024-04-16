@@ -20,7 +20,7 @@ import { CouncilFiltersDto } from './dto/council-filters.dto'
 @ApiTags('Councils')
 @Controller('councils')
 export class CouncilsController {
-  constructor(private readonly councilsService: CouncilsService) { }
+  constructor(private readonly councilsService: CouncilsService) {}
 
   @Patch('bulk')
   async updateBulk(@Body() updateCouncilsBulkDto: UpdateCouncilBulkItemDto[]) {
