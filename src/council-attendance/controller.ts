@@ -13,7 +13,7 @@ import { DefaultCreationDTO } from './dto/default-creation.dto'
 @ApiTags('Attendance')
 @Controller('attendance')
 export class CouncilsAttendanceController {
-  constructor(private readonly attendanceService: AttendanceService) { }
+  constructor(private readonly attendanceService: AttendanceService) {}
 
   @Get('default/:moduleId')
   async getDefaultAttendance(
@@ -45,7 +45,7 @@ export class CouncilsAttendanceController {
   async createDefault(@Body() body: DefaultCreationDTO) {
     return {
       message: 'Representante por defecto creado exitosamente',
-      data: await this.attendanceService.createDefault(body)
+      data: await this.attendanceService.createDefault(body),
     }
   }
 }

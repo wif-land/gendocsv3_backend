@@ -25,7 +25,7 @@ export class AttendanceService {
     @Inject(FilesService)
     private readonly filesService: FilesService,
     private readonly dataSource: DataSource,
-  ) { }
+  ) {}
 
   async getDefaultByModule(moduleId: number) {
     const defaultAttendance = await this.councilAttendanceRepository.find({
