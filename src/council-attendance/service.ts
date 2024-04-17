@@ -8,24 +8,14 @@ import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { CouncilEntity } from '../councils/entities/council.entity'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
 import { DefaultCreationDTO } from './dto/default-creation.dto'
+import { DefaultEditionDTO } from './dto/default-edition.dto'
 
 @Injectable()
 export class AttendanceService {
   constructor(
-    @InjectRepository(CouncilEntity)
-    private readonly councilRepository: Repository<CouncilEntity>,
-    @InjectRepository(FunctionaryEntity)
-    private readonly functionaryRepository: Repository<FunctionaryEntity>,
     @InjectRepository(CouncilAttendanceEntity)
     private readonly councilAttendanceRepository: Repository<CouncilAttendanceEntity>,
-    @InjectRepository(YearModuleEntity)
-    private readonly yearModuleRepository: Repository<YearModuleEntity>,
-    @InjectRepository(SubmoduleYearModuleEntity)
-    private readonly submoduleYearModuleRepository: Repository<SubmoduleYearModuleEntity>,
-    @Inject(FilesService)
-    private readonly filesService: FilesService,
-    private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
   async getDefaultByModule(moduleId: number) {
     const defaultAttendance = await this.councilAttendanceRepository.find({
@@ -87,4 +77,13 @@ export class AttendanceService {
       },
     })
   }
+
+  async updateDefault(body: DefaultEditionDTO, id: number) {
+    return await this.councilAttendanceRepository.update(id, {
+      ...body,
+      functionary: body.functionary ? { id: body.functionary } : undefined,
+      student: body.student ? { id: body.student } : undefined,
+    })
+  }
+
 }
