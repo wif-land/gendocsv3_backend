@@ -1,11 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { DataSource, Repository } from 'typeorm'
-import { FilesService } from '../files/files.service'
-import { YearModuleEntity } from '../year-module/entities/year-module.entity'
-import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
-import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
-import { CouncilEntity } from '../councils/entities/council.entity'
+import { Repository } from 'typeorm'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
 import { DefaultCreationDTO } from './dto/default-creation.dto'
 import { DefaultEditionDTO } from './dto/default-edition.dto'
@@ -85,5 +80,4 @@ export class AttendanceService {
       student: body.student ? { id: body.student } : undefined,
     })
   }
-
 }
