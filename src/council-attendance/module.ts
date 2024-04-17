@@ -9,12 +9,9 @@ import { CouncilEntity } from '../councils/entities/council.entity'
 @Module({
   imports: [
     FilesModule,
-    TypeOrmModule.forFeature([
-      CouncilEntity,
-      CouncilAttendanceEntity,
-    ]),
+    TypeOrmModule.forFeature([CouncilEntity, CouncilAttendanceEntity]),
   ],
   controllers: [CouncilsAttendanceController],
   providers: [AttendanceService],
 })
-export class CouncilsAttendanceModule { }
+export class CouncilsAttendanceModule {}
