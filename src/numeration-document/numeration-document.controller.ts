@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   ParseIntPipe,
@@ -11,7 +10,6 @@ import {
 } from '@nestjs/common'
 import { NumerationDocumentService } from './numeration-document.service'
 import { CreateNumerationDocumentDto } from './dto/create-numeration-document.dto'
-import { UpdateNumerationDocumentDto } from './dto/update-numeration-document.dto'
 import { ApiTags } from '@nestjs/swagger'
 
 @ApiTags('NumerationDocument')
@@ -26,10 +24,6 @@ export class NumerationDocumentController {
     return this.numerationDocumentService.create(createNumerationDocumentDto)
   }
 
-  @Get()
-  findAll() {
-    return this.numerationDocumentService.findAll()
-  }
   @Get('by-council')
   async findByCouncil(@Query('councilId', ParseIntPipe) id: number) {
     return await this.numerationDocumentService.getNumerationByCouncil(id)
@@ -37,22 +31,11 @@ export class NumerationDocumentController {
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.numerationDocumentService.findOne(+id)
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateNumerationDocumentDto: UpdateNumerationDocumentDto,
-  ) {
-    return this.numerationDocumentService.update(
-      +id,
-      updateNumerationDocumentDto,
-    )
+    return this.numerationDocumentService.findOne(id)
   }
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.numerationDocumentService.remove(+id)
+    return this.numerationDocumentService.remove(id)
   }
 }

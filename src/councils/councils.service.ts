@@ -20,6 +20,7 @@ import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class CouncilsService {
@@ -40,6 +41,7 @@ export class CouncilsService {
   ) {}
 
   async create(createCouncilDto: CreateCouncilDto) {
+    // Define the return type of the method
     const { attendees = [], ...councilData } = createCouncilDto
     const hasAttendance = attendees.length > 0
 
@@ -65,7 +67,7 @@ export class CouncilsService {
         throw new NotFoundException('Submodule year module not found')
       }
 
-      const driveId = await this.filesService.createFolderByParentId(
+      const { data: driveId } = await this.filesService.createFolderByParentId(
         councilData.name,
         submoduleYearModule.driveId,
       )
@@ -81,7 +83,10 @@ export class CouncilsService {
       const councilInserted = await this.councilRepository.save(council)
 
       if (!hasAttendance) {
-        return councilInserted
+        return new ApiResponseDto(
+          'Consejo creado exitosamente',
+          councilInserted,
+        )
       }
 
       const promises = attendees.map((item) =>
@@ -111,10 +116,10 @@ export class CouncilsService {
         councilAttendance,
       )
 
-      return {
+      return new ApiResponseDto('Consejo creado exitosamente', {
         ...councilInserted,
         attendance: attendanceResult,
-      }
+      })
     } catch (error) {
       throw error
     }
@@ -152,10 +157,10 @@ export class CouncilsService {
 
       const councils = await queryBuilder.getMany()
 
-      return {
+      return new ApiResponseDto('Consejos encontrados', {
         count,
         councils: councils.map((council) => new ResponseCouncilsDto(council)),
-      }
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -229,7 +234,10 @@ export class CouncilsService {
       (council) => new ResponseCouncilsDto(council),
     )
 
-    return { count, councils: mappedCouncils }
+    return new ApiResponseDto('Consejos encontrados', {
+      count,
+      councils: mappedCouncils,
+    })
   }
 
   async update(id: number, updateCouncilDto: UpdateCouncilDto) {
@@ -260,9 +268,12 @@ export class CouncilsService {
       throw new NotFoundException(`Council not found with id ${id}`)
     }
 
-    await this.councilRepository.save(updatedCouncil)
+    const councilUpdated = await this.councilRepository.save(updatedCouncil)
 
-    return updatedCouncil
+    return new ApiResponseDto(
+      'Consejo actualizado exitosamente',
+      councilUpdated,
+    )
   }
 
   async updateBulk(updateCouncilsBulkDto: UpdateCouncilBulkItemDto[]) {
@@ -272,7 +283,7 @@ export class CouncilsService {
     await queryRunner.startTransaction()
 
     try {
-      const updatedCouncils = []
+      const updatedCouncils: CouncilEntity[] = []
       for (const councilDto of updateCouncilsBulkDto) {
         const { id, ...councilData } = councilDto
         const hasNameChanged = councilData.name !== undefined
@@ -310,7 +321,10 @@ export class CouncilsService {
       await queryRunner.commitTransaction()
       await queryRunner.release()
 
-      return updatedCouncils
+      return new ApiResponseDto(
+        'Consejos actualizados exitosamente',
+        updatedCouncils,
+      )
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

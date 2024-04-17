@@ -7,6 +7,7 @@ import { UpdateDegreeDto } from './dto/update-degree.dto'
 import { DegreeAlreadyExist } from './errors/degree-already-exists'
 import { DegreeBadRequestError } from './errors/degree-bad-request'
 import { DegreeNotFoundError } from './errors/degree-not-found'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class DegreesService {
@@ -32,13 +33,15 @@ export class DegreesService {
       throw new DegreeBadRequestError('Los datos del título son incorrectos')
     }
 
-    return await this.degreeRepository.save(degree)
+    const newDegree = await this.degreeRepository.save(degree)
+
+    return new ApiResponseDto('Título creado correctamente', newDegree)
   }
 
   async findAll() {
     const degrees = await this.degreeRepository.find()
 
-    return degrees
+    return new ApiResponseDto('Lista de títulos', degrees)
   }
 
   async findOne(id: number) {
@@ -48,7 +51,7 @@ export class DegreesService {
       throw new DegreeNotFoundError(`El título con id ${id} no existe`)
     }
 
-    return degree
+    return new ApiResponseDto('Detalle del título', degree)
   }
 
   async update(id: number, updateDegreeDto: UpdateDegreeDto) {
@@ -61,6 +64,8 @@ export class DegreesService {
       throw new DegreeNotFoundError(`El título con id ${id} no existe`)
     }
 
-    return await this.degreeRepository.save(degree)
+    const degreeUpdated = await this.degreeRepository.save(degree)
+
+    return new ApiResponseDto('Título actualizado correctamente', degreeUpdated)
   }
 }

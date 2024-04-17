@@ -1,10 +1,11 @@
-import { Submodule } from '../../submodules/entities/submodule.entity'
+import { SubmoduleEntity } from '../../submodules/entities/submodule.entity'
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { ApiProperty } from '@nestjs/swagger'
 import { YearModuleEntity } from '../../year-module/entities/year-module.entity'
-import { Process } from '../../processes/entities/process.entity'
+import { ProcessEntity } from '../../processes/entities/process.entity'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
+import { CouncilAttendanceEntity } from '../../councils/entities/council-attendance.entity'
 
 @Entity('modules')
 export class ModuleEntity extends BaseAppEntity {
@@ -76,7 +77,14 @@ export class ModuleEntity extends BaseAppEntity {
   })
   defaultTemplateDriveId: string
 
-  @ManyToMany(() => Submodule, {
+  @OneToMany(
+    () => CouncilAttendanceEntity,
+    (councilAttendance) => councilAttendance.module,
+    { eager: true },
+  )
+  defaultAttendance: CouncilAttendanceEntity[]
+
+  @ManyToMany(() => SubmoduleEntity, {
     eager: true,
     onDelete: 'NO ACTION',
     onUpdate: 'NO ACTION',
@@ -86,7 +94,7 @@ export class ModuleEntity extends BaseAppEntity {
     joinColumn: { name: 'module_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'submodule_id', referencedColumnName: 'id' },
   })
-  submodules?: Submodule[]
+  submodules?: SubmoduleEntity[]
 
   @ApiProperty({
     example: '1',
@@ -99,10 +107,10 @@ export class ModuleEntity extends BaseAppEntity {
   @ApiProperty({
     example: '1',
     description: 'Procesos asociados al módulo',
-    type: () => Process,
+    type: () => ProcessEntity,
   })
-  @OneToMany(() => Process, (process) => process.module)
-  processes: Process[]
+  @OneToMany(() => ProcessEntity, (process) => process.module)
+  processes: ProcessEntity[]
 
   @ApiProperty({
     example: '1',

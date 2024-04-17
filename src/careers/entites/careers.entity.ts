@@ -4,7 +4,7 @@ import { FunctionaryEntity } from '../../functionaries/entities/functionary.enti
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('careers')
-export class Career extends BaseAppEntity implements ICareer {
+export class CareerEntity extends BaseAppEntity implements ICareer {
   @Column({
     name: 'name',
     type: 'varchar',

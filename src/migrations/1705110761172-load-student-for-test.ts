@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 import { StudentEntity } from '../students/entities/student.entity'
-import { Career } from '../careers/entites/careers.entity'
+import { CareerEntity } from '../careers/entites/careers.entity'
 import { GENDER } from '../shared/enums/genders'
 import { ProvinceEntity } from '../cities/entities/province.entity'
 import { CityEntity } from '../cities/entities/city.entity'
 
 export class LoadStudentForTest1705110761172 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const careerRepository = queryRunner.connection.getRepository(Career)
+    const careerRepository = queryRunner.connection.getRepository(CareerEntity)
 
     const studentRepository =
       queryRunner.connection.getRepository(StudentEntity)
@@ -317,7 +317,7 @@ export class LoadStudentForTest1705110761172 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const careerRepository = queryRunner.connection.getRepository(Career)
+    const careerRepository = queryRunner.connection.getRepository(CareerEntity)
     const studentRepository =
       queryRunner.connection.getRepository(StudentEntity)
 

@@ -2,7 +2,7 @@ import { Column, Entity } from 'typeorm'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('submodules')
-export class Submodule extends BaseAppEntity {
+export class SubmoduleEntity extends BaseAppEntity {
   @Column({
     name: 'name',
     type: 'varchar',

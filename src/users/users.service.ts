@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt'
 import { UserAccessModulesService } from '../users-access-modules/users-access-modules.service'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UserFiltersDto } from './dto/user-filters.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class UsersService {
@@ -26,7 +27,7 @@ export class UsersService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getByEmail(email: string): Promise<UserEntity> {
+  async getByEmail(email: string) {
     try {
       const user = await this.userRepository.findOne({
         where: {
@@ -42,7 +43,7 @@ export class UsersService {
         )
       }
 
-      return user
+      return new ApiResponseDto('Usuario encontrado', user)
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -74,19 +75,19 @@ export class UsersService {
 
       let userSaved = await this.userRepository.save(userEntity)
 
-      const { modules } = await this.userAccessModulesService.create({
+      const { data } = await this.userAccessModulesService.create({
         userId: userSaved.id,
         modulesIds: user.accessModules,
       })
 
-      if (modules.length === 0) {
+      if (data.modules.length === 0) {
         throw new HttpException(
           'No se pudo crear asignar los modulos al usuario',
           HttpStatus.CONFLICT,
         )
       }
 
-      userEntity.accessModules = modules
+      userEntity.accessModules = data.modules
 
       userSaved = await this.userRepository.save(userEntity)
 
@@ -97,10 +98,10 @@ export class UsersService {
         )
       }
 
-      return {
+      return new ApiResponseDto('Usuario creado correctamente', {
         ...userSaved,
         accessModules: userSaved.accessModules.map((module) => module.id),
-      }
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -114,18 +115,18 @@ export class UsersService {
       const hasAccessModules = !!user.accessModules
 
       if (hasAccessModules) {
-        const { modules } = await this.userAccessModulesService.update({
+        const { data } = await this.userAccessModulesService.update({
           userId: id,
           modulesIds: user.accessModules,
         })
 
-        if (modules.length === 0) {
+        if (data.modules.length === 0) {
           throw new HttpException(
             'No se pudo actualizar los modulos del usuario',
             HttpStatus.CONFLICT,
           )
         }
-        userToUpdate.accessModules = modules.map((module) => module.id)
+        userToUpdate.accessModules = data.modules.map((module) => module.id)
       }
 
       const userGetted = await this.userRepository.findOne({
@@ -188,19 +189,19 @@ export class UsersService {
         accessModules: user.accessModules,
       }
 
-      return {
+      return new ApiResponseDto('Usuario actualizado', {
         user: {
           ...userUpdated,
           accessModules: userUpdated.accessModules.map((module) => module.id),
         },
         accessToken: this.jwtService.sign(payload),
-      }
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: number) {
     try {
       await this.userRepository.update(
         {
@@ -211,7 +212,9 @@ export class UsersService {
         },
       )
 
-      return true
+      return new ApiResponseDto('Usuario eliminado', {
+        success: true,
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -251,10 +254,10 @@ export class UsersService {
 
       const count = await this.userRepository.count()
 
-      return {
+      return new ApiResponseDto('Usuarios encontrados', {
         count,
         users: usersFound,
-      }
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -289,13 +292,13 @@ export class UsersService {
       .skip(offset)
       .getMany()
 
-    return {
+    return new ApiResponseDto('Usuarios encontrados', {
       count,
       users,
-    }
+    })
   }
 
-  private async generateSaltPassword(password: string): Promise<string> {
+  private async generateSaltPassword(password: string) {
     const ROUNDS = 10
     const SALT = await genSalt(ROUNDS)
 

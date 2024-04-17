@@ -19,6 +19,7 @@ import { UpdateRoomDto } from './dto/update-room.dto'
 import { DegreeCertificateEntity } from './entities/degree-certificate.entity'
 import { CreateDegreeCertificateDto } from './dto/create-degree-certificate.dto'
 import { UpdateDegreeCertificateDto } from './dto/update-degree-certificate.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -40,7 +41,12 @@ export class DegreeCertificatesService {
   ) {}
 
   async findAll() {
-    return await this.degreeCertificateRepository.find()
+    const degreeCertificates = await this.degreeCertificateRepository.find()
+
+    return new ApiResponseDto(
+      'Listado de certificados obtenido exitosamente',
+      degreeCertificates,
+    )
   }
 
   async create(dto: CreateDegreeCertificateDto) {
@@ -66,7 +72,14 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.degreeCertificateRepository.save(degreeCertificate)
+    const newCertificate = await this.degreeCertificateRepository.save(
+      degreeCertificate,
+    )
+
+    return new ApiResponseDto(
+      'Certificado creado correctamente',
+      newCertificate,
+    )
   }
 
   async update(id: number, dto: UpdateDegreeCertificateDto) {
@@ -87,11 +100,23 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.degreeCertificateRepository.save(degreeCertificate)
+    const certificateUpdated = await this.degreeCertificateRepository.save(
+      degreeCertificate,
+    )
+
+    return new ApiResponseDto(
+      'Certificado actualizado correctamente',
+      certificateUpdated,
+    )
   }
 
   async findAllCertificateStatus() {
-    return await this.certificateStatusRepository.find()
+    const certificateStatus = await this.certificateStatusRepository.find()
+
+    return new ApiResponseDto(
+      'Listado de estados de certificado obtenido exitosamente',
+      certificateStatus,
+    )
   }
 
   async createCertificateStatus(dto: CreateCertificateStatusDto) {
@@ -113,7 +138,14 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.certificateStatusRepository.save(certificateStatus)
+    const newCertificateStatus = await this.certificateStatusRepository.save(
+      certificateStatus,
+    )
+
+    return new ApiResponseDto(
+      'Estado de certificado creado correctamente',
+      newCertificateStatus,
+    )
   }
 
   async updateCertificateStatus(
@@ -131,7 +163,13 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.certificateStatusRepository.save(certificateStatus)
+    const certificateStatusUpdated =
+      await this.certificateStatusRepository.save(certificateStatus)
+
+    return new ApiResponseDto(
+      'Estado de certificado actualizado correctamente',
+      certificateStatusUpdated,
+    )
   }
 
   async deleteCertificateStatus(id: number) {
@@ -143,14 +181,23 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.certificateStatusRepository.save({
+    await this.certificateStatusRepository.save({
       ...certificateStatus,
       isActive: false,
+    })
+
+    return new ApiResponseDto('Estado de certificado eliminado correctamente', {
+      success: true,
     })
   }
 
   async findAllCertificateTypes() {
-    return await this.certificateTypeRepository.find()
+    const certificateTypes = await this.certificateTypeRepository.find()
+
+    return new ApiResponseDto(
+      'Listado de tipos de certificado obtenido exitosamente',
+      certificateTypes,
+    )
   }
 
   async createCertificateType(dto: CreateCertificateTypeDto) {
@@ -172,7 +219,14 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.certificateTypeRepository.save(certificateType)
+    const newCertificateType = await this.certificateTypeRepository.save(
+      certificateType,
+    )
+
+    return new ApiResponseDto(
+      'Tipo de certificado creado correctamente',
+      newCertificateType,
+    )
   }
 
   async updateCertificateType(
@@ -190,7 +244,14 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.certificateTypeRepository.save(certificateType)
+    const certificateTypeUpdated = await this.certificateTypeRepository.save(
+      certificateType,
+    )
+
+    return new ApiResponseDto(
+      'Tipo de certificado actualizado correctamente',
+      certificateTypeUpdated,
+    )
   }
 
   async deleteCertificateType(id: number) {
@@ -202,14 +263,23 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.certificateTypeRepository.save({
+    await this.certificateTypeRepository.save({
       ...certificateType,
       isActive: false,
+    })
+
+    return new ApiResponseDto('Tipo de certificado eliminado correctamente', {
+      success: true,
     })
   }
 
   async findAllDegreeModalities() {
-    return await this.degreeModalityRepository.find()
+    const degreeModalities = await this.degreeModalityRepository.find()
+
+    return new ApiResponseDto(
+      'Listado de modalidades de grado obtenido exitosamente',
+      degreeModalities,
+    )
   }
 
   async createDegreeModality(dto: CreateDegreeModalityDto) {
@@ -231,7 +301,14 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.degreeModalityRepository.save(degreeModality)
+    const newDegreeModality = await this.degreeModalityRepository.save(
+      degreeModality,
+    )
+
+    return new ApiResponseDto(
+      'Modalidad de grado creada correctamente',
+      newDegreeModality,
+    )
   }
 
   async updateDegreeModality(id: number, dto: UpdateDegreeModalityDto) {
@@ -246,7 +323,14 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.degreeModalityRepository.save(degreeModality)
+    const degreeModalityUpdated = await this.degreeModalityRepository.save(
+      degreeModality,
+    )
+
+    return new ApiResponseDto(
+      'Modalidad de grado actualizada correctamente',
+      degreeModalityUpdated,
+    )
   }
 
   async deleteDegreeModality(id: number) {
@@ -258,14 +342,20 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.degreeModalityRepository.save({
+    await this.degreeModalityRepository.save({
       ...degreeModality,
       isActive: false,
+    })
+
+    return new ApiResponseDto('Modalidad de grado eliminada correctamente', {
+      success: true,
     })
   }
 
   async findAllRooms() {
-    return await this.roomRepository.find()
+    const rooms = await this.roomRepository.find()
+
+    return new ApiResponseDto('Listado de salones obtenido exitosamente', rooms)
   }
 
   async createRoom(dto: CreateRoomDto) {
@@ -287,7 +377,9 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.roomRepository.save(room)
+    const newRoom = await this.roomRepository.save(room)
+
+    return new ApiResponseDto('Salón creado correctamente', newRoom)
   }
 
   async updateRoom(id: number, dto: UpdateRoomDto) {
@@ -302,7 +394,9 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.roomRepository.save(room)
+    const roomUpdated = await this.roomRepository.save(room)
+
+    return new ApiResponseDto('Salón actualizado correctamente', roomUpdated)
   }
 
   async deleteRoom(id: number) {
@@ -314,9 +408,13 @@ export class DegreeCertificatesService {
       )
     }
 
-    return await this.roomRepository.save({
+    await this.roomRepository.save({
       ...room,
       isActive: false,
+    })
+
+    return new ApiResponseDto('Salón eliminado correctamente', {
+      success: true,
     })
   }
 }

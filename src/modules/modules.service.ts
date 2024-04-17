@@ -5,6 +5,7 @@ import { ModuleEntity } from './entities/modules.entity'
 import { CreateModuleDTO } from './dto/create-module.dto'
 import { GcpService } from '../gcp/gcp.service'
 import { YearModuleService } from '../year-module/year-module.service'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class ModulesService {
@@ -16,7 +17,7 @@ export class ModulesService {
     private readonly yearModuleService: YearModuleService,
   ) {}
 
-  async create(module: CreateModuleDTO): Promise<ModuleEntity> {
+  async create(module: CreateModuleDTO) {
     try {
       const findModule = await this.moduleRepository.findOne({
         where: {
@@ -28,13 +29,15 @@ export class ModulesService {
         throw new HttpException('Module already exists', HttpStatus.CONFLICT)
       }
 
-      return await this.moduleRepository.create(module).save()
+      const newModule = await this.moduleRepository.create(module).save()
+
+      return new ApiResponseDto('Módulo creado exitosamente', newModule)
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(): Promise<ModuleEntity[]> {
+  async findAll() {
     try {
       const modules = await this.moduleRepository.find({
         where: {
@@ -46,7 +49,7 @@ export class ModulesService {
         throw new HttpException('Modules not found', HttpStatus.NOT_FOUND)
       }
 
-      return modules
+      return new ApiResponseDto('Módulos encontrados exitosamente', modules)
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -96,7 +99,12 @@ export class ModulesService {
         }
       }
 
-      return 'Folders created successfully'
+      return new ApiResponseDto(
+        'Carpetas creadas exitosamente para los módulos con documentos',
+        {
+          success: true,
+        },
+      )
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

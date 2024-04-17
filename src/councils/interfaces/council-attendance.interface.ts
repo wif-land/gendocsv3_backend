@@ -1,4 +1,7 @@
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
+import { ModuleEntity } from '../../modules/entities/modules.entity'
+import { StudentEntity } from '../../students/entities/student.entity'
+import { CouncilAttendanceEntity } from '../entities/council-attendance.entity'
 import { CouncilEntity } from '../entities/council.entity'
 
 export enum CouncilAttendanceRole {
@@ -10,7 +13,12 @@ export enum CouncilAttendanceRole {
 export interface ICouncilAttendance {
   council: CouncilEntity
   functionary: FunctionaryEntity
+  student: StudentEntity
   hasAttended: boolean
   hasBeenNotified: boolean
-  role: CouncilAttendanceRole
+  module?: ModuleEntity
+  surrogateTo?: CouncilAttendanceEntity
+  positionName?: string
+  positionOrder?: number
+  isPresident: boolean
 }

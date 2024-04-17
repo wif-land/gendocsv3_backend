@@ -9,12 +9,12 @@ import { DocumentEntity } from '../documents/entities/document.entity'
 import { DefaultVariable } from '../shared/enums/default-variable'
 import { formatDate, formatDateText } from '../shared/utils/date'
 import { getFullName, formatNumeration } from '../shared/utils/string'
-import { CouncilAttendanceRole } from '../councils/interfaces/council-attendance.interface'
 import { DocumentFunctionaryEntity } from '../documents/entities/document-functionary.entity'
 import { DataSource, Repository } from 'typeorm'
 import { PositionEntity } from '../positions/entities/position.entity'
 import { VariableEntity } from './entities/variable.entity'
 import { InjectRepository } from '@nestjs/typeorm'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class VariablesService {
@@ -40,7 +40,9 @@ export class VariablesService {
         throw new BadRequestException('Variable not created')
       }
 
-      return await this.variableRepository.save(variable)
+      const newVariable = await this.variableRepository.save(variable)
+
+      return new ApiResponseDto('Variable creada con éxito', newVariable)
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -48,7 +50,9 @@ export class VariablesService {
 
   async findAll() {
     try {
-      return await this.variableRepository.find()
+      const variables = await this.variableRepository.find()
+
+      return new ApiResponseDto('Variables encontradas con éxito', variables)
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -56,7 +60,13 @@ export class VariablesService {
 
   async findOne(id: number) {
     try {
-      return await this.variableRepository.findOne({ where: { id } })
+      const variable = await this.variableRepository.findOne({ where: { id } })
+
+      if (!variable) {
+        throw new BadRequestException('Variable not found')
+      }
+
+      return new ApiResponseDto('Variable encontrada con éxito', variable)
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -72,7 +82,12 @@ export class VariablesService {
         throw new BadRequestException('Variable already exists')
       }
 
-      return await this.variableRepository.update(id, updateVariableDto)
+      const variable = await this.variableRepository.save({
+        id,
+        ...updateVariableDto,
+      })
+
+      return new ApiResponseDto('Variable actualizada con éxito', variable)
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -80,7 +95,11 @@ export class VariablesService {
 
   async remove(id: number) {
     try {
-      return await this.variableRepository.delete(id)
+      await this.variableRepository.delete(id)
+
+      return new ApiResponseDto('Variable eliminada con éxito', {
+        success: true,
+      })
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -96,7 +115,10 @@ export class VariablesService {
         [DefaultVariable.YEAR]: document.createdAt.getFullYear().toString(),
       }
 
-      return variables
+      return new ApiResponseDto(
+        'Variables generales encontradas con éxito',
+        variables,
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -105,7 +127,7 @@ export class VariablesService {
   async getCouncilVariables(document: DocumentEntity) {
     try {
       const functionary = document.numerationDocument.council.attendance.find(
-        (attendance) => attendance.role === CouncilAttendanceRole.PRESIDENT,
+        (attendance) => attendance.isPresident,
       ).functionary
 
       if (!functionary) {
@@ -126,7 +148,10 @@ export class VariablesService {
         [DefaultVariable.RESPONSABLE]: `${getFullName(functionary)}`,
       }
 
-      return variables
+      return new ApiResponseDto(
+        'Variables de consejo encontradas con éxito',
+        variables,
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -154,7 +179,10 @@ export class VariablesService {
         ),
       }
 
-      return variables
+      return new ApiResponseDto(
+        'Variables de estudiante encontradas con éxito',
+        variables,
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -173,7 +201,10 @@ export class VariablesService {
           ] = getFullName(documentFunctionary.functionary)),
       )
 
-      return variables
+      return new ApiResponseDto(
+        'Variables de docentes encontradas con éxito',
+        variables,
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -195,7 +226,10 @@ export class VariablesService {
           (variables[position.variable] = getFullName(position.functionary)),
       )
 
-      return variables
+      return new ApiResponseDto(
+        'Variables de posiciones encontradas con éxito',
+        variables,
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -203,9 +237,9 @@ export class VariablesService {
 
   async getCustomVariables() {
     try {
-      const variables: object = {}
+      const variables: { [DefaultVariable: string]: string } = {}
 
-      const customVariables = await this.findAll()
+      const { data: customVariables } = await this.findAll()
 
       customVariables.forEach(
         (customVariable) =>
@@ -213,7 +247,10 @@ export class VariablesService {
           (variables[customVariable.variable] = customVariable.value),
       )
 
-      return variables
+      return new ApiResponseDto(
+        'Variables personalizadas encontradas con éxito',
+        variables,
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }

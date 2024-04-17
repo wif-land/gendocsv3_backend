@@ -17,6 +17,7 @@ import { FilesService } from '../files/files.service'
 import { formatNumeration } from '../shared/utils/string'
 import { ResponseDocumentDto } from './dto/response-document'
 import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class DocumentsService {
@@ -38,7 +39,7 @@ export class DocumentsService {
     let document = undefined
     let documentFunctionaries
 
-    const numeration = await this.numerationDocumentService.create({
+    const { data: numeration } = await this.numerationDocumentService.create({
       number: createDocumentDto.number,
       councilId: createDocumentDto.councilId,
     })
@@ -225,12 +226,12 @@ export class DocumentsService {
         },
       })
 
-      return {
+      return new ApiResponseDto('Lista de documentos', {
         count,
         documents: documents.map(
           (document) => new ResponseDocumentDto(document),
         ),
-      }
+      })
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -255,7 +256,9 @@ export class DocumentsService {
         throw new NotFoundException('Document not found')
       }
 
-      return new ResponseDocumentDto(document)
+      const newDocument = new ResponseDocumentDto(document)
+
+      return new ApiResponseDto('Documento encontrado', newDocument)
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -282,7 +285,16 @@ export class DocumentsService {
 
       await this.filesService.remove(document.driveId)
 
-      return await this.documentsRepository.delete(document.id)
+      const isDeleted = await this.documentsRepository.delete(document.id)
+
+      return new ApiResponseDto(
+        isDeleted.affected > 0
+          ? 'Documento eliminado'
+          : 'Error al eliminar el documento',
+        {
+          success: isDeleted.affected > 0,
+        },
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }

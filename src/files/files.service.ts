@@ -5,7 +5,7 @@ import { GcpService } from '../gcp/gcp.service'
 export class FilesService {
   constructor(private readonly gcpService: GcpService) {}
 
-  async createDocument(title: string): Promise<string> {
+  async createDocument(title: string) {
     try {
       const document = await this.gcpService.createDocument(title)
 
@@ -19,10 +19,7 @@ export class FilesService {
     }
   }
 
-  async createDocumentByParentId(
-    title: string,
-    parentId: string,
-  ): Promise<string> {
+  async createDocumentByParentId(title: string, parentId: string) {
     try {
       const document = await this.gcpService.createDocumentByParentId(
         title,
@@ -43,7 +40,7 @@ export class FilesService {
     title: string,
     parentId: string,
     documentId: string,
-  ): Promise<string> {
+  ) {
     try {
       const document = await this.gcpService.createDocumentByParentIdAndCopy(
         title,
@@ -61,7 +58,7 @@ export class FilesService {
     }
   }
 
-  async renameAsset(documentId: string, title: string): Promise<string> {
+  async renameAsset(documentId: string, title: string) {
     try {
       const document = await this.gcpService.renameAsset(documentId, title)
 
@@ -75,7 +72,7 @@ export class FilesService {
     }
   }
 
-  async moveAsset(documentId: string, parentId: string): Promise<string> {
+  async moveAsset(documentId: string, parentId: string) {
     try {
       const document = await this.gcpService.moveAsset(documentId, parentId)
 
@@ -89,10 +86,7 @@ export class FilesService {
     }
   }
 
-  async createFolderByParentId(
-    title: string,
-    parentId: string,
-  ): Promise<string> {
+  async createFolderByParentId(title: string, parentId: string) {
     try {
       const folder = await this.gcpService.createFolderByParentId(
         title,
@@ -109,10 +103,7 @@ export class FilesService {
     }
   }
 
-  async replaceTextOnDocument(
-    data: object,
-    documentId: string,
-  ): Promise<boolean> {
+  async replaceTextOnDocument(data: object, documentId: string) {
     try {
       const result = await this.gcpService.replaceTextOnDocument(
         data,
@@ -132,7 +123,7 @@ export class FilesService {
     }
   }
 
-  async remove(assetId: string): Promise<boolean> {
+  async remove(assetId: string) {
     try {
       const result = await this.gcpService.remove(assetId)
 

@@ -9,8 +9,9 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, Repository } from 'typeorm'
 import { TemplateProcess } from './entities/template-processes.entity'
 import { FilesService } from '../files/files.service'
-import { Process } from '../processes/entities/process.entity'
+import { ProcessEntity } from '../processes/entities/process.entity'
 import { ResponseTemplateDto } from './dto/response-template.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class TemplatesService {
@@ -22,9 +23,7 @@ export class TemplatesService {
 
     private readonly dataSource: DataSource,
   ) {}
-  async create(
-    createTemplateDto: CreateTemplateDto,
-  ): Promise<ResponseTemplateDto> {
+  async create(createTemplateDto: CreateTemplateDto) {
     try {
       const template = this.templateRepository.create({
         ...createTemplateDto,
@@ -33,13 +32,13 @@ export class TemplatesService {
       })
 
       const qb = this.dataSource
-        .createQueryBuilder(Process, 'process')
+        .createQueryBuilder(ProcessEntity, 'process')
         .leftJoinAndSelect('process.module', 'module')
         .where('process.id = :id', { id: createTemplateDto.processId })
 
       const process = await qb.getOne()
 
-      const templateId =
+      const { data: templateId } =
         await this.filesService.createDocumentByParentIdAndCopy(
           createTemplateDto.name,
           process.driveId,
@@ -50,13 +49,16 @@ export class TemplatesService {
 
       const savedTemplate = await this.templateRepository.save(template)
 
-      return new ResponseTemplateDto(savedTemplate)
+      return new ApiResponseDto(
+        'Plantilla creada correctamente',
+        new ResponseTemplateDto(savedTemplate),
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async findAll(): Promise<ResponseTemplateDto[]> {
+  async findAll() {
     try {
       const qb = this.dataSource
         .createQueryBuilder(TemplateProcess, 'template')
@@ -73,7 +75,7 @@ export class TemplatesService {
         (template) => new ResponseTemplateDto(template),
       )
 
-      return responseTemplates
+      return new ApiResponseDto('Plantillas encontradas', responseTemplates)
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
@@ -96,7 +98,10 @@ export class TemplatesService {
       (template) => new ResponseTemplateDto(template),
     )
 
-    return { count: responseTemplates.length, templates: responseTemplates }
+    return new ApiResponseDto('Plantillas encontradas', {
+      count: responseTemplates.length,
+      templates: responseTemplates,
+    })
   }
 
   async findByProcessAndField(processId: number, field: string) {
@@ -123,10 +128,13 @@ export class TemplatesService {
       (template) => new ResponseTemplateDto(template),
     )
 
-    return { count: responseTemplates.length, templates: responseTemplates }
+    return new ApiResponseDto('Plantillas encontradas', {
+      count: responseTemplates.length,
+      templates: responseTemplates,
+    })
   }
 
-  async findOne(id: number): Promise<ResponseTemplateDto> {
+  async findOne(id: number) {
     const qb = this.dataSource
       .createQueryBuilder(TemplateProcess, 'template')
       .leftJoinAndSelect('template.user', 'user')
@@ -139,13 +147,13 @@ export class TemplatesService {
       throw new BadRequestException('Template not found')
     }
 
-    return new ResponseTemplateDto(template)
+    return new ApiResponseDto(
+      'Plantilla encontrada',
+      new ResponseTemplateDto(template),
+    )
   }
 
-  async update(
-    id: number,
-    updateTemplateDto: UpdateTemplateDto,
-  ): Promise<ResponseTemplateDto> {
+  async update(id: number, updateTemplateDto: UpdateTemplateDto) {
     try {
       const qb = this.dataSource
         .createQueryBuilder(TemplateProcess, 'template')
@@ -173,7 +181,7 @@ export class TemplatesService {
         updateTemplateDto.processId !== template.process.id
       ) {
         const qb = this.dataSource
-          .createQueryBuilder(Process, 'process')
+          .createQueryBuilder(ProcessEntity, 'process')
           .leftJoinAndSelect('process.module', 'module')
           .where('process.id = :id', { id: updateTemplateDto.processId })
 
@@ -183,7 +191,7 @@ export class TemplatesService {
           throw new BadRequestException('Process not found')
         }
 
-        const templateId = await this.filesService.moveAsset(
+        const { data: templateId } = await this.filesService.moveAsset(
           template.driveId,
           process.driveId,
         )
@@ -201,19 +209,24 @@ export class TemplatesService {
 
       const savedTemplate = await this.templateRepository.save(updatedTemplate)
 
-      return new ResponseTemplateDto(savedTemplate)
+      return new ApiResponseDto(
+        'Plantilla actualizada correctamente',
+        new ResponseTemplateDto(savedTemplate),
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async remove(id: number): Promise<boolean> {
-    const template = await this.findOne(id)
+  async remove(id: number) {
+    const { data: template } = await this.findOne(id)
 
     template.isActive = false
 
     await this.templateRepository.save(template)
 
-    return true
+    return new ApiResponseDto('Plantilla eliminada correctamente', {
+      success: true,
+    })
   }
 }
