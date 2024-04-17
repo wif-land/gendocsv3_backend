@@ -7,7 +7,7 @@ import { UpdateDegreeDto } from './dto/update-degree.dto'
 import { DegreeAlreadyExist } from './errors/degree-already-exists'
 import { DegreeBadRequestError } from './errors/degree-bad-request'
 import { DegreeNotFoundError } from './errors/degree-not-found'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class DegreesService {
@@ -16,9 +16,7 @@ export class DegreesService {
     private readonly degreeRepository: Repository<DegreeEntity>,
   ) {}
 
-  async create(
-    createDegreeDto: CreateDegreeDto,
-  ): Promise<ApiResponse<DegreeEntity>> {
+  async create(createDegreeDto: CreateDegreeDto) {
     if (
       this.degreeRepository.findOneBy({
         abbreviation: createDegreeDto.abbreviation,
@@ -37,38 +35,26 @@ export class DegreesService {
 
     const newDegree = await this.degreeRepository.save(degree)
 
-    return {
-      message: 'Título creado correctamente',
-      data: newDegree,
-    }
+    return new ApiResponseDto('Título creado correctamente', newDegree)
   }
 
-  async findAll(): Promise<ApiResponse<DegreeEntity[]>> {
+  async findAll() {
     const degrees = await this.degreeRepository.find()
 
-    return {
-      message: 'Lista de títulos',
-      data: degrees,
-    }
+    return new ApiResponseDto('Lista de títulos', degrees)
   }
 
-  async findOne(id: number): Promise<ApiResponse<DegreeEntity>> {
+  async findOne(id: number) {
     const degree = await this.degreeRepository.findOneBy({ id })
 
     if (!degree) {
       throw new DegreeNotFoundError(`El título con id ${id} no existe`)
     }
 
-    return {
-      message: 'Detalle del título',
-      data: degree,
-    }
+    return new ApiResponseDto('Detalle del título', degree)
   }
 
-  async update(
-    id: number,
-    updateDegreeDto: UpdateDegreeDto,
-  ): Promise<ApiResponse<DegreeEntity>> {
+  async update(id: number, updateDegreeDto: UpdateDegreeDto) {
     const degree = await this.degreeRepository.preload({
       id,
       ...updateDegreeDto,
@@ -80,9 +66,6 @@ export class DegreesService {
 
     const degreeUpdated = await this.degreeRepository.save(degree)
 
-    return {
-      message: 'Título actualizado correctamente',
-      data: degreeUpdated,
-    }
+    return new ApiResponseDto('Título actualizado correctamente', degreeUpdated)
   }
 }

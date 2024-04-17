@@ -17,7 +17,7 @@ import { FilesService } from '../files/files.service'
 import { formatNumeration } from '../shared/utils/string'
 import { ResponseDocumentDto } from './dto/response-document'
 import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class DocumentsService {
@@ -193,12 +193,7 @@ export class DocumentsService {
     }
   }
 
-  async findAll(paginationDto: PaginationV2Dto): Promise<
-    ApiResponse<{
-      count: number
-      documents: ResponseDocumentDto[]
-    }>
-  > {
+  async findAll(paginationDto: PaginationV2Dto) {
     const {
       // eslint-disable-next-line no-magic-numbers
       rowsPerPage = 10,
@@ -231,21 +226,18 @@ export class DocumentsService {
         },
       })
 
-      return {
-        message: 'Lista de documentos',
-        data: {
-          count,
-          documents: documents.map(
-            (document) => new ResponseDocumentDto(document),
-          ),
-        },
-      }
+      return new ApiResponseDto('Lista de documentos', {
+        count,
+        documents: documents.map(
+          (document) => new ResponseDocumentDto(document),
+        ),
+      })
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async findOne(id: number): Promise<ApiResponse<ResponseDocumentDto>> {
+  async findOne(id: number) {
     try {
       const document = await this.documentsRepository.findOne({
         where: { id },
@@ -266,16 +258,13 @@ export class DocumentsService {
 
       const newDocument = new ResponseDocumentDto(document)
 
-      return {
-        message: 'Documento encontrado',
-        data: newDocument,
-      }
+      return new ApiResponseDto('Documento encontrado', newDocument)
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async remove(id: number): Promise<ApiResponse> {
+  async remove(id: number) {
     try {
       const document = await this.documentsRepository.findOne({
         where: { id },
@@ -298,15 +287,14 @@ export class DocumentsService {
 
       const isDeleted = await this.documentsRepository.delete(document.id)
 
-      return {
-        message:
-          isDeleted.affected > 0
-            ? 'Documento eliminado'
-            : 'Error al eliminar el documento',
-        data: {
+      return new ApiResponseDto(
+        isDeleted.affected > 0
+          ? 'Documento eliminado'
+          : 'Error al eliminar el documento',
+        {
           success: isDeleted.affected > 0,
         },
-      }
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }

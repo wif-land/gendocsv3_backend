@@ -11,7 +11,7 @@ import { TemplateProcess } from './entities/template-processes.entity'
 import { FilesService } from '../files/files.service'
 import { ProcessEntity } from '../processes/entities/process.entity'
 import { ResponseTemplateDto } from './dto/response-template.dto'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class TemplatesService {
@@ -23,9 +23,7 @@ export class TemplatesService {
 
     private readonly dataSource: DataSource,
   ) {}
-  async create(
-    createTemplateDto: CreateTemplateDto,
-  ): Promise<ApiResponse<ResponseTemplateDto>> {
+  async create(createTemplateDto: CreateTemplateDto) {
     try {
       const template = this.templateRepository.create({
         ...createTemplateDto,
@@ -51,16 +49,16 @@ export class TemplatesService {
 
       const savedTemplate = await this.templateRepository.save(template)
 
-      return {
-        message: 'Plantilla creada correctamente',
-        data: new ResponseTemplateDto(savedTemplate),
-      }
+      return new ApiResponseDto(
+        'Plantilla creada correctamente',
+        new ResponseTemplateDto(savedTemplate),
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async findAll(): Promise<ApiResponse<ResponseTemplateDto[]>> {
+  async findAll() {
     try {
       const qb = this.dataSource
         .createQueryBuilder(TemplateProcess, 'template')
@@ -77,21 +75,13 @@ export class TemplatesService {
         (template) => new ResponseTemplateDto(template),
       )
 
-      return {
-        message: 'Plantillas encontradas',
-        data: responseTemplates,
-      }
+      return new ApiResponseDto('Plantillas encontradas', responseTemplates)
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async findByProcessId(processId: number): Promise<
-    ApiResponse<{
-      count: number
-      templates: ResponseTemplateDto[]
-    }>
-  > {
+  async findByProcessId(processId: number) {
     const qb = this.dataSource
       .createQueryBuilder(TemplateProcess, 'template')
       .leftJoinAndSelect('template.user', 'user')
@@ -108,21 +98,13 @@ export class TemplatesService {
       (template) => new ResponseTemplateDto(template),
     )
 
-    return {
-      message: 'Plantillas encontradas',
-      data: { count: responseTemplates.length, templates: responseTemplates },
-    }
+    return new ApiResponseDto('Plantillas encontradas', {
+      count: responseTemplates.length,
+      templates: responseTemplates,
+    })
   }
 
-  async findByProcessAndField(
-    processId: number,
-    field: string,
-  ): Promise<
-    ApiResponse<{
-      count: number
-      templates: ResponseTemplateDto[]
-    }>
-  > {
+  async findByProcessAndField(processId: number, field: string) {
     const qb = this.dataSource
       .createQueryBuilder(TemplateProcess, 'template')
       .leftJoinAndSelect('template.user', 'user')
@@ -146,13 +128,13 @@ export class TemplatesService {
       (template) => new ResponseTemplateDto(template),
     )
 
-    return {
-      message: 'Plantillas encontradas',
-      data: { count: responseTemplates.length, templates: responseTemplates },
-    }
+    return new ApiResponseDto('Plantillas encontradas', {
+      count: responseTemplates.length,
+      templates: responseTemplates,
+    })
   }
 
-  async findOne(id: number): Promise<ApiResponse<ResponseTemplateDto>> {
+  async findOne(id: number) {
     const qb = this.dataSource
       .createQueryBuilder(TemplateProcess, 'template')
       .leftJoinAndSelect('template.user', 'user')
@@ -165,16 +147,13 @@ export class TemplatesService {
       throw new BadRequestException('Template not found')
     }
 
-    return {
-      message: 'Plantilla encontrada',
-      data: new ResponseTemplateDto(template),
-    }
+    return new ApiResponseDto(
+      'Plantilla encontrada',
+      new ResponseTemplateDto(template),
+    )
   }
 
-  async update(
-    id: number,
-    updateTemplateDto: UpdateTemplateDto,
-  ): Promise<ApiResponse<ResponseTemplateDto>> {
+  async update(id: number, updateTemplateDto: UpdateTemplateDto) {
     try {
       const qb = this.dataSource
         .createQueryBuilder(TemplateProcess, 'template')
@@ -230,27 +209,24 @@ export class TemplatesService {
 
       const savedTemplate = await this.templateRepository.save(updatedTemplate)
 
-      return {
-        message: 'Plantilla actualizada correctamente',
-        data: new ResponseTemplateDto(savedTemplate),
-      }
+      return new ApiResponseDto(
+        'Plantilla actualizada correctamente',
+        new ResponseTemplateDto(savedTemplate),
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async remove(id: number): Promise<ApiResponse> {
+  async remove(id: number) {
     const { data: template } = await this.findOne(id)
 
     template.isActive = false
 
     await this.templateRepository.save(template)
 
-    return {
-      message: 'Plantilla eliminada correctamente',
-      data: {
-        success: true,
-      },
-    }
+    return new ApiResponseDto('Plantilla eliminada correctamente', {
+      success: true,
+    })
   }
 }

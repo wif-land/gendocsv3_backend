@@ -3,7 +3,7 @@ import { CreateSubmoduleDto } from './dto/create-submodule.dto'
 import { SubmoduleEntity } from './entities/submodule.entity'
 import { Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class SubmodulesService {
@@ -12,9 +12,7 @@ export class SubmodulesService {
     private SubmodulesRepository: Repository<SubmoduleEntity>,
   ) {}
 
-  async create(
-    createSubmoduleDto: CreateSubmoduleDto,
-  ): Promise<ApiResponse<SubmoduleEntity>> {
+  async create(createSubmoduleDto: CreateSubmoduleDto) {
     try {
       const submodule = this.SubmodulesRepository.create(createSubmoduleDto)
 
@@ -24,16 +22,13 @@ export class SubmodulesService {
 
       const newSubmodule = await this.SubmodulesRepository.save(submodule)
 
-      return {
-        message: 'Submodulo creado correctamente',
-        data: newSubmodule,
-      }
+      return new ApiResponseDto('Submodulo creado correctamente', newSubmodule)
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(): Promise<ApiResponse<SubmoduleEntity[]>> {
+  async findAll() {
     try {
       const submodules = await this.SubmodulesRepository.find()
 
@@ -41,16 +36,13 @@ export class SubmodulesService {
         throw new HttpException('Submodules not found', HttpStatus.NOT_FOUND)
       }
 
-      return {
-        message: 'Submodulos encontrados',
-        data: submodules,
-      }
+      return new ApiResponseDto('Submodulos encontrados', submodules)
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findOne(id: number): Promise<ApiResponse<SubmoduleEntity>> {
+  async findOne(id: number) {
     try {
       const submodule = await this.SubmodulesRepository.findOne({
         where: {
@@ -62,16 +54,13 @@ export class SubmodulesService {
         throw new HttpException('Submodule not found', HttpStatus.NOT_FOUND)
       }
 
-      return {
-        message: 'Submodulo encontrado',
-        data: submodule,
-      }
+      return new ApiResponseDto('Submodulo encontrado', submodule)
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async remove(id: number): Promise<ApiResponse> {
+  async remove(id: number) {
     try {
       const submodule = await this.SubmodulesRepository.findOne({
         where: {
@@ -85,12 +74,9 @@ export class SubmodulesService {
 
       await this.SubmodulesRepository.remove(submodule)
 
-      return {
-        message: 'Submodulo eliminado correctamente',
-        data: {
-          success: true,
-        },
-      }
+      return new ApiResponseDto('Submodulo eliminado correctamente', {
+        success: true,
+      })
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

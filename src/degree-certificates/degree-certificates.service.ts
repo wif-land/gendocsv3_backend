@@ -19,7 +19,7 @@ import { UpdateRoomDto } from './dto/update-room.dto'
 import { DegreeCertificateEntity } from './entities/degree-certificate.entity'
 import { CreateDegreeCertificateDto } from './dto/create-degree-certificate.dto'
 import { UpdateDegreeCertificateDto } from './dto/update-degree-certificate.dto'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -40,18 +40,16 @@ export class DegreeCertificatesService {
     private readonly roomRepository: Repository<RoomEntity>,
   ) {}
 
-  async findAll(): Promise<ApiResponse<DegreeCertificateEntity[]>> {
+  async findAll() {
     const degreeCertificates = await this.degreeCertificateRepository.find()
 
-    return {
-      message: 'Listado de certificados obtenido exitosamente',
-      data: degreeCertificates,
-    }
+    return new ApiResponseDto(
+      'Listado de certificados obtenido exitosamente',
+      degreeCertificates,
+    )
   }
 
-  async create(
-    dto: CreateDegreeCertificateDto,
-  ): Promise<ApiResponse<DegreeCertificateEntity>> {
+  async create(dto: CreateDegreeCertificateDto) {
     if (this.degreeCertificateRepository.findOneBy({ number: dto.number })) {
       throw new DegreeCertificateAlreadyExist(
         `El certificado con número ${dto.number} ya existe`,
@@ -78,16 +76,13 @@ export class DegreeCertificatesService {
       degreeCertificate,
     )
 
-    return {
-      message: 'Certificado creado correctamente',
-      data: newCertificate,
-    }
+    return new ApiResponseDto(
+      'Certificado creado correctamente',
+      newCertificate,
+    )
   }
 
-  async update(
-    id: number,
-    dto: UpdateDegreeCertificateDto,
-  ): Promise<ApiResponse<DegreeCertificateEntity>> {
+  async update(id: number, dto: UpdateDegreeCertificateDto) {
     const degreeCertificate = await this.degreeCertificateRepository.preload({
       id,
       student: { id: dto.studentId },
@@ -109,26 +104,22 @@ export class DegreeCertificatesService {
       degreeCertificate,
     )
 
-    return {
-      message: 'Certificado actualizado correctamente',
-      data: certificateUpdated,
-    }
+    return new ApiResponseDto(
+      'Certificado actualizado correctamente',
+      certificateUpdated,
+    )
   }
 
-  async findAllCertificateStatus(): Promise<
-    ApiResponse<CertificateStatusEntity[]>
-  > {
+  async findAllCertificateStatus() {
     const certificateStatus = await this.certificateStatusRepository.find()
 
-    return {
-      message: 'Listado de estados de certificado obtenido exitosamente',
-      data: certificateStatus,
-    }
+    return new ApiResponseDto(
+      'Listado de estados de certificado obtenido exitosamente',
+      certificateStatus,
+    )
   }
 
-  async createCertificateStatus(
-    dto: CreateCertificateStatusDto,
-  ): Promise<ApiResponse<CertificateStatusEntity>> {
+  async createCertificateStatus(dto: CreateCertificateStatusDto) {
     if (
       this.certificateStatusRepository.findOneBy({
         code: dto.code,
@@ -151,16 +142,16 @@ export class DegreeCertificatesService {
       certificateStatus,
     )
 
-    return {
-      message: 'Estado de certificado creado correctamente',
-      data: newCertificateStatus,
-    }
+    return new ApiResponseDto(
+      'Estado de certificado creado correctamente',
+      newCertificateStatus,
+    )
   }
 
   async updateCertificateStatus(
     id: number,
     updateCertificateStatusDto: UpdateCertificateStatusDto,
-  ): Promise<ApiResponse<CertificateStatusEntity>> {
+  ) {
     const certificateStatus = await this.certificateStatusRepository.preload({
       id,
       ...updateCertificateStatusDto,
@@ -175,13 +166,13 @@ export class DegreeCertificatesService {
     const certificateStatusUpdated =
       await this.certificateStatusRepository.save(certificateStatus)
 
-    return {
-      message: 'Estado de certificado actualizado correctamente',
-      data: certificateStatusUpdated,
-    }
+    return new ApiResponseDto(
+      'Estado de certificado actualizado correctamente',
+      certificateStatusUpdated,
+    )
   }
 
-  async deleteCertificateStatus(id: number): Promise<ApiResponse> {
+  async deleteCertificateStatus(id: number) {
     const certificateStatus = this.certificateStatusRepository.findOneBy({ id })
 
     if (!certificateStatus) {
@@ -195,26 +186,21 @@ export class DegreeCertificatesService {
       isActive: false,
     })
 
-    return {
-      message: 'Estado de certificado eliminado correctamente',
-      data: { success: true },
-    }
+    return new ApiResponseDto('Estado de certificado eliminado correctamente', {
+      success: true,
+    })
   }
 
-  async findAllCertificateTypes(): Promise<
-    ApiResponse<CertificateTypeEntity[]>
-  > {
+  async findAllCertificateTypes() {
     const certificateTypes = await this.certificateTypeRepository.find()
 
-    return {
-      message: 'Listado de tipos de certificado obtenido exitosamente',
-      data: certificateTypes,
-    }
+    return new ApiResponseDto(
+      'Listado de tipos de certificado obtenido exitosamente',
+      certificateTypes,
+    )
   }
 
-  async createCertificateType(
-    dto: CreateCertificateTypeDto,
-  ): Promise<ApiResponse<CertificateTypeEntity>> {
+  async createCertificateType(dto: CreateCertificateTypeDto) {
     if (
       this.certificateTypeRepository.findOneBy({
         code: dto.code,
@@ -237,16 +223,16 @@ export class DegreeCertificatesService {
       certificateType,
     )
 
-    return {
-      message: 'Tipo de certificado creado correctamente',
-      data: newCertificateType,
-    }
+    return new ApiResponseDto(
+      'Tipo de certificado creado correctamente',
+      newCertificateType,
+    )
   }
 
   async updateCertificateType(
     id: number,
     updateCertificateTypeDto: UpdateCertificateTypeDto,
-  ): Promise<ApiResponse<CertificateTypeEntity>> {
+  ) {
     const certificateType = await this.certificateTypeRepository.preload({
       id,
       ...updateCertificateTypeDto,
@@ -262,13 +248,13 @@ export class DegreeCertificatesService {
       certificateType,
     )
 
-    return {
-      message: 'Tipo de certificado actualizado correctamente',
-      data: certificateTypeUpdated,
-    }
+    return new ApiResponseDto(
+      'Tipo de certificado actualizado correctamente',
+      certificateTypeUpdated,
+    )
   }
 
-  async deleteCertificateType(id: number): Promise<ApiResponse> {
+  async deleteCertificateType(id: number) {
     const certificateType = this.certificateTypeRepository.findOneBy({ id })
 
     if (!certificateType) {
@@ -282,26 +268,21 @@ export class DegreeCertificatesService {
       isActive: false,
     })
 
-    return {
-      message: 'Tipo de certificado eliminado correctamente',
-      data: { success: true },
-    }
+    return new ApiResponseDto('Tipo de certificado eliminado correctamente', {
+      success: true,
+    })
   }
 
-  async findAllDegreeModalities(): Promise<
-    ApiResponse<DegreeModalityEntity[]>
-  > {
+  async findAllDegreeModalities() {
     const degreeModalities = await this.degreeModalityRepository.find()
 
-    return {
-      message: 'Listado de modalidades de grado obtenido exitosamente',
-      data: degreeModalities,
-    }
+    return new ApiResponseDto(
+      'Listado de modalidades de grado obtenido exitosamente',
+      degreeModalities,
+    )
   }
 
-  async createDegreeModality(
-    dto: CreateDegreeModalityDto,
-  ): Promise<ApiResponse<DegreeModalityEntity>> {
+  async createDegreeModality(dto: CreateDegreeModalityDto) {
     if (
       this.degreeModalityRepository.findOneBy({
         code: dto.code,
@@ -324,16 +305,13 @@ export class DegreeCertificatesService {
       degreeModality,
     )
 
-    return {
-      message: 'Modalidad de grado creada correctamente',
-      data: newDegreeModality,
-    }
+    return new ApiResponseDto(
+      'Modalidad de grado creada correctamente',
+      newDegreeModality,
+    )
   }
 
-  async updateDegreeModality(
-    id: number,
-    dto: UpdateDegreeModalityDto,
-  ): Promise<ApiResponse<DegreeModalityEntity>> {
+  async updateDegreeModality(id: number, dto: UpdateDegreeModalityDto) {
     const degreeModality = await this.degreeModalityRepository.preload({
       id,
       ...dto,
@@ -349,13 +327,13 @@ export class DegreeCertificatesService {
       degreeModality,
     )
 
-    return {
-      message: 'Modalidad de grado actualizada correctamente',
-      data: degreeModalityUpdated,
-    }
+    return new ApiResponseDto(
+      'Modalidad de grado actualizada correctamente',
+      degreeModalityUpdated,
+    )
   }
 
-  async deleteDegreeModality(id: number): Promise<ApiResponse> {
+  async deleteDegreeModality(id: number) {
     const degreeModality = this.degreeModalityRepository.findOneBy({ id })
 
     if (!degreeModality) {
@@ -369,22 +347,18 @@ export class DegreeCertificatesService {
       isActive: false,
     })
 
-    return {
-      message: 'Modalidad de grado eliminada correctamente',
-      data: { success: true },
-    }
+    return new ApiResponseDto('Modalidad de grado eliminada correctamente', {
+      success: true,
+    })
   }
 
-  async findAllRooms(): Promise<ApiResponse<RoomEntity[]>> {
+  async findAllRooms() {
     const rooms = await this.roomRepository.find()
 
-    return {
-      message: 'Listado de salones obtenido exitosamente',
-      data: rooms,
-    }
+    return new ApiResponseDto('Listado de salones obtenido exitosamente', rooms)
   }
 
-  async createRoom(dto: CreateRoomDto): Promise<ApiResponse<RoomEntity>> {
+  async createRoom(dto: CreateRoomDto) {
     if (
       this.roomRepository.findOneBy({
         name: dto.name,
@@ -405,16 +379,10 @@ export class DegreeCertificatesService {
 
     const newRoom = await this.roomRepository.save(room)
 
-    return {
-      message: 'Salón creado correctamente',
-      data: newRoom,
-    }
+    return new ApiResponseDto('Salón creado correctamente', newRoom)
   }
 
-  async updateRoom(
-    id: number,
-    dto: UpdateRoomDto,
-  ): Promise<ApiResponse<RoomEntity>> {
+  async updateRoom(id: number, dto: UpdateRoomDto) {
     const room = await this.roomRepository.preload({
       id,
       ...dto,
@@ -428,13 +396,10 @@ export class DegreeCertificatesService {
 
     const roomUpdated = await this.roomRepository.save(room)
 
-    return {
-      message: 'Salón actualizado correctamente',
-      data: roomUpdated,
-    }
+    return new ApiResponseDto('Salón actualizado correctamente', roomUpdated)
   }
 
-  async deleteRoom(id: number): Promise<ApiResponse> {
+  async deleteRoom(id: number) {
     const room = this.roomRepository.findOneBy({ id })
 
     if (!room) {
@@ -448,9 +413,8 @@ export class DegreeCertificatesService {
       isActive: false,
     })
 
-    return {
-      message: 'Salón eliminado correctamente',
-      data: { success: true },
-    }
+    return new ApiResponseDto('Salón eliminado correctamente', {
+      success: true,
+    })
   }
 }
