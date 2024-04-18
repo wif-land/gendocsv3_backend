@@ -13,7 +13,7 @@ import { JwtService } from '@nestjs/jwt'
 import { UserAccessModulesService } from '../users-access-modules/users-access-modules.service'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UserFiltersDto } from './dto/user-filters.dto'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class UsersService {
@@ -27,7 +27,7 @@ export class UsersService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getByEmail(email: string): Promise<ApiResponse<UserEntity>> {
+  async getByEmail(email: string) {
     try {
       const user = await this.userRepository.findOne({
         where: {
@@ -43,16 +43,13 @@ export class UsersService {
         )
       }
 
-      return {
-        message: 'Usuario encontrado',
-        data: user,
-      }
+      return new ApiResponseDto('Usuario encontrado', user)
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async create(user: CreateUserDTO): Promise<ApiResponse<unknown>> {
+  async create(user: CreateUserDTO) {
     try {
       const password = await this.generateSaltPassword(user.password)
 
@@ -101,22 +98,16 @@ export class UsersService {
         )
       }
 
-      return {
-        message: 'Usuario creado correctamente',
-        data: {
-          ...userSaved,
-          accessModules: userSaved.accessModules.map((module) => module.id),
-        },
-      }
+      return new ApiResponseDto('Usuario creado correctamente', {
+        ...userSaved,
+        accessModules: userSaved.accessModules.map((module) => module.id),
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async update(
-    id: number,
-    user: Partial<CreateUserDTO>,
-  ): Promise<ApiResponse<unknown>> {
+  async update(id: number, user: Partial<CreateUserDTO>) {
     try {
       let userToUpdate = user
       let password = ''
@@ -198,22 +189,19 @@ export class UsersService {
         accessModules: user.accessModules,
       }
 
-      return {
-        message: 'Usuario actualizado',
-        data: {
-          user: {
-            ...userUpdated,
-            accessModules: userUpdated.accessModules.map((module) => module.id),
-          },
-          accessToken: this.jwtService.sign(payload),
+      return new ApiResponseDto('Usuario actualizado', {
+        user: {
+          ...userUpdated,
+          accessModules: userUpdated.accessModules.map((module) => module.id),
         },
-      }
+        accessToken: this.jwtService.sign(payload),
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async delete(id: number): Promise<ApiResponse> {
+  async delete(id: number) {
     try {
       await this.userRepository.update(
         {
@@ -224,18 +212,15 @@ export class UsersService {
         },
       )
 
-      return {
-        message: 'Usuario eliminado',
-        data: {
-          success: true,
-        },
-      }
+      return new ApiResponseDto('Usuario eliminado', {
+        success: true,
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<ApiResponse<unknown>> {
+  async findAll(paginationDto: PaginationDto) {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDto
     try {
@@ -269,21 +254,16 @@ export class UsersService {
 
       const count = await this.userRepository.count()
 
-      return {
-        message: 'Usuarios encontrados',
-        data: { count, users: usersFound },
-      }
+      return new ApiResponseDto('Usuarios encontrados', {
+        count,
+        users: usersFound,
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findByFilters(filters: UserFiltersDto): Promise<
-    ApiResponse<{
-      count: number
-      users: UserEntity[]
-    }>
-  > {
+  async findByFilters(filters: UserFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = filters
 
@@ -312,16 +292,13 @@ export class UsersService {
       .skip(offset)
       .getMany()
 
-    return {
-      message: 'Usuarios encontrados',
-      data: {
-        count,
-        users,
-      },
-    }
+    return new ApiResponseDto('Usuarios encontrados', {
+      count,
+      users,
+    })
   }
 
-  private async generateSaltPassword(password: string): Promise<string> {
+  private async generateSaltPassword(password: string) {
     const ROUNDS = 10
     const SALT = await genSalt(ROUNDS)
 

@@ -5,8 +5,8 @@ import { ModuleEntity } from './entities/modules.entity'
 import { CreateModuleDTO } from './dto/create-module.dto'
 import { GcpService } from '../gcp/gcp.service'
 import { YearModuleService } from '../year-module/year-module.service'
-import { ApiResponse } from '../shared/interfaces/response.interface'
 import { ModulesNotFound } from './errors/module-not-found'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class ModulesService {
@@ -29,9 +29,11 @@ export class ModulesService {
         'modules.errors.ModulesNotFoundError',
       )
     }
+
+    return module
   }
 
-  async create(module: CreateModuleDTO): Promise<ApiResponse<ModuleEntity>> {
+  async create(module: CreateModuleDTO): Promise<ApiResponseDto<ModuleEntity>> {
     try {
       const findModule = await this.moduleRepository.findOne({
         where: {
@@ -45,16 +47,13 @@ export class ModulesService {
 
       const newModule = await this.moduleRepository.create(module).save()
 
-      return {
-        message: 'Módulo creado exitosamente',
-        data: newModule,
-      }
+      return new ApiResponseDto('Módulo creado exitosamente', newModule)
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(): Promise<ApiResponse<ModuleEntity[]>> {
+  async findAll() {
     try {
       const modules = await this.moduleRepository.find({
         where: {
@@ -66,16 +65,13 @@ export class ModulesService {
         throw new HttpException('Modules not found', HttpStatus.NOT_FOUND)
       }
 
-      return {
-        message: 'Módulos encontrados exitosamente',
-        data: modules,
-      }
+      return new ApiResponseDto('Módulos encontrados exitosamente', modules)
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async setFolders(): Promise<ApiResponse> {
+  async setFolders() {
     try {
       const modules = await this.moduleRepository.find({
         where: {
@@ -119,13 +115,12 @@ export class ModulesService {
         }
       }
 
-      return {
-        message:
-          'Carpetas creadas exitosamente para los módulos con documentos',
-        data: {
+      return new ApiResponseDto(
+        'Carpetas creadas exitosamente para los módulos con documentos',
+        {
           success: true,
         },
-      }
+      )
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

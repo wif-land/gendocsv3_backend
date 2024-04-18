@@ -4,7 +4,7 @@ import { UserAccessModuleEntity } from './entities/user-access-module.entity'
 import { DataSource, Repository } from 'typeorm'
 import { CreateUserAccessModuleDto } from './dto/create-user-access-module.dto'
 import { ModuleEntity } from '../modules/entities/modules.entity'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class UserAccessModulesService {
@@ -15,12 +15,7 @@ export class UserAccessModulesService {
     private dataSource: DataSource,
   ) {}
 
-  async create(createUserAccessModuleDto: CreateUserAccessModuleDto): Promise<
-    ApiResponse<{
-      userAccessModules: UserAccessModuleEntity[]
-      modules: ModuleEntity[]
-    }>
-  > {
+  async create(createUserAccessModuleDto: CreateUserAccessModuleDto) {
     try {
       const { userId, modulesIds } = createUserAccessModuleDto
 
@@ -64,24 +59,16 @@ export class UserAccessModulesService {
         userAccessModules.push(userAccessModule)
       }
 
-      return {
-        message: 'Acceso a usuarios creado correctamente',
-        data: {
-          userAccessModules,
-          modules,
-        },
-      }
+      return new ApiResponseDto('Acceso a usuarios creado correctamente', {
+        userAccessModules,
+        modules,
+      })
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async update(createUserAccessModuleDto: CreateUserAccessModuleDto): Promise<
-    ApiResponse<{
-      userAccessModules: UserAccessModuleEntity[]
-      modules: ModuleEntity[]
-    }>
-  > {
+  async update(createUserAccessModuleDto: CreateUserAccessModuleDto) {
     const { userId, modulesIds } = createUserAccessModuleDto
     const modules: ModuleEntity[] = []
 
@@ -140,19 +127,16 @@ export class UserAccessModulesService {
         userAccessModules.push(userAccessModule)
       }
 
-      return {
-        message: 'Acceso a usuarios actualizado correctamente',
-        data: {
-          userAccessModules,
-          modules,
-        },
-      }
+      return new ApiResponseDto('Acceso a usuarios actualizado correctamente', {
+        userAccessModules,
+        modules,
+      })
     } catch (e) {
       new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findAll(): Promise<ApiResponse<UserAccessModuleEntity[]>> {
+  async findAll() {
     try {
       const userAccessModules = await this.userAccessModulesRepository.find()
 
@@ -163,18 +147,16 @@ export class UserAccessModulesService {
         )
       }
 
-      return {
-        message: 'Lista de accesos a usuarios',
-        data: userAccessModules,
-      }
+      return new ApiResponseDto(
+        'Lista de accesos a usuarios',
+        userAccessModules,
+      )
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findModulesByUserId(
-    userId: string,
-  ): Promise<ApiResponse<ModuleEntity[]>> {
+  async findModulesByUserId(userId: string) {
     try {
       const userAccessModules = await this.dataSource
         .createQueryBuilder()
@@ -191,16 +173,16 @@ export class UserAccessModulesService {
         )
       }
 
-      return {
-        message: 'Listado de modulos por usuario',
-        data: userAccessModules,
-      }
+      return new ApiResponseDto(
+        'Listado de modulos por usuario',
+        userAccessModules,
+      )
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async remove(userId: number, moduleId: number): Promise<ApiResponse> {
+  async remove(userId: number, moduleId: number) {
     try {
       const userAccessModule = await this.userAccessModulesRepository.findOne({
         where: {
@@ -218,18 +200,15 @@ export class UserAccessModulesService {
 
       await this.userAccessModulesRepository.remove(userAccessModule)
 
-      return {
-        message: 'Acceso a usuario eliminado correctamente',
-        data: {
-          success: true,
-        },
-      }
+      return new ApiResponseDto('Acceso a usuario eliminado correctamente', {
+        success: true,
+      })
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async removeByUserId(userId: string): Promise<ApiResponse> {
+  async removeByUserId(userId: string) {
     try {
       const qb = this.dataSource.createQueryBuilder()
       await qb
@@ -238,12 +217,9 @@ export class UserAccessModulesService {
         .where('userId = :userId', { userId })
         .execute()
 
-      return {
-        message: 'Accesos a usuario eliminados correctamente',
-        data: {
-          success: true,
-        },
-      }
+      return new ApiResponseDto('Accesos a usuario eliminados correctamente', {
+        success: true,
+      })
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

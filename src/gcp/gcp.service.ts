@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { GoogleAuth } from 'google-auth-library'
 import { docs, docs_v1 } from '@googleapis/docs'
 import { drive, drive_v3 } from '@googleapis/drive'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class GcpService {
@@ -30,7 +30,7 @@ export class GcpService {
     })
   }
 
-  async createDocument(title: string): Promise<ApiResponse<string>> {
+  async createDocument(title: string) {
     const { data } = await this.drive.files.create({
       requestBody: {
         name: title,
@@ -39,16 +39,10 @@ export class GcpService {
       },
     })
 
-    return {
-      message: 'Documento creado con éxito',
-      data: data.id,
-    }
+    return new ApiResponseDto('Documento creado con éxito', data.id)
   }
 
-  async createDocumentByParentId(
-    title: string,
-    parentId: string,
-  ): Promise<ApiResponse<string>> {
+  async createDocumentByParentId(title: string, parentId: string) {
     const { data } = await this.drive.files.create({
       requestBody: {
         name: title,
@@ -57,17 +51,14 @@ export class GcpService {
       },
     })
 
-    return {
-      message: 'Subdocumento creado con éxito',
-      data: data.id,
-    }
+    return new ApiResponseDto('Subdocumento creado con éxito', data.id)
   }
 
   async createDocumentByParentIdAndCopy(
     title: string,
     parentId: string,
     documentId: string,
-  ): Promise<ApiResponse<string>> {
+  ) {
     const { data } = await this.drive.files.copy({
       fileId: documentId,
       requestBody: {
@@ -75,16 +66,13 @@ export class GcpService {
         parents: [parentId],
       },
     })
-    return {
-      message: 'Subdocumento creado y copiado con éxito',
-      data: data.id,
-    }
+    return new ApiResponseDto(
+      'Subdocumento creado y copiado con éxito',
+      data.id,
+    )
   }
 
-  async renameAsset(
-    assetId: string,
-    title: string,
-  ): Promise<ApiResponse<string>> {
+  async renameAsset(assetId: string, title: string) {
     const { data } = await this.drive.files.update({
       fileId: assetId,
       requestBody: {
@@ -92,29 +80,20 @@ export class GcpService {
       },
     })
 
-    return {
-      message: 'Documento renombrado con éxito',
-      data: data.id,
-    }
+    return new ApiResponseDto('Documento renombrado con éxito', data.id)
   }
 
-  async moveAsset(
-    assetId: string,
-    parentId: string,
-  ): Promise<ApiResponse<string>> {
+  async moveAsset(assetId: string, parentId: string) {
     const { data } = await this.drive.files.update({
       fileId: assetId,
       addParents: parentId,
       removeParents: this.configService.get('gcp.rootDriveFolderId'),
     })
 
-    return {
-      message: 'Documento movido con éxito',
-      data: data.id,
-    }
+    return new ApiResponseDto('Documento movido con éxito', data.id)
   }
 
-  async createFolder(title: string): Promise<ApiResponse<string>> {
+  async createFolder(title: string) {
     const { data } = await this.drive.files.create({
       requestBody: {
         name: title,
@@ -123,16 +102,10 @@ export class GcpService {
       },
     })
 
-    return {
-      message: 'Carpeta creada con éxito',
-      data: data.id,
-    }
+    return new ApiResponseDto('Carpeta creada con éxito', data.id)
   }
 
-  async createFolderByParentId(
-    title: string,
-    parentId: string,
-  ): Promise<ApiResponse<string>> {
+  async createFolderByParentId(title: string, parentId: string) {
     const { data } = await this.drive.files.create({
       requestBody: {
         name: title,
@@ -141,16 +114,10 @@ export class GcpService {
       },
     })
 
-    return {
-      message: 'Subcarpeta creada con éxito',
-      data: data.id,
-    }
+    return new ApiResponseDto('Subcarpeta creada con éxito', data.id)
   }
 
-  async replaceTextOnDocument(
-    data: object,
-    documentId: string,
-  ): Promise<ApiResponse> {
+  async replaceTextOnDocument(data: object, documentId: string) {
     try {
       const requests = Object.keys(data).map((key) => ({
         replaceAllText: {
@@ -169,29 +136,23 @@ export class GcpService {
         },
       })
 
-      return {
-        message: 'Texto reemplazado con éxito',
-        data: {
-          success: true,
-        },
-      }
+      return new ApiResponseDto('Texto reemplazado con éxito', {
+        success: true,
+      })
     } catch (error) {
       throw new Error(error.message)
     }
   }
 
-  async remove(assetId: string): Promise<ApiResponse> {
+  async remove(assetId: string) {
     try {
       await this.drive.files.delete({
         fileId: assetId,
       })
 
-      return {
-        message: 'Documento eliminado con éxito',
-        data: {
-          success: true,
-        },
-      }
+      return new ApiResponseDto('Documento eliminado con éxito', {
+        success: true,
+      })
     } catch (error) {
       throw new Error(error.message)
     }

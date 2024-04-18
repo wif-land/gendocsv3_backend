@@ -10,7 +10,7 @@ import { ProvinceAlreadyExistsError } from './errors/province-already-exists'
 import { CityAlreadyExists } from './errors/city-already-exists'
 import { CityNotFoundError } from './errors/city-not-found'
 import { ProvinceNotFoundError } from './errors/province-not-found'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class CitiesService {
@@ -21,9 +21,7 @@ export class CitiesService {
     private readonly provinceRepository: Repository<ProvinceEntity>,
   ) {}
 
-  async createProvince(
-    createProvinceDto: CreateProvinceDto,
-  ): Promise<ApiResponse<ProvinceEntity>> {
+  async createProvince(createProvinceDto: CreateProvinceDto) {
     const alreadyExist = await this.provinceRepository.findOneBy({
       name: createProvinceDto.name,
     })
@@ -42,15 +40,10 @@ export class CitiesService {
       throw new ProvinceAlreadyExistsError('Error al crear la provincia') // Change this and create an error class
     }
 
-    return {
-      message: 'Provincia creada con éxito',
-      data: newProvince,
-    }
+    return new ApiResponseDto('Provincia creada con éxito', newProvince)
   }
 
-  async createCity(
-    createCityDto: CreateCityDto,
-  ): Promise<ApiResponse<CityEntity>> {
+  async createCity(createCityDto: CreateCityDto) {
     const province = await this.provinceRepository.findOne({
       where: { id: createCityDto.provinceId },
     })
@@ -83,33 +76,22 @@ export class CitiesService {
       throw new CityNotFoundError('Error al crear una ciudad') // Change this and create an error class
     }
 
-    return {
-      message: 'Ciudad creada con éxito',
-      data: newCity,
-    }
+    return new ApiResponseDto('Ciudad creada con éxito', newCity)
   }
 
-  async findAllCities(): Promise<ApiResponse<CityEntity[]>> {
+  async findAllCities() {
     const cities = await this.cityRepository.find()
 
-    return {
-      message: 'Ciudades encontradas',
-      data: cities,
-    }
+    return new ApiResponseDto('Ciudades encontradas', cities)
   }
 
-  async findAllProvinces(): Promise<ApiResponse<ProvinceEntity[]>> {
+  async findAllProvinces() {
     const provinces = await this.provinceRepository.find()
 
-    return {
-      message: 'Provincias encontradas',
-      data: provinces,
-    }
+    return new ApiResponseDto('Provincias encontradas', provinces)
   }
 
-  async findCitiesByProvince(
-    provinceId: number,
-  ): Promise<ApiResponse<CityEntity[]>> {
+  async findCitiesByProvince(provinceId: number) {
     const province = await this.provinceRepository.findOne({
       where: { id: provinceId },
     })
@@ -130,29 +112,23 @@ export class CitiesService {
       )
     }
 
-    return {
-      message: `Ciudades encontradas para la provincia ${province.name}`,
-      data: cities,
-    }
+    return new ApiResponseDto(
+      `Ciudades encontradas para la provincia ${province.name}`,
+      cities,
+    )
   }
 
-  async findOneCity(id: number): Promise<ApiResponse<CityEntity>> {
+  async findOneCity(id: number) {
     const city = await this.cityRepository.findOne({ where: { id } })
 
     if (!city) {
       throw new CityNotFoundError(`Ciudad con id ${id} no existe`)
     }
 
-    return {
-      message: 'Ciudad encontrada',
-      data: city,
-    }
+    return new ApiResponseDto('Ciudad encontrada', city)
   }
 
-  async updateCity(
-    id: number,
-    updateCityDto: UpdateCityDto,
-  ): Promise<ApiResponse<CityEntity>> {
+  async updateCity(id: number, updateCityDto: UpdateCityDto) {
     const province = await this.provinceRepository.findOne({
       where: { id: updateCityDto.provinceId },
     })
@@ -174,16 +150,10 @@ export class CitiesService {
       throw new CityNotFoundError('Ciudad no encontrada')
     }
 
-    return {
-      message: 'Ciudad actualizada con éxito',
-      data: newCity,
-    }
+    return new ApiResponseDto('Ciudad actualizada con éxito', newCity)
   }
 
-  async updateProvince(
-    id: number,
-    updateProvinceDto: CreateProvinceDto,
-  ): Promise<ApiResponse<ProvinceEntity>> {
+  async updateProvince(id: number, updateProvinceDto: CreateProvinceDto) {
     const province = await this.provinceRepository.preload({
       ...updateProvinceDto,
       id,
@@ -195,9 +165,9 @@ export class CitiesService {
 
     const provinceUpdated = await this.provinceRepository.save(province)
 
-    return {
-      message: 'Provincia actualizada con éxito',
-      data: provinceUpdated,
-    }
+    return new ApiResponseDto(
+      'Provincia actualizada con éxito',
+      provinceUpdated,
+    )
   }
 }

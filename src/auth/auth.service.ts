@@ -4,7 +4,7 @@ import { UserEntity } from '../users/entities/users.entity'
 import { JwtService } from '@nestjs/jwt'
 import { compareSync } from 'bcrypt'
 import { ModuleEntity } from '../modules/entities/modules.entity'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class AuthService {
@@ -13,7 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(email: string, password: string): Promise<ApiResponse<string>> {
+  async login(email: string, password: string) {
     const { data: user } = await this.usersService.getByEmail(email)
     const validUser = this.validateUser(user, password)
 
@@ -38,10 +38,10 @@ export class AuthService {
       isActive: user.isActive,
     }
 
-    return {
-      message: 'Usuario autenticado',
-      data: this.jwtService.sign(payload),
-    }
+    return new ApiResponseDto(
+      'Usuario autenticado',
+      this.jwtService.sign(payload),
+    )
   }
 
   private validateUser(user: UserEntity, passwordToVerify: string) {
