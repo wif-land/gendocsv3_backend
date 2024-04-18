@@ -4,7 +4,7 @@ import { ModuleEntity } from '../modules/entities/modules.entity'
 import { SubmoduleEntity } from '../submodules/entities/submodule.entity'
 import { SubmoduleModuleEntity } from '../submodules-modules/entities/submodule-module.entity'
 import { UserAccessModuleEntity } from '../users-access-modules/entities/user-access-module.entity'
-import { SystemYearEntity } from '../year-module/entities/system-year'
+import { SystemYearEntity } from '../year-module/entities/system-year.entity'
 
 export class InitDatabase1704560301619 implements MigrationInterface {
   name?: string
@@ -140,7 +140,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     await queryRunner2.startTransaction()
 
     await queryRunner2.manager.save(
-      systemYearRepository.save({ currentYear: systemYear }),
+      systemYearRepository.create({ currentYear: systemYear }),
     )
 
     await queryRunner2.manager.save(

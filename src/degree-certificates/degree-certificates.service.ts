@@ -1,36 +1,32 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { CertificateStatusEntity } from './entities/certificate-status.entity'
 import { Repository } from 'typeorm'
-import { CreateCertificateStatusDto } from './dto/create-certificate-status.dto'
-import { DegreeCertificateAlreadyExists } from './errors/degree-certificate-exists'
-import { DegreeCertificateBadRequestError } from './errors/degree-certificate-bad-request'
-import { UpdateCertificateStatusDto } from './dto/update-certificate-status.dto'
-import { DegreeCertificateNotFoundError } from './errors/degree-certificate-not-found'
-import { CertificateTypeEntity } from './entities/certificate-type.entity'
-import { CreateCertificateTypeDto } from './dto/create-certificate-type.dto'
-import { UpdateCertificateTypeDto } from './dto/update-certificate-type.dto'
-import { DegreeModalityEntity } from './entities/degree-modality.entity'
-import { CreateDegreeModalityDto } from './dto/create-degree-modality.dto'
-import { UpdateDegreeModalityDto } from './dto/update-degree-modality.dto'
-import { RoomEntity } from './entities/room.entity'
-import { CreateRoomDto } from './dto/create-room.dto'
-import { UpdateRoomDto } from './dto/update-room.dto'
-import { DegreeCertificateEntity } from './entities/degree-certificate.entity'
-import { CreateDegreeCertificateDto } from './dto/create-degree-certificate.dto'
-import { UpdateDegreeCertificateDto } from './dto/update-degree-certificate.dto'
 import { ApiResponse } from '../shared/interfaces/response.interface'
-import { SystemYearEntity } from '../year-module/entities/system-year'
-import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
+import { CreateCertificateStatusDto } from './dto/create-certificate-status.dto'
+import { CreateCertificateTypeDto } from './dto/create-certificate-type.dto'
+import { CreateDegreeCertificateDto } from './dto/create-degree-certificate.dto'
+import { CreateDegreeModalityDto } from './dto/create-degree-modality.dto'
+import { CreateRoomDto } from './dto/create-room.dto'
+import { UpdateCertificateStatusDto } from './dto/update-certificate-status.dto'
+import { UpdateCertificateTypeDto } from './dto/update-certificate-type.dto'
+import { UpdateDegreeCertificateDto } from './dto/update-degree-certificate.dto'
+import { UpdateDegreeModalityDto } from './dto/update-degree-modality.dto'
+import { UpdateRoomDto } from './dto/update-room.dto'
+import { CertificateStatusEntity } from './entities/certificate-status.entity'
+import { CertificateTypeEntity } from './entities/certificate-type.entity'
+import { DegreeCertificateEntity } from './entities/degree-certificate.entity'
+import { DegreeModalityEntity } from './entities/degree-modality.entity'
+import { RoomEntity } from './entities/room.entity'
+import { DegreeCertificateBadRequestError } from './errors/degree-certificate-bad-request'
+import { DegreeCertificateAlreadyExists } from './errors/degree-certificate-exists'
+import { DegreeCertificateNotFoundError } from './errors/degree-certificate-not-found'
+import { YearModuleService } from '../year-module/year-module.service'
+import { DEGREE_MODULES } from '../shared/constants/degree-certificates'
 
 @Injectable()
 export class DegreeCertificatesService {
   constructor(
-    @InjectRepository(SystemYearEntity)
-    private readonly systemYearRepository: Repository<SystemYearEntity>,
-
-    @InjectRepository(SubmoduleYearModuleEntity)
-    private readonly subModuleYeatModuleRepository: Repository<SubmoduleYearModuleEntity>,
+    private readonly yearModuleService: YearModuleService,
 
     @InjectRepository(DegreeCertificateEntity)
     private readonly degreeCertificateRepository: Repository<DegreeCertificateEntity>,
@@ -48,27 +44,34 @@ export class DegreeCertificatesService {
     private readonly roomRepository: Repository<RoomEntity>,
   ) {}
 
-  async generateNumeration(): Promise<ApiResponse<number>> {
-    // const systemYear = await this.systemYearRepository.findOne({
-    //   order: { currentYear: 'DESC' },
-    // })
+  async getLastNumberToRegister(): Promise<number> {
+    const systemYear = await this.yearModuleService.getCurrentSystemYear()
 
-    // const submoduleYearModule =
-    //   await this.subModuleYeatModuleRepository.findOne({
-    //     where: {
-    //       systemYear: { id: systemYear.id },
-    //     },
-    //   })
+    const submoduleYearModule =
+      await this.yearModuleService.findSubmoduleYearModuleByModule(
+        DEGREE_MODULES.MODULE_CODE,
+        systemYear,
+        DEGREE_MODULES.SUBMODULE_NAME,
+      )
 
     const lastDegreeCertificate =
       await this.degreeCertificateRepository.findOne({
+        where: {
+          submoduleYearModule: { id: submoduleYearModule.id },
+        },
         order: { number: 'DESC' },
       })
 
     const number = lastDegreeCertificate ? lastDegreeCertificate.number + 1 : 1
 
+    return number
+  }
+
+  async showLastNumberToRegister(): Promise<ApiResponse<number>> {
+    const number = await this.getLastNumberToRegister()
+
     return {
-      message: 'Numeración generada correctamente',
+      message: 'Siguiente número de registro encontrado',
       data: number,
     }
   }

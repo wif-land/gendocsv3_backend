@@ -5,9 +5,10 @@ import { YearModuleEntity } from './entities/year-module.entity'
 import { Repository } from 'typeorm'
 import { GcpService } from '../gcp/gcp.service'
 import { SubmoduleYearModuleEntity } from './entities/submodule-year-module.entity'
-import { SystemYearEntity } from './entities/system-year'
+import { SystemYearEntity } from './entities/system-year.entity'
 import { YearModuleAlreadyExists } from './errors/year-module-already-exists'
 import { YearModuleError } from './errors/year-module-error'
+import { YearModuleNotFound } from './errors/year-module-not-found'
 
 @Injectable()
 export class YearModuleService {
@@ -24,7 +25,7 @@ export class YearModuleService {
     private gcpService: GcpService,
   ) {}
 
-  async setCurrentSystemYear(year: number) {
+  private async setCurrentSystemYear(year: number) {
     try {
       const currentYear = await this.systemYearRepository.findOneBy({
         currentYear: year,
@@ -46,9 +47,36 @@ export class YearModuleService {
   }
 
   async getCurrentSystemYear() {
-    return await this.systemYearRepository.findOne({
+    const systemYear = await this.systemYearRepository.findOne({
       order: { currentYear: 'DESC' },
     })
+
+    return systemYear.currentYear
+  }
+
+  async findSubmoduleYearModuleByModule(
+    moduleCode: string,
+    year: number,
+    submoduleName: string,
+  ) {
+    const submoduleYearModule =
+      await this.submoduleYearModuleRepository.findOneBy({
+        name: submoduleName,
+        yearModule: {
+          module: {
+            code: moduleCode,
+          },
+          year,
+        },
+      })
+
+    if (!submoduleYearModule) {
+      throw new YearModuleNotFound(
+        `Submódulo ${submoduleName} del módulo ${moduleCode} no encontrado`,
+      )
+    }
+
+    return submoduleYearModule
   }
 
   async create(createYearModuleDto: CreateYearModuleDto) {
@@ -61,9 +89,8 @@ export class YearModuleService {
       })
 
       if (alreadyExists) {
-        throw new HttpException(
-          'YearModule already exists',
-          HttpStatus.CONFLICT,
+        throw new YearModuleAlreadyExists(
+          `El módulo ${createYearModuleDto.module.name} con año ${createYearModuleDto.year}`,
         )
       }
 

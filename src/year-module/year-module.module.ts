@@ -5,7 +5,7 @@ import { GcpModule } from '../gcp/gcp.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { YearModuleEntity } from './entities/year-module.entity'
 import { SubmoduleYearModuleEntity } from './entities/submodule-year-module.entity'
-import { SystemYearEntity } from './entities/system-year'
+import { SystemYearEntity } from './entities/system-year.entity'
 
 @Module({
   controllers: [YearModuleController],
