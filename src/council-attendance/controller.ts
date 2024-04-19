@@ -15,7 +15,7 @@ import { DefaultEditionDTO } from './dto/default-edition.dto'
 @ApiTags('Attendance')
 @Controller('attendance')
 export class CouncilsAttendanceController {
-  constructor(private readonly attendanceService: AttendanceService) { }
+  constructor(private readonly attendanceService: AttendanceService) {}
 
   @Get('default/:moduleId')
   async getDefaultAttendance(
@@ -52,9 +52,7 @@ export class CouncilsAttendanceController {
   }
 
   @Put('default')
-  async updateDefault(
-    @Body() body: DefaultEditionDTO[],
-  ) {
+  async updateDefault(@Body() body: DefaultEditionDTO[]) {
     return {
       message: 'Representantes por defecto actualizados exitosamente',
       data: await this.attendanceService.updateDefault(body),
