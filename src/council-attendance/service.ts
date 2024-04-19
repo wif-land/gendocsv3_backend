@@ -10,7 +10,7 @@ export class AttendanceService {
   constructor(
     @InjectRepository(CouncilAttendanceEntity)
     private readonly councilAttendanceRepository: Repository<CouncilAttendanceEntity>,
-  ) {}
+  ) { }
 
   async getDefaultByModule(moduleId: number) {
     const defaultAttendance = await this.councilAttendanceRepository.find({
@@ -73,11 +73,13 @@ export class AttendanceService {
     })
   }
 
-  async updateDefault(body: DefaultEditionDTO, id: number) {
-    return await this.councilAttendanceRepository.update(id, {
-      ...body,
-      functionary: body.functionary ? { id: body.functionary } : undefined,
-      student: body.student ? { id: body.student } : undefined,
+  async updateDefault(body: DefaultEditionDTO[]) {
+    const promises = body.map(async (item) => {
+      await this.councilAttendanceRepository.update(item.id, item as any)
     })
+
+    await Promise.all(promises)
+
+    return body
   }
 }
