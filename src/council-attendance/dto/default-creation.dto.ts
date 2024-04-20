@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
+import { IsBoolean, IsNotEmpty, IsNumber } from 'class-validator'
 import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
 import { DtoUtils } from '../../shared/utils/dtos'
 import { ApiProperty } from '@nestjs/swagger'
@@ -30,7 +30,7 @@ export class DefaultCreationDTO {
   @IsNotEmpty({
     message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
       '{field}': 'member',
-    })
+    }),
   })
   public member: number
 

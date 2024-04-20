@@ -10,7 +10,7 @@ export class AttendanceService {
   constructor(
     @InjectRepository(CouncilAttendanceEntity)
     private readonly councilAttendanceRepository: Repository<CouncilAttendanceEntity>,
-  ) { }
+  ) {}
 
   async getDefaultByModule(moduleId: number) {
     const defaultAttendance = await this.councilAttendanceRepository.find({
@@ -50,11 +50,11 @@ export class AttendanceService {
       const memberProps = {}
       if (!item.isStudent) {
         memberProps['functionary'] = {
-          id: item.member
+          id: item.member,
         }
       } else {
         memberProps['student'] = {
-          id: item.member
+          id: item.member,
         }
       }
 
@@ -98,25 +98,24 @@ export class AttendanceService {
     const promises = body.map(async (item) => {
       const prevItem = await this.councilAttendanceRepository.findOne({
         where: {
-          id: item.id
+          id: item.id,
         },
-        relations: ['functionary', 'student']
+        relations: ['functionary', 'student'],
       })
 
       console.log({ prevItem })
 
-
       const extraParams = {
-        ...item
+        ...item,
       }
 
       if (item.member) {
         if (item.isStudent && prevItem.functionary.id) {
           extraParams['functionary'] = {
-            id: null
+            id: null,
           }
           extraParams['student'] = {
-            id: item.member
+            id: item.member,
           }
         }
 
@@ -125,7 +124,7 @@ export class AttendanceService {
             id: item.member,
           }
           extraParams['student'] = {
-            id: null
+            id: null,
           }
         }
       }
