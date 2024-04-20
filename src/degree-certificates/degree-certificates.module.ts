@@ -10,6 +10,7 @@ import { RoomEntity } from './entities/room.entity'
 import { YearModuleModule } from '../year-module/year-module.module'
 import { FilesModule } from '../files/files.module'
 import { StudentsModule } from '../students/students.module'
+import { VariablesModule } from '../variables/variables.module'
 
 @Module({
   controllers: [DegreeCertificatesController],
@@ -25,6 +26,7 @@ import { StudentsModule } from '../students/students.module'
     YearModuleModule,
     FilesModule,
     StudentsModule,
+    VariablesModule,
   ],
 })
 export class DegreeCertificatesModule {}

@@ -20,6 +20,13 @@ export class CertificateTypeEntity extends BaseAppEntity {
   name: string
 
   @Column({
+    name: 'drive_id',
+    type: 'varchar',
+    unique: true,
+  })
+  driveId: string
+
+  @Column({
     name: 'is_active',
     type: 'boolean',
     default: true,

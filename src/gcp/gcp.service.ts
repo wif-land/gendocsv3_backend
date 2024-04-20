@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config'
 import { GoogleAuth } from 'google-auth-library'
 import { docs, docs_v1 } from '@googleapis/docs'
 import { drive, drive_v3 } from '@googleapis/drive'
-import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class GcpService {
@@ -39,7 +38,7 @@ export class GcpService {
       },
     })
 
-    return new ApiResponseDto('Documento creado con éxito', data.id)
+    return data.id
   }
 
   async createDocumentByParentId(title: string, parentId: string) {
@@ -66,10 +65,7 @@ export class GcpService {
         parents: [parentId],
       },
     })
-    return new ApiResponseDto(
-      'Subdocumento creado y copiado con éxito',
-      data.id,
-    )
+    return data.id
   }
 
   async renameAsset(assetId: string, title: string) {
@@ -80,7 +76,7 @@ export class GcpService {
       },
     })
 
-    return new ApiResponseDto('Documento renombrado con éxito', data.id)
+    return data.id
   }
 
   async moveAsset(assetId: string, parentId: string) {
@@ -90,7 +86,7 @@ export class GcpService {
       removeParents: this.configService.get('gcp.rootDriveFolderId'),
     })
 
-    return new ApiResponseDto('Documento movido con éxito', data.id)
+    return data.id
   }
 
   async createFolder(title: string) {
@@ -102,7 +98,7 @@ export class GcpService {
       },
     })
 
-    return new ApiResponseDto('Carpeta creada con éxito', data.id)
+    return data.id
   }
 
   async createFolderByParentId(title: string, parentId: string) {
@@ -114,7 +110,7 @@ export class GcpService {
       },
     })
 
-    return new ApiResponseDto('Subcarpeta creada con éxito', data.id)
+    return data.id
   }
 
   async replaceTextOnDocument(data: object, documentId: string) {
@@ -136,9 +132,7 @@ export class GcpService {
         },
       })
 
-      return new ApiResponseDto('Texto reemplazado con éxito', {
-        success: true,
-      })
+      return true
     } catch (error) {
       throw new Error(error.message)
     }
@@ -150,9 +144,7 @@ export class GcpService {
         fileId: assetId,
       })
 
-      return new ApiResponseDto('Documento eliminado con éxito', {
-        success: true,
-      })
+      return true
     } catch (error) {
       throw new Error(error.message)
     }

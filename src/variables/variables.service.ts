@@ -15,6 +15,8 @@ import { PositionEntity } from '../positions/entities/position.entity'
 import { VariableEntity } from './entities/variable.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { DegreeCertificateEntity } from '../degree-certificates/entities/degree-certificate.entity'
+import { GENDER } from '../shared/enums/genders'
 
 @Injectable()
 export class VariablesService {
@@ -157,35 +159,58 @@ export class VariablesService {
     }
   }
 
-  async getStudentVariables(document: DocumentEntity) {
-    try {
-      const variables = {
-        [DefaultVariable.ESTUDIANTE]: getFullName(document.student),
-        [DefaultVariable.ESTUDIANTEUP]: getFullName(
-          document.student,
-        ).toUpperCase(),
-        [DefaultVariable.CEDULA]: document.student.dni,
-        [DefaultVariable.MATRICULA]: document.student.registration,
-        [DefaultVariable.FOLIO]: document.student.folio,
-        [DefaultVariable.TELEFONO]: document.student.regularPhoneNumber,
-        [DefaultVariable.CELULAR]: document.student.phoneNumber,
-        [DefaultVariable.CORREO]: document.student.personalEmail,
-        [DefaultVariable.CORREOUTA]: document.student.outlookEmail,
-        [DefaultVariable.NOMBRECARRERA]: document.student.career.name,
-        [DefaultVariable.NOMBRECARRERAUP]:
-          document.student.career.name.toUpperCase(),
-        [DefaultVariable.COORDINADOR]: getFullName(
-          document.student.career.coordinator,
-        ),
-      }
+  async getStudentVariables(
+    document: DocumentEntity | DegreeCertificateEntity,
+  ) {
+    const variables = {
+      [DefaultVariable.ESTUDIANTE]: getFullName(document.student),
+      [DefaultVariable.ESTUDIANTEUP]: getFullName(
+        document.student,
+      ).toUpperCase(),
+      [DefaultVariable.CEDULA]: document.student.dni,
+      [DefaultVariable.MATRICULA]: document.student.registration,
+      [DefaultVariable.FOLIO]: document.student.folio,
+      [DefaultVariable.TELEFONO]: document.student.regularPhoneNumber,
+      [DefaultVariable.CELULAR]: document.student.phoneNumber,
+      [DefaultVariable.CORREO]: document.student.personalEmail,
+      [DefaultVariable.CORREOUTA]: document.student.outlookEmail,
+      [DefaultVariable.NOMBRECARRERA]: document.student.career.name,
+      [DefaultVariable.NOMBRECARRERAUP]:
+        document.student.career.name.toUpperCase(),
+      [DefaultVariable.ESTUDIANTE_TITULO]:
+        document.student.gender === GENDER.FEMALE
+          ? document.student.career.womenDegree
+          : document.student.career.menDegree,
+      [DefaultVariable.ESTUDIANTE_FECHA_NACIMIENTO]: formatDateText(
+        document.student.birthdate,
+      ),
+      [DefaultVariable.ESTUDIANTE_TITULO_UPPER]: (document.student.gender ===
+      GENDER.FEMALE
+        ? document.student.career.womenDegree
+        : document.student.career.menDegree
+      ).toUpperCase(),
+      [DefaultVariable.ESTUDIANTE_TEMA]:
+        (document as DegreeCertificateEntity).topic ?? '*NO POSEE TEMA',
+      [DefaultVariable.ESTUDIANTE_TITULO_BACHILLER]:
+        document.student.bachelorDegree ?? '*NO POSEE TÍTULO BACHILLER',
+      [DefaultVariable.ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP]: document
+        .student.startStudiesDate
+        ? formatDateText(document.student.startStudiesDate)
+        : '*NO POSEE FECHA DE INICIO DE ESTUDIOS',
+      [DefaultVariable.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP]: document.student
+        .startStudiesDate
+        ? formatDateText(document.student.endStudiesDate)
+        : '*NO POSEE FECHA DE FIN DE ESTUDIOS',
 
-      return new ApiResponseDto(
-        'Variables de estudiante encontradas con éxito',
-        variables,
-      )
-    } catch (error) {
-      throw new InternalServerErrorException(error.message)
+      [DefaultVariable.COORDINADOR]: getFullName(
+        document.student.career.coordinator,
+      ),
     }
+
+    return new ApiResponseDto(
+      'Variables de estudiante encontradas con éxito',
+      variables,
+    )
   }
 
   async getFunctionaryVariables(

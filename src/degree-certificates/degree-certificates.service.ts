@@ -25,13 +25,17 @@ import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { FilesService } from '../files/files.service'
 import { StudentsService } from '../students/students.service'
 import { StudentEntity } from '../students/entities/student.entity'
+import { CertificateTypeCareerEntity } from './entities/certicate-type-career.entity'
+import { DegreeCertificateTypeNotFoundError } from './errors/degree-certificate-type-not-found'
+import { VariablesService } from '../variables/variables.service'
 
 @Injectable()
 export class DegreeCertificatesService {
   constructor(
     private readonly yearModuleService: YearModuleService,
-    private readonly driveService: FilesService,
+    private readonly filesService: FilesService,
     private readonly studentService: StudentsService,
+    private readonly variablesService: VariablesService,
 
     @InjectRepository(DegreeCertificateEntity)
     private readonly degreeCertificateRepository: Repository<DegreeCertificateEntity>,
@@ -47,7 +51,24 @@ export class DegreeCertificatesService {
 
     @InjectRepository(RoomEntity)
     private readonly roomRepository: Repository<RoomEntity>,
+
+    @InjectRepository(CertificateTypeCareerEntity)
+    private readonly cetificateTypeCareerRepository: Repository<CertificateTypeCareerEntity>,
   ) {}
+
+  async getCertificateTypesCarrerByCarrer(carrerId: number) {
+    const certificateTypes = await this.cetificateTypeCareerRepository.findBy({
+      carrer: { id: carrerId },
+    })
+
+    if (!certificateTypes || certificateTypes.length === 0) {
+      return new DegreeCertificateTypeNotFoundError(
+        `No se han encontrado modalidades de grado para la carrera con id ${carrerId}`,
+      )
+    }
+
+    return certificateTypes
+  }
 
   async getLastNumberToRegister(carrerId: number): Promise<number> {
     const systemYear = await this.yearModuleService.getCurrentSystemYear()
@@ -259,9 +280,10 @@ export class DegreeCertificatesService {
       )
     }
 
-    const driveId = await this.driveService.createDocumentByParentId(
+    const driveId = await this.filesService.createDocumentByParentIdAndCopy(
       `${degreeCertificate.number} - ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code}`,
       degreeCertificate.submoduleYearModule.driveId,
+      degreeCertificate.certificateType.driveId,
     )
 
     if (!driveId) {
@@ -269,6 +291,11 @@ export class DegreeCertificatesService {
         'Error al generar el documento en Google Drive',
       )
     }
+
+    const studentData =
+      this.variablesService.getStudentVariables(degreeCertificate)
+
+    await this.filesService.replaceTextOnDocument(studentData, driveId)
 
     const degreeCertificateUpdated =
       await this.degreeCertificateRepository.save({
