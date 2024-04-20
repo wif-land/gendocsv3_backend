@@ -8,6 +8,8 @@ import { DegreeCertificateEntity } from './entities/degree-certificate.entity'
 import { DegreeModalityEntity } from './entities/degree-modality.entity'
 import { RoomEntity } from './entities/room.entity'
 import { YearModuleModule } from '../year-module/year-module.module'
+import { FilesModule } from '../files/files.module'
+import { StudentsModule } from '../students/students.module'
 
 @Module({
   controllers: [DegreeCertificatesController],
@@ -21,6 +23,8 @@ import { YearModuleModule } from '../year-module/year-module.module'
       RoomEntity,
     ]),
     YearModuleModule,
+    FilesModule,
+    StudentsModule,
   ],
 })
 export class DegreeCertificatesModule {}

@@ -51,7 +51,7 @@ export class GcpService {
       },
     })
 
-    return new ApiResponseDto('Subdocumento creado con éxito', data.id)
+    return data.id
   }
 
   async createDocumentByParentIdAndCopy(

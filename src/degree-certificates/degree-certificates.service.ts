@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { IsNull, Not, Repository } from 'typeorm'
 import { CreateCertificateStatusDto } from './dto/create-certificate-status.dto'
 import { CreateCertificateTypeDto } from './dto/create-certificate-type.dto'
 import { CreateDegreeCertificateDto } from './dto/create-degree-certificate.dto'
@@ -22,11 +22,16 @@ import { DegreeCertificateNotFoundError } from './errors/degree-certificate-not-
 import { YearModuleService } from '../year-module/year-module.service'
 import { DEGREE_MODULES } from '../shared/constants/degree-certificates'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { FilesService } from '../files/files.service'
+import { StudentsService } from '../students/students.service'
+import { StudentEntity } from '../students/entities/student.entity'
 
 @Injectable()
 export class DegreeCertificatesService {
   constructor(
     private readonly yearModuleService: YearModuleService,
+    private readonly driveService: FilesService,
+    private readonly studentService: StudentsService,
 
     @InjectRepository(DegreeCertificateEntity)
     private readonly degreeCertificateRepository: Repository<DegreeCertificateEntity>,
@@ -44,7 +49,7 @@ export class DegreeCertificatesService {
     private readonly roomRepository: Repository<RoomEntity>,
   ) {}
 
-  async getLastNumberToRegister(): Promise<number> {
+  async getLastNumberToRegister(carrerId: number): Promise<number> {
     const systemYear = await this.yearModuleService.getCurrentSystemYear()
 
     const submoduleYearModule =
@@ -58,17 +63,22 @@ export class DegreeCertificatesService {
       await this.degreeCertificateRepository.findOne({
         where: {
           submoduleYearModule: { id: submoduleYearModule.id },
+          student: { career: { id: carrerId } },
         },
-        order: { number: 'DESC' },
+        order: { auxNumber: 'DESC' },
       })
 
-    const number = lastDegreeCertificate ? lastDegreeCertificate.number + 1 : 1
+    const number = lastDegreeCertificate
+      ? lastDegreeCertificate.auxNumber + 1
+      : 1
 
     return number
   }
 
-  async showLastNumberToRegister(): Promise<ApiResponseDto<number>> {
-    const number = await this.getLastNumberToRegister()
+  async showLastNumberToRegister(
+    carrerId: number,
+  ): Promise<ApiResponseDto<number>> {
+    const number = await this.getLastNumberToRegister(carrerId)
 
     return new ApiResponseDto('Siguiente número de registro encontrado', number)
   }
@@ -82,21 +92,49 @@ export class DegreeCertificatesService {
     )
   }
 
+  async findReplicate(CreateCertificateDegreeDto: CreateDegreeCertificateDto) {
+    const degreeCertificate = await this.degreeCertificateRepository.findOneBy({
+      deletedAt: null,
+      presentationDate: CreateCertificateDegreeDto.presentationDate,
+      student: { id: CreateCertificateDegreeDto.studentId },
+      isClosed: false,
+      certificateType: { id: CreateCertificateDegreeDto.certificateTypeId },
+      certificateStatus: { id: CreateCertificateDegreeDto.certificateStatusId },
+      degreeModality: { id: CreateCertificateDegreeDto.degreeModalityId },
+      room: { id: CreateCertificateDegreeDto.roomId },
+      submoduleYearModule: {
+        id: CreateCertificateDegreeDto.submoduleYearModuleId,
+      },
+    })
+
+    if (!degreeCertificate) {
+      return null
+    }
+
+    return degreeCertificate
+  }
+
   async create(dto: CreateDegreeCertificateDto) {
-    if (this.degreeCertificateRepository.findOneBy({ number: dto.number })) {
+    if (this.findReplicate(dto)) {
       throw new DegreeCertificateAlreadyExists(
-        `El certificado con número ${dto.number} ya existe`,
+        'Ya existe un certificado con los mismos datos',
       )
     }
 
+    const student: StudentEntity = (
+      await this.studentService.findOne(dto.studentId)
+    ).data
+
     const degreeCertificate = this.degreeCertificateRepository.create({
       ...dto,
+      auxNumber: await this.getLastNumberToRegister(student.career.id),
       student: { id: dto.studentId },
       certificateType: { id: dto.certificateTypeId },
       certificateStatus: { id: dto.certificateStatusId },
       degreeModality: { id: dto.degreeModalityId },
       room: { id: dto.roomId },
       submoduleYearModule: { id: dto.submoduleYearModuleId },
+      isClosed: false,
     })
 
     if (!degreeCertificate) {
@@ -112,6 +150,135 @@ export class DegreeCertificatesService {
     return new ApiResponseDto(
       'Certificado creado correctamente',
       newCertificate,
+    )
+  }
+
+  async getCertificatesToGenerate(
+    careerId: number,
+    submoduleYearModuleId: number,
+  ) {
+    const degreeCertificates = await this.degreeCertificateRepository.find({
+      where: {
+        submoduleYearModule: { id: submoduleYearModuleId },
+        career: { id: careerId },
+        deletedAt: null,
+        number: null,
+      },
+      order: { createdAt: 'ASC' },
+    })
+
+    if (!degreeCertificates || degreeCertificates.length === 0) {
+      throw new DegreeCertificateNotFoundError(
+        'No se encontraron certificados para generar',
+      )
+    }
+
+    return degreeCertificates
+  }
+
+  async getLastNumberGenerated(
+    careerId: number,
+    submoduleYearModuleId: number,
+  ) {
+    const degreeCertificate = await this.degreeCertificateRepository.findOne({
+      where: {
+        career: { id: careerId },
+        submoduleYearModule: { id: submoduleYearModuleId },
+        number: Not(IsNull()),
+        deletedAt: null,
+      },
+      order: { number: 'DESC' },
+    })
+
+    if (!degreeCertificate) {
+      return 0
+    }
+
+    return degreeCertificate.number
+  }
+
+  async getCurrentDegreeSubmoduleYearModule() {
+    const systemYear = await this.yearModuleService.getCurrentSystemYear()
+
+    return await this.yearModuleService.findSubmoduleYearModuleByModule(
+      DEGREE_MODULES.MODULE_CODE,
+      systemYear,
+      DEGREE_MODULES.SUBMODULE_NAME,
+    )
+  }
+
+  async generateNumeration(careerId: number) {
+    const submoduleYearModule = await this.getCurrentDegreeSubmoduleYearModule()
+
+    const degreeCertificates = await this.getCertificatesToGenerate(
+      careerId,
+      submoduleYearModule.id,
+    )
+
+    const lastNumber = await this.getLastNumberGenerated(
+      careerId,
+      submoduleYearModule.id,
+    )
+
+    let number = lastNumber
+
+    for (const degreeCertificate of degreeCertificates) {
+      number += 1
+
+      await this.degreeCertificateRepository.save({
+        ...degreeCertificate,
+        number,
+      })
+    }
+
+    return new ApiResponseDto('Numeración generada correctamente', {
+      firstGenerated: lastNumber + 1,
+      lastGenerated: number,
+    })
+  }
+
+  async generateDocument(id: number) {
+    const degreeCertificate = await this.degreeCertificateRepository.findOneBy({
+      id,
+    })
+
+    if (!degreeCertificate) {
+      throw new DegreeCertificateNotFoundError(
+        `El certificado con id ${id} no existe`,
+      )
+    }
+
+    if (
+      this.getCertificatesToGenerate(
+        degreeCertificate.career.id,
+        degreeCertificate.submoduleYearModule.id,
+      )
+    ) {
+      throw new DegreeCertificateBadRequestError(
+        'Se deben generar los números de registro antes de generar los documentos',
+      )
+    }
+
+    const driveId = await this.driveService.createDocumentByParentId(
+      `${degreeCertificate.number} - ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code}`,
+      degreeCertificate.submoduleYearModule.driveId,
+    )
+
+    if (!driveId) {
+      throw new DegreeCertificateBadRequestError(
+        'Error al generar el documento en Google Drive',
+      )
+    }
+
+    const degreeCertificateUpdated =
+      await this.degreeCertificateRepository.save({
+        ...degreeCertificate,
+        driveId,
+      })
+
+    return new ApiResponseDto(
+      'Documento generado correctamente',
+      degreeCertificateUpdated,
     )
   }
 

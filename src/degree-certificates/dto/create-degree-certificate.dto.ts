@@ -3,19 +3,12 @@ import {
   IsBoolean,
   IsDate,
   IsInt,
-  IsNumber,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator'
 
 export class CreateDegreeCertificateDto {
-  @IsNumber()
-  number: number
-
-  @IsNumber()
-  auxNumber: number
-
   @IsString()
   // eslint-disable-next-line no-magic-numbers
   @MinLength(5)
