@@ -1,7 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator'
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator'
+import { DtoUtils } from '../../shared/utils/dtos'
+import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
 
 export class DefaultEditionDTO {
+  @ApiProperty()
+  @IsNotEmpty({
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+      '{field}': 'id',
+    }),
+  })
+  id: number
+
   @ApiProperty()
   @IsNumber()
   @IsOptional()
@@ -15,11 +31,8 @@ export class DefaultEditionDTO {
   @ApiProperty()
   @IsBoolean()
   @IsOptional()
-  isPresident: boolean
+  isStudent?: boolean
 
   @IsOptional()
-  functionary?: number
-
-  @IsOptional()
-  student?: number
+  member?: number
 }
