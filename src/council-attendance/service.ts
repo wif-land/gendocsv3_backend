@@ -10,7 +10,7 @@ export class AttendanceService {
   constructor(
     @InjectRepository(CouncilAttendanceEntity)
     private readonly councilAttendanceRepository: Repository<CouncilAttendanceEntity>,
-  ) {}
+  ) { }
 
   async getDefaultByModule(moduleId: number) {
     const defaultAttendance = await this.councilAttendanceRepository.find({
@@ -47,7 +47,24 @@ export class AttendanceService {
 
   async createDefault(body: DefaultCreationDTO[]) {
     const promises = body.map(async (item) => {
-      await this.create(item)
+      const memberProps = {}
+      if (!item.isStudent) {
+        memberProps['functionary'] = {
+          id: item.member
+        }
+      } else {
+        memberProps['student'] = {
+          id: item.member
+        }
+      }
+
+      delete item.member
+      delete item.isStudent
+
+      await this.create({
+        ...item,
+        ...memberProps,
+      })
     })
 
     return await Promise.all(promises)
@@ -79,7 +96,44 @@ export class AttendanceService {
 
   async updateDefault(body: DefaultEditionDTO[]) {
     const promises = body.map(async (item) => {
-      await this.councilAttendanceRepository.update(item.id, item as any)
+      const prevItem = await this.councilAttendanceRepository.findOne({
+        where: {
+          id: item.id
+        },
+        relations: ['functionary', 'student']
+      })
+
+      console.log({ prevItem })
+
+
+      const extraParams = {
+        ...item
+      }
+
+      if (item.member) {
+        if (item.isStudent && prevItem.functionary.id) {
+          extraParams['functionary'] = {
+            id: null
+          }
+          extraParams['student'] = {
+            id: item.member
+          }
+        }
+
+        if (!item.isStudent && prevItem.student.id) {
+          extraParams['functionary'] = {
+            id: item.member,
+          }
+          extraParams['student'] = {
+            id: null
+          }
+        }
+      }
+
+      delete extraParams.isStudent
+      delete extraParams.member
+
+      await this.councilAttendanceRepository.update(item.id, extraParams)
     })
 
     await Promise.all(promises)

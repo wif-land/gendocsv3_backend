@@ -31,11 +31,8 @@ export class DefaultEditionDTO {
   @ApiProperty()
   @IsBoolean()
   @IsOptional()
-  isPresident: boolean
+  isStudent?: boolean
 
   @IsOptional()
-  functionary?: number
-
-  @IsOptional()
-  student?: number
+  member?: number
 }

@@ -9,8 +9,7 @@ import { StudentEntity } from '../../students/entities/student.entity'
 @Entity('council_attendance')
 export class CouncilAttendanceEntity
   extends BaseAppEntity
-  implements ICouncilAttendance
-{
+  implements ICouncilAttendance {
   @Column({
     name: 'has_attended',
     type: 'boolean',

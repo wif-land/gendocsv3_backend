@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
 import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
 import { DtoUtils } from '../../shared/utils/dtos'
+import { ApiProperty } from '@nestjs/swagger'
 
 export class DefaultCreationDTO {
   @IsNotEmpty({
@@ -25,25 +26,15 @@ export class DefaultCreationDTO {
   })
   public positionOrder: number
 
-  @IsOptional()
-  @IsNumber(
-    {},
-    {
-      message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.isNumber, {
-        '{field}': 'functionary',
-      }),
-    },
-  )
-  public functionary?: number
+  @ApiProperty()
+  @IsNotEmpty({
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+      '{field}': 'member',
+    })
+  })
+  public member: number
 
-  @IsOptional()
-  @IsNumber(
-    {},
-    {
-      message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.isNumber, {
-        '{field}': 'student',
-      }),
-    },
-  )
-  public student?: number
+  @ApiProperty()
+  @IsBoolean()
+  public isStudent: boolean
 }
