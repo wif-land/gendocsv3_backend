@@ -11,7 +11,7 @@ import { FunctionaryBadRequestError } from './errors/functionary-bad-request'
 import { FunctionaryNotFoundError } from './errors/functionary-not-found'
 import { FunctionaryError } from './errors/functionary-error'
 import { FunctionaryFiltersDto } from './dto/functionary-filters.dto'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class FunctionariesService {
@@ -20,9 +20,7 @@ export class FunctionariesService {
     private readonly functionaryRepository: Repository<FunctionaryEntity>,
   ) {}
 
-  async create(
-    createFunctionaryDto: CreateFunctionaryDto,
-  ): Promise<ApiResponse<FunctionaryEntity>> {
+  async create(createFunctionaryDto: CreateFunctionaryDto) {
     const alreadyExist = await this.functionaryRepository.findOne({
       where: {
         dni: createFunctionaryDto.dni,
@@ -48,18 +46,10 @@ export class FunctionariesService {
 
     const newFuncionary = await this.functionaryRepository.save(functionary)
 
-    return {
-      message: 'Funcionario creado con éxito',
-      data: newFuncionary,
-    }
+    return new ApiResponseDto('Funcionario creado con éxito', newFuncionary)
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<
-    ApiResponse<{
-      count: number
-      functionaries: FunctionaryEntity[]
-    }>
-  > {
+  async findAll(paginationDto: PaginationDto) {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDto
 
@@ -77,31 +67,23 @@ export class FunctionariesService {
 
     const count = await this.functionaryRepository.count()
 
-    return {
-      message: 'Funcionarios encontrados',
-      data: { count, functionaries },
-    }
+    return new ApiResponseDto('Funcionarios encontrados', {
+      count,
+      functionaries,
+    })
   }
 
-  async findOne(id: number): Promise<ApiResponse<FunctionaryEntity>> {
+  async findOne(id: number) {
     const functionary = await this.functionaryRepository.findOneBy({ id })
 
     if (!functionary) {
       throw new FunctionaryNotFoundError(`Funcionario con id ${id} no existe`)
     }
 
-    return {
-      message: 'Funcionario encontrado',
-      data: functionary,
-    }
+    return new ApiResponseDto('Funcionario encontrado', functionary)
   }
 
-  async findByFilters(filters: FunctionaryFiltersDto): Promise<
-    ApiResponse<{
-      count: number
-      functionaries: FunctionaryEntity[]
-    }>
-  > {
+  async findByFilters(filters: FunctionaryFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 10, offset = 0 } = filters
 
@@ -131,16 +113,13 @@ export class FunctionariesService {
       throw new FunctionaryNotFoundError('No existen funcionarios registrados')
     }
 
-    return {
-      message: 'Funcionarios encontrados',
-      data: { count, functionaries },
-    }
+    return new ApiResponseDto('Funcionarios encontrados', {
+      count,
+      functionaries,
+    })
   }
 
-  async update(
-    id: number,
-    updateFunctionaryDto: UpdateFunctionaryDto,
-  ): Promise<ApiResponse<FunctionaryEntity>> {
+  async update(id: number, updateFunctionaryDto: UpdateFunctionaryDto) {
     const functionary = await this.functionaryRepository.preload({
       id,
       ...updateFunctionaryDto,
@@ -156,15 +135,15 @@ export class FunctionariesService {
       functionary,
     )
 
-    return {
-      message: 'Funcionario actualizado con éxito',
-      data: functionaryUpdated,
-    }
+    return new ApiResponseDto(
+      'Funcionario actualizado con éxito',
+      functionaryUpdated,
+    )
   }
 
   async createBulk(
     updateFunctionariesBulkDto: UpdateFunctionariesBulkItemDto[],
-  ): Promise<ApiResponse> {
+  ) {
     const queryRunner =
       this.functionaryRepository.manager.connection.createQueryRunner()
 
@@ -183,12 +162,9 @@ export class FunctionariesService {
 
       await queryRunner.commitTransaction()
 
-      return {
-        message: 'Funcionarios actualizados con éxito',
-        data: {
-          success: true,
-        },
-      }
+      return new ApiResponseDto('Funcionarios actualizados con éxito', {
+        success: true,
+      })
     } catch (error) {
       await queryRunner.rollbackTransaction()
 
@@ -200,7 +176,7 @@ export class FunctionariesService {
     }
   }
 
-  async remove(id: number): Promise<ApiResponse> {
+  async remove(id: number) {
     const { data: functionary } = await this.findOne(id)
 
     if (!functionary) {
@@ -211,11 +187,8 @@ export class FunctionariesService {
 
     await this.functionaryRepository.save(functionary)
 
-    return {
-      message: 'Funcionario eliminado con éxito',
-      data: {
-        success: true,
-      },
-    }
+    return new ApiResponseDto('Funcionario eliminado con éxito', {
+      success: true,
+    })
   }
 }

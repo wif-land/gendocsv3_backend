@@ -3,8 +3,8 @@ import { CreateCareerDto } from './dto/create-career.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Not, Repository } from 'typeorm'
 import { CareerEntity } from './entites/careers.entity'
-import { ApiResponse } from '../shared/interfaces/response.interface'
 import { UpdateCareerDto } from './dto/update-carreer.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class CareersService {
@@ -13,7 +13,7 @@ export class CareersService {
     private readonly careerRepository: Repository<CareerEntity>,
   ) {}
 
-  async create(data: CreateCareerDto): Promise<ApiResponse<CareerEntity>> {
+  async create(data: CreateCareerDto) {
     try {
       if (data.isActive) {
         const existingCareer = await this.careerRepository.findOne({
@@ -45,16 +45,13 @@ export class CareersService {
         )
       }
 
-      return {
-        message: 'Carrera creada con éxito',
-        data: newCareer,
-      }
+      return new ApiResponseDto('Carrera creada con éxito', newCareer)
     } catch (error) {
       throw new HttpException(error.message, error.status)
     }
   }
 
-  async findAll(): Promise<ApiResponse<CareerEntity[]>> {
+  async findAll() {
     try {
       const carrers = await this.careerRepository.find({
         order: {
@@ -62,19 +59,13 @@ export class CareersService {
         },
       })
 
-      return {
-        message: 'Carreras encontradas',
-        data: carrers,
-      }
+      return new ApiResponseDto('Carreras encontradas', carrers)
     } catch (error) {
       throw new HttpException(error.message, error.status)
     }
   }
 
-  async update(
-    id: number,
-    data: UpdateCareerDto,
-  ): Promise<ApiResponse<CareerEntity>> {
+  async update(id: number, data: UpdateCareerDto) {
     try {
       let coordinatorId: number
       if (data.coordinator == null) {
@@ -111,10 +102,7 @@ export class CareersService {
         throw new HttpException('Carrera no encontrada', HttpStatus.BAD_REQUEST)
       }
 
-      return {
-        message: 'Carrera actualizada con éxito',
-        data: careerUpdated,
-      }
+      return new ApiResponseDto('Carrera actualizada con éxito', careerUpdated)
     } catch (error) {
       throw new HttpException(error.message, error.status)
     }

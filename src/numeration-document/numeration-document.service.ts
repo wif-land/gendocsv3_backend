@@ -13,7 +13,7 @@ import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { NumerationState } from '../shared/enums/numeration-state'
 import { DocumentEntity } from '../documents/entities/document.entity'
 import { NumerationByCouncil } from './dto/numeration-by-council.dto'
-import { ApiResponse } from '../shared/interfaces/response.interface'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class NumerationDocumentService {
@@ -26,18 +26,13 @@ export class NumerationDocumentService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async verifyCouncilExists(
-    councilId: number,
-  ): Promise<ApiResponse<CouncilEntity>> {
+  async verifyCouncilExists(councilId: number) {
     const council = await this.dataSource.manager.findOne(CouncilEntity, {
       where: { id: councilId },
     })
 
     if (!council) throw new BadRequestException('Council not found')
-    return {
-      message: 'Consejo encontrado exitosamente',
-      data: council,
-    }
+    return new ApiResponseDto('Consejo encontrado exitosamente', council)
   }
 
   async validateCouncilPresident(council: CouncilEntity) {
@@ -49,9 +44,7 @@ export class NumerationDocumentService {
     }
   }
 
-  async getYearModule(
-    council: CouncilEntity,
-  ): Promise<ApiResponse<YearModuleEntity>> {
+  async getYearModule(council: CouncilEntity) {
     const year = new Date().getFullYear()
 
     const qb = this.dataSource.manager
@@ -67,17 +60,17 @@ export class NumerationDocumentService {
       throw new BadRequestException('YearModule not found')
     }
 
-    return {
-      message: 'Módulo del año encontrado exitosamente',
-      data: yearModule,
-    }
+    return new ApiResponseDto(
+      'Módulo del año encontrado exitosamente',
+      yearModule,
+    )
   }
 
   async createLastNumeration(
     numeration: number,
     councilId: number,
     yearModuleId: number,
-  ): Promise<ApiResponse<NumerationDocumentEntity>> {
+  ) {
     const numerationDocument = this.dataSource.manager.create(
       NumerationDocumentEntity,
       {
@@ -96,10 +89,10 @@ export class NumerationDocumentService {
       throw new InternalServerErrorException('Error al crear la numeración')
     }
 
-    return {
-      message: 'Numeración creada exitosamente',
-      data: numerationDocumentSaved,
-    }
+    return new ApiResponseDto(
+      'Numeración creada exitosamente',
+      numerationDocumentSaved,
+    )
   }
 
   async reserveNumerationRange(
@@ -139,9 +132,7 @@ export class NumerationDocumentService {
     }
   }
 
-  async getAvailableCouncilNumeration(
-    councilId: number,
-  ): Promise<ApiResponse<NumerationDocumentEntity[]>> {
+  async getAvailableCouncilNumeration(councilId: number) {
     const qb = this.dataSource.manager
       .createQueryBuilder(NumerationDocumentEntity, 'numeration_document')
       .leftJoinAndSelect('numeration_document.council', 'council')
@@ -162,10 +153,10 @@ export class NumerationDocumentService {
       )
     }
 
-    return {
-      message: 'Numeración disponible encontrada exitosamente',
-      data: availableCounsilNumeration,
-    }
+    return new ApiResponseDto(
+      'Numeración disponible encontrada exitosamente',
+      availableCounsilNumeration,
+    )
   }
 
   async create(createNumerationDocumentDto: CreateNumerationDocumentDto) {
@@ -199,11 +190,13 @@ export class NumerationDocumentService {
           )
         }
 
-        return await this.createLastNumeration(
+        const numeration = await this.createLastNumeration(
           createNumerationDocumentDto.number,
           createNumerationDocumentDto.councilId,
           yearModule.id,
         )
+
+        return numeration
       } else {
         const numerationsByCouncil = await this.dataSource.manager.find(
           NumerationDocumentEntity,
@@ -249,11 +242,13 @@ export class NumerationDocumentService {
             )
           }
 
-          return await this.createLastNumeration(
+          const numeration = await this.createLastNumeration(
             createNumerationDocumentDto.number,
             createNumerationDocumentDto.councilId,
             yearModule.id,
           )
+
+          return numeration
         } else {
           const { data: availableCouncilNumeration } =
             await this.getAvailableCouncilNumeration(
@@ -281,10 +276,7 @@ export class NumerationDocumentService {
             numerationDocument,
           )
 
-          return {
-            message: 'Numeración creada exitosamente',
-            data: entity,
-          }
+          return new ApiResponseDto('Numeración creada exitosamente', entity)
         }
       }
     } catch (error) {
@@ -298,7 +290,7 @@ export class NumerationDocumentService {
     }
   }
 
-  async documentRemoved(document: DocumentEntity): Promise<ApiResponse> {
+  async documentRemoved(document: DocumentEntity) {
     try {
       const numeration = await this.numerationDocumentRepository.findOneOrFail({
         where: { id: document.numerationDocument.id },
@@ -315,20 +307,15 @@ export class NumerationDocumentService {
         throw new BadRequestException('Error al eliminar el documento')
       }
 
-      return {
-        message: 'Documento eliminado exitosamente',
-        data: {
-          success: true,
-        },
-      }
+      return new ApiResponseDto('Documento eliminado exitosamente', {
+        success: true,
+      })
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async getNumerationByCouncil(
-    councilId: number,
-  ): Promise<ApiResponse<NumerationByCouncil>> {
+  async getNumerationByCouncil(councilId: number) {
     try {
       let nextAvailableNumber = -1
       const reservedNumbers = []
@@ -396,10 +383,10 @@ export class NumerationDocumentService {
         usedNumbers,
       }
 
-      return {
-        message: 'Numeración por consejo encontrada exitosamente',
-        data: NumerationByCouncil,
-      }
+      return new ApiResponseDto(
+        'Numeración por consejo encontrada exitosamente',
+        NumerationByCouncil,
+      )
     } catch (error) {
       if (error.status) throw new BadRequestException(error.message)
 
@@ -407,7 +394,7 @@ export class NumerationDocumentService {
     }
   }
 
-  async findOne(id: number): Promise<ApiResponse<NumerationDocumentEntity>> {
+  async findOne(id: number) {
     try {
       const numerationDocument =
         await this.numerationDocumentRepository.findOneOrFail({
@@ -415,16 +402,16 @@ export class NumerationDocumentService {
           relations: ['council'],
         })
 
-      return {
-        message: 'Numeración encontrada exitosamente',
-        data: numerationDocument,
-      }
+      return new ApiResponseDto(
+        'Numeración encontrada exitosamente',
+        numerationDocument,
+      )
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
   }
 
-  async remove(id: number): Promise<ApiResponse> {
+  async remove(id: number) {
     try {
       const numerationDeleted = await this.numerationDocumentRepository.delete(
         id,
@@ -434,12 +421,9 @@ export class NumerationDocumentService {
         throw new BadRequestException('Error al eliminar la numeración')
       }
 
-      return {
-        message: 'Numeración eliminada exitosamente',
-        data: {
-          success: true,
-        },
-      }
+      return new ApiResponseDto('Numeración eliminada exitosamente', {
+        success: true,
+      })
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
