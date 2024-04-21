@@ -16,7 +16,7 @@ import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 @ApiTags('Attendance')
 @Controller('attendance')
 export class CouncilsAttendanceController {
-  constructor(private readonly attendanceService: AttendanceService) { }
+  constructor(private readonly attendanceService: AttendanceService) {}
 
   @Get('default/:moduleId')
   async getDefaultAttendance(
@@ -45,7 +45,10 @@ export class CouncilsAttendanceController {
   }
 
   @Post('default/:moduleId')
-  async createDefault(@Param('moduleId') moduleId: number, @Body() body: DefaultCreationDTO[]) {
+  async createDefault(
+    @Param('moduleId') moduleId: number,
+    @Body() body: DefaultCreationDTO[],
+  ) {
     return new ApiResponseDto(
       'Representantes por defecto creados exitosamente',
       await this.attendanceService.createDefault(moduleId, body),
