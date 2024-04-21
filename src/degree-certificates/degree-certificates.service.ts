@@ -280,11 +280,12 @@ export class DegreeCertificatesService {
       )
     }
 
-    const driveId = await this.filesService.createDocumentByParentIdAndCopy(
-      `${degreeCertificate.number} - ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code}`,
-      degreeCertificate.submoduleYearModule.driveId,
-      degreeCertificate.certificateType.driveId,
-    )
+    const { data: driveId } =
+      await this.filesService.createDocumentByParentIdAndCopy(
+        `${degreeCertificate.number} - ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code}`,
+        degreeCertificate.submoduleYearModule.driveId,
+        degreeCertificate.certificateType.driveId,
+      )
 
     if (!driveId) {
       throw new DegreeCertificateBadRequestError(
