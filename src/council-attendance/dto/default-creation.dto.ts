@@ -6,13 +6,6 @@ import { ApiProperty } from '@nestjs/swagger'
 export class DefaultCreationDTO {
   @IsNotEmpty({
     message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
-      '{field}': 'module',
-    }),
-  })
-  public module: string
-
-  @IsNotEmpty({
-    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
       '{field}': 'positionName',
     }),
   })
