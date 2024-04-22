@@ -7,6 +7,7 @@ import { CertificateStatusEntity } from './certificate-status.entity'
 import { DegreeModalityEntity } from './degree-modality.entity'
 import { RoomEntity } from './room.entity'
 import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
+import { UserEntity } from '../../users/entities/users.entity'
 
 @Entity('degree_certificates')
 export class DegreeCertificateEntity extends BaseAppEntity {
@@ -106,15 +107,11 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   gradesSheetDriveId: string
 
   @Column({
-    name: 'document_drive_id',
-    type: 'varchar',
-  })
-  documentDriveId: string
-
-  @Column({
     name: 'certificate_drive_id',
     type: 'varchar',
   })
+  certificateDriveId: string
+
   @Column({
     name: 'deleted_at',
     type: 'timestamp without time zone',
@@ -128,4 +125,12 @@ export class DegreeCertificateEntity extends BaseAppEntity {
     default: false,
   })
   isClosed: boolean
+
+  @ManyToOne(() => UserEntity, {
+    eager: true,
+  })
+  @JoinColumn({
+    name: 'created_by',
+  })
+  user: UserEntity
 }

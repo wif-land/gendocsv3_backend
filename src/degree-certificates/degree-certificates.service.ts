@@ -17,10 +17,10 @@ import { DegreeCertificateEntity } from './entities/degree-certificate.entity'
 import { DegreeModalityEntity } from './entities/degree-modality.entity'
 import { RoomEntity } from './entities/room.entity'
 import { DegreeCertificateBadRequestError } from './errors/degree-certificate-bad-request'
-import { DegreeCertificateAlreadyExists } from './errors/degree-certificate-exists'
+import { DegreeCertificateAlreadyExists } from './errors/degree-certificate-already-exists'
 import { DegreeCertificateNotFoundError } from './errors/degree-certificate-not-found'
 import { YearModuleService } from '../year-module/year-module.service'
-import { DEGREE_MODULES } from '../shared/constants/degree-certificates'
+import { DEGREE_MODULES } from '../shared/enums/degree-certificates'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { FilesService } from '../files/files.service'
 import { StudentsService } from '../students/students.service'
@@ -28,6 +28,9 @@ import { StudentEntity } from '../students/entities/student.entity'
 import { CertificateTypeCareerEntity } from './entities/certicate-type-career.entity'
 import { DegreeCertificateTypeNotFoundError } from './errors/degree-certificate-type-not-found'
 import { VariablesService } from '../variables/variables.service'
+import { CertificateTypeStatusEntity } from './entities/certificate-type-status.entity'
+import { CellsGradeDegreeCertificateTypeEntity } from './entities/cells-grade-degree-certificate-type.entity'
+import { CreateCellGradeDegreeCertificateTypeDto } from './dto/create-cells-grade-degree-certificate-type.dto'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -49,11 +52,17 @@ export class DegreeCertificatesService {
     @InjectRepository(DegreeModalityEntity)
     private readonly degreeModalityRepository: Repository<DegreeModalityEntity>,
 
+    @InjectRepository(CertificateTypeStatusEntity)
+    private readonly certificateTypeStatusRepository: Repository<CertificateTypeStatusEntity>,
+
     @InjectRepository(RoomEntity)
     private readonly roomRepository: Repository<RoomEntity>,
 
     @InjectRepository(CertificateTypeCareerEntity)
     private readonly cetificateTypeCareerRepository: Repository<CertificateTypeCareerEntity>,
+
+    @InjectRepository(CellsGradeDegreeCertificateTypeEntity)
+    private readonly cellsGradeDegreeCertificateTypeRepository: Repository<CellsGradeDegreeCertificateTypeEntity>,
   ) {}
 
   async getCertificateTypesCarrerByCarrer(carrerId: number) {
@@ -68,6 +77,44 @@ export class DegreeCertificatesService {
     }
 
     return certificateTypes
+  }
+
+  async getCertificateStatusByType(certificateTypeId: number) {
+    const certificateStatus = await this.certificateTypeStatusRepository.findBy(
+      {
+        certificateType: { id: certificateTypeId },
+      },
+    )
+
+    if (!certificateStatus || certificateStatus.length === 0) {
+      return new DegreeCertificateNotFoundError(
+        `No se han encontrado estados de certificado para el tipo de certificado con id ${certificateTypeId}`,
+      )
+    }
+
+    return certificateStatus
+  }
+
+  async showCertificateTypesCarrerByCarrer(carrerId: number) {
+    const certificateTypes = await this.getCertificateTypesCarrerByCarrer(
+      carrerId,
+    )
+
+    return new ApiResponseDto(
+      'Listado de modalidades de grado obtenido exitosamente',
+      certificateTypes,
+    )
+  }
+
+  async showCertificateStatusByType(certificateTypeId: number) {
+    const certificateStatus = await this.getCertificateStatusByType(
+      certificateTypeId,
+    )
+
+    return new ApiResponseDto(
+      'Listado de estados de certificado obtenido exitosamente',
+      certificateStatus,
+    )
   }
 
   async getLastNumberToRegister(carrerId: number): Promise<number> {
@@ -135,6 +182,31 @@ export class DegreeCertificatesService {
     return degreeCertificate
   }
 
+  async generateGradeSheet(degreeCertificate: DegreeCertificateEntity) {
+    const gradeSheet = await this.filesService.createDocumentByParentIdAndCopy(
+      `GR ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code} - ${degreeCertificate.certificateStatus.code}`,
+      degreeCertificate.submoduleYearModule.driveId,
+      degreeCertificate.certificateType.driveId,
+    )
+
+    if (!gradeSheet) {
+      throw new DegreeCertificateBadRequestError(
+        'Error al generar la hoja de calificaciones en Google Drive',
+      )
+    }
+
+    const degreeCertificateUpdated =
+      await this.degreeCertificateRepository.save({
+        ...degreeCertificate,
+        gradesSheetDriveId: gradeSheet.data,
+      })
+
+    return new ApiResponseDto(
+      'Hoja de calificaciones generada correctamente',
+      degreeCertificateUpdated,
+    )
+  }
+
   async create(dto: CreateDegreeCertificateDto) {
     if (this.findReplicate(dto)) {
       throw new DegreeCertificateAlreadyExists(
@@ -145,6 +217,17 @@ export class DegreeCertificatesService {
     const student: StudentEntity = (
       await this.studentService.findOne(dto.studentId)
     ).data
+
+    const certificateStatusType = await this.findCertificateStatusType(
+      dto.certificateTypeId,
+      dto.certificateStatusId,
+    )
+
+    if (!certificateStatusType) {
+      throw new DegreeCertificateNotFoundError(
+        `No se encontró el estado de certificado ${dto.certificateTypeId} para el tipo de certificado ${dto.certificateStatusId}`,
+      )
+    }
 
     const degreeCertificate = this.degreeCertificateRepository.create({
       ...dto,
@@ -168,9 +251,13 @@ export class DegreeCertificatesService {
       degreeCertificate,
     )
 
+    const { data: createdDegreeCertificate } = await this.generateGradeSheet(
+      newCertificate,
+    )
+
     return new ApiResponseDto(
       'Certificado creado correctamente',
-      newCertificate,
+      createdDegreeCertificate,
     )
   }
 
@@ -258,6 +345,134 @@ export class DegreeCertificatesService {
     })
   }
 
+  async findCertificateStatusType(
+    certificateTypeId: number,
+    certificateStatusId: number,
+  ) {
+    const certificateTypeStatus =
+      await this.certificateTypeStatusRepository.findOneBy({
+        certificateType: { id: certificateTypeId },
+        certificateStatus: { id: certificateStatusId },
+      })
+
+    if (!certificateTypeStatus) {
+      throw new DegreeCertificateNotFoundError(
+        'No se encontró el estado de certificado para el tipo de certificado',
+      )
+    }
+
+    return certificateTypeStatus
+  }
+
+  async getGradeCellsByCertificateType(certificateTypeId: number) {
+    const cells = await this.cellsGradeDegreeCertificateTypeRepository.findBy({
+      certificateType: { id: certificateTypeId },
+    })
+
+    if (!cells || cells.length === 0) {
+      throw new DegreeCertificateNotFoundError(
+        'No se encontraron celdas de calificación para el tipo de certificado',
+      )
+    }
+
+    return cells
+  }
+
+  async showGradeCellsByCertificateType(certificateTypeId: number) {
+    const cells = await this.getGradeCellsByCertificateType(certificateTypeId)
+
+    return new ApiResponseDto(
+      'Listado de celdas de calificación obtenido exitosamente',
+      cells,
+    )
+  }
+
+  async createCellGradeByCertificateType(
+    createCellGradeDegreeCertificateTypeDto: CreateCellGradeDegreeCertificateTypeDto,
+  ) {
+    const cellAlreadyExists =
+      await this.cellsGradeDegreeCertificateTypeRepository.findOneBy({
+        certificateType: {
+          id: createCellGradeDegreeCertificateTypeDto.certificateTypeId,
+        },
+        cell: createCellGradeDegreeCertificateTypeDto.cell,
+      })
+
+    if (cellAlreadyExists) {
+      throw new DegreeCertificateAlreadyExists(
+        `La celda de calificación con código ${createCellGradeDegreeCertificateTypeDto.cell} ya existe`,
+      )
+    }
+
+    const cell = this.cellsGradeDegreeCertificateTypeRepository.create({
+      ...createCellGradeDegreeCertificateTypeDto,
+      certificateType: {
+        id: createCellGradeDegreeCertificateTypeDto.certificateTypeId,
+      },
+      gradeTextVariable: `${createCellGradeDegreeCertificateTypeDto.gradeVariable}_TEXT`,
+    })
+
+    if (!cell) {
+      throw new DegreeCertificateBadRequestError(
+        'Los datos de la celda de calificación son incorrectos',
+      )
+    }
+
+    const newCell = await this.cellsGradeDegreeCertificateTypeRepository.save(
+      cell,
+    )
+
+    return new ApiResponseDto(
+      'Celda de calificación creada correctamente',
+      newCell,
+    )
+  }
+
+  async updateCellDegreeByCertificateType(
+    id: number,
+    updateCellGradeDegreeCertificateTypeDto: CreateCellGradeDegreeCertificateTypeDto,
+  ) {
+    const cell = await this.cellsGradeDegreeCertificateTypeRepository.preload({
+      id,
+      ...updateCellGradeDegreeCertificateTypeDto,
+      certificateType: {
+        id: updateCellGradeDegreeCertificateTypeDto.certificateTypeId,
+      },
+      gradeTextVariable: `${updateCellGradeDegreeCertificateTypeDto.gradeVariable}_TEXT`,
+    })
+
+    if (!cell) {
+      throw new DegreeCertificateNotFoundError(
+        `La celda de calificación con id ${id} no existe`,
+      )
+    }
+
+    const cellUpdated =
+      await this.cellsGradeDegreeCertificateTypeRepository.save(cell)
+
+    return new ApiResponseDto(
+      'Celda de calificación actualizada correctamente',
+      cellUpdated,
+    )
+  }
+
+  async deleteCellDegreeByCertificateType(id: number) {
+    const cell = this.cellsGradeDegreeCertificateTypeRepository.findOneBy({
+      id,
+    })
+
+    if (!cell) {
+      throw new DegreeCertificateNotFoundError(
+        `La celda de calificación con id ${id} no existe`,
+      )
+    }
+
+    await this.cellsGradeDegreeCertificateTypeRepository.delete({ id })
+
+    return new ApiResponseDto('Celda de calificación eliminada correctamente', {
+      success: true,
+    })
+  }
   async generateDocument(id: number) {
     const degreeCertificate = await this.degreeCertificateRepository.findOneBy({
       id,
@@ -280,11 +495,42 @@ export class DegreeCertificatesService {
       )
     }
 
+    const certificateStatusType = await this.findCertificateStatusType(
+      degreeCertificate.certificateType.id,
+      degreeCertificate.certificateStatus.id,
+    )
+
+    if (!certificateStatusType) {
+      throw new DegreeCertificateNotFoundError(
+        `No se encontró el estado de certificado ${degreeCertificate.certificateStatus.code} para el tipo de certificado ${degreeCertificate.certificateType.name}`,
+      )
+    }
+
+    // TODO: Ask about the limit of intership and vinculation hours to validate, at the moment it will only verify that they are not null
+
+    if (
+      degreeCertificate.student.gender == null ||
+      degreeCertificate.student.endStudiesDate == null ||
+      degreeCertificate.student.startStudiesDate == null ||
+      degreeCertificate.student.internshipHours == null ||
+      degreeCertificate.student.vinculationHours == null
+    ) {
+      throw new DegreeCertificateBadRequestError(
+        'El estudiante no cuenta con la información necesaria para generar la acta de grado',
+      )
+    }
+
+    if (degreeCertificate.gradesSheetDriveId == null) {
+      throw new DegreeCertificateBadRequestError(
+        'La acta de grado no cuenta con la hoja de calificaciones',
+      )
+    }
+
     const { data: driveId } =
       await this.filesService.createDocumentByParentIdAndCopy(
-        `${degreeCertificate.number} - ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code}`,
+        `${degreeCertificate.number} - ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code} - ${degreeCertificate.certificateStatus.code}`,
         degreeCertificate.submoduleYearModule.driveId,
-        degreeCertificate.certificateType.driveId,
+        certificateStatusType.driveId,
       )
 
     if (!driveId) {
@@ -293,8 +539,22 @@ export class DegreeCertificatesService {
       )
     }
 
+    const gradeCells = await this.getGradeCellsByCertificateType(
+      degreeCertificate.certificateType.id,
+    )
+
+    const gradeCellsData = await this.variablesService.getGradeCellsVariables(
+      gradeCells,
+    )
+
     const studentData =
       this.variablesService.getStudentVariables(degreeCertificate)
+    // TODO: Make the method getDegreeCertificateVariables
+    // TODO: Make the gradesSheet logic to variables
+    // TODO: Generate and insert the templates on migrations and seeders
+    // TODO: Test the generation of the documents
+    const dregreeCertificateData =
+      this.variablesService.getDegreeCertificateVariables(degreeCertificate)
 
     await this.filesService.replaceTextOnDocument(studentData, driveId)
 

@@ -150,7 +150,7 @@ export class StudentEntity extends BasePerson {
     type: 'smallint',
     nullable: true,
   })
-  intershipHours: number
+  internshipHours: number
 
   @ApiProperty({
     example: '1',
