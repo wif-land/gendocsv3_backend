@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
-import { DefaultCreationDTO } from './dto/default-creation.dto'
-import { DefaultEditionDTO } from './dto/default-edition.dto'
+import { CreateEditDefaultMemberDTO } from './dto/create-edit-default-member.dto'
+import { GetDefaultMembers } from './dto/default-members-get.dto'
 
 @Injectable()
 export class AttendanceService {
@@ -23,30 +23,34 @@ export class AttendanceService {
         },
       },
       relations: ['functionary', 'student'],
-      select: [
-        'student',
-        'functionary',
-        'positionOrder',
-        'positionName',
-        'id',
-        'createdAt',
-        'updatedAt',
-        'isPresident',
-      ],
+      select: ['student', 'functionary', 'positionOrder', 'positionName', 'id'],
       order: {
         positionOrder: 'ASC',
       },
     })
 
-    return defaultAttendance
+    return defaultAttendance.map(
+      (item) =>
+        new GetDefaultMembers(item.id, item.positionOrder, item.positionName, {
+          student: item.student,
+          functionary: item.functionary,
+        }),
+    )
   }
 
   async create(body: any) {
     return await this.councilAttendanceRepository.save(body)
   }
 
-  async createDefault(moduleId: number, body: DefaultCreationDTO[]) {
-    const promises = body.map(async (item) => {
+  async createEditDefault(
+    moduleId: number,
+    body: CreateEditDefaultMemberDTO[],
+  ) {
+    const toCreate = body.filter((item) => item.action === 'create')
+    const toUpdate = body.filter((item) => item.action === 'update')
+    const toDelete = body.filter((item) => item.action === 'delete')
+
+    const createPromises = toCreate.map(async (item) => {
       const memberProps = {}
       if (!item.isStudent) {
         memberProps['functionary'] = {
@@ -70,43 +74,13 @@ export class AttendanceService {
       })
     })
 
-    return await Promise.all(promises)
-  }
-
-  async getByCouncil(councilId: number) {
-    return await this.councilAttendanceRepository.find({
-      where: {
-        council: {
-          id: councilId,
-        },
-      },
-      relations: ['functionary', 'student'],
-      select: [
-        'student',
-        'functionary',
-        'positionOrder',
-        'positionName',
-        'id',
-        'createdAt',
-        'updatedAt',
-        'isPresident',
-      ],
-      order: {
-        positionOrder: 'ASC',
-      },
-    })
-  }
-
-  async updateDefault(body: DefaultEditionDTO[]) {
-    const promises = body.map(async (item) => {
+    const updatePromises = toUpdate.map(async (item) => {
       const prevItem = await this.councilAttendanceRepository.findOne({
         where: {
           id: item.id,
         },
         relations: ['functionary', 'student'],
       })
-
-      console.log({ prevItem })
 
       const extraParams = {
         ...item,
@@ -138,8 +112,36 @@ export class AttendanceService {
       await this.councilAttendanceRepository.update(item.id, extraParams)
     })
 
-    await Promise.all(promises)
+    const deletePromises = toDelete.map(async (item) => {
+      await this.councilAttendanceRepository.delete(item.id)
+    })
 
-    return body
+    const promises = [...createPromises, ...updatePromises, ...deletePromises]
+
+    return await Promise.all(promises)
+  }
+
+  async getByCouncil(councilId: number) {
+    return await this.councilAttendanceRepository.find({
+      where: {
+        council: {
+          id: councilId,
+        },
+      },
+      relations: ['functionary', 'student'],
+      select: [
+        'student',
+        'functionary',
+        'positionOrder',
+        'positionName',
+        'id',
+        'createdAt',
+        'updatedAt',
+        'isPresident',
+      ],
+      order: {
+        positionOrder: 'ASC',
+      },
+    })
   }
 }

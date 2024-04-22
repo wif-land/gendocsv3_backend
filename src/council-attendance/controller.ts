@@ -5,13 +5,11 @@ import {
   Body,
   Param,
   ParseIntPipe,
-  Put,
 } from '@nestjs/common'
 import { AttendanceService } from './service'
 import { ApiTags } from '@nestjs/swagger'
-import { DefaultCreationDTO } from './dto/default-creation.dto'
-import { DefaultEditionDTO } from './dto/default-edition.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { CreateEditDefaultMemberDTO } from './dto/create-edit-default-member.dto'
 
 @ApiTags('Attendance')
 @Controller('attendance')
@@ -45,21 +43,13 @@ export class CouncilsAttendanceController {
   }
 
   @Post('default/:moduleId')
-  async createDefault(
+  async createEditDefault(
     @Param('moduleId') moduleId: number,
-    @Body() body: DefaultCreationDTO[],
+    @Body() body: CreateEditDefaultMemberDTO[],
   ) {
     return new ApiResponseDto(
-      'Representantes por defecto creados exitosamente',
-      await this.attendanceService.createDefault(moduleId, body),
-    )
-  }
-
-  @Put('default')
-  async updateDefault(@Body() body: DefaultEditionDTO[]) {
-    return new ApiResponseDto(
-      'Representantes por defecto actualizados exitosamente',
-      await this.attendanceService.updateDefault(body),
+      'Representantes modificados exitosamente',
+      await this.attendanceService.createEditDefault(moduleId, body),
     )
   }
 }
