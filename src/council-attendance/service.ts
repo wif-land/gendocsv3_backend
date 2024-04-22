@@ -64,6 +64,7 @@ export class AttendanceService {
 
       delete item.member
       delete item.isStudent
+      delete item.action
 
       await this.create({
         ...item,
@@ -87,7 +88,7 @@ export class AttendanceService {
       }
 
       if (item.member) {
-        if (item.isStudent && prevItem.functionary.id) {
+        if (item.isStudent && prevItem.functionary?.id) {
           extraParams['functionary'] = {
             id: null,
           }
@@ -96,7 +97,7 @@ export class AttendanceService {
           }
         }
 
-        if (!item.isStudent && prevItem.student.id) {
+        if (!item.isStudent && prevItem.student?.id) {
           extraParams['functionary'] = {
             id: item.member,
           }
@@ -108,6 +109,7 @@ export class AttendanceService {
 
       delete extraParams.isStudent
       delete extraParams.member
+      delete extraParams.action
 
       await this.councilAttendanceRepository.update(item.id, extraParams)
     })
