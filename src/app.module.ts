@@ -36,7 +36,7 @@ import { DegreesModule } from './degrees/degrees.module'
 import { CitiesModule } from './cities/cities.module'
 import { DegreeCertificatesModule } from './degree-certificates/degree-certificates.module'
 import { CouncilsAttendanceModule } from './council-attendance/module'
-import { DegreeCertificateAttendanceModule } from './degree-certificate-attendance/degree-certificate-attendance.module';
+import { DegreeCertificateAttendanceModule } from './degree-certificate-attendance/degree-certificate-attendance.module'
 
 dotenvConfig({ path: '.env' })
 

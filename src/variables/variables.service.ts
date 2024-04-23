@@ -346,24 +346,24 @@ export class VariablesService {
       ] = president.details
     }
 
-    const membersData = {}
+    // const membersData = {}
 
-    const tribunalMembers = members.filter(
-      (member) =>
-        member.role === DEGREE_ATTENDANCE_ROLES.PRINCIPAL &&
-        member.role === DEGREE_ATTENDANCE_ROLES.SUBSTITUTE &&
-        member.hasAttended,
-    )
+    // const tribunalMembers = members.filter(
+    //   (member) =>
+    //     member.role === DEGREE_ATTENDANCE_ROLES.PRINCIPAL &&
+    //     member.role === DEGREE_ATTENDANCE_ROLES.SUBSTITUTE &&
+    //     member.hasAttended,
+    // )
   }
 
-  getDegreeCertificateVariables(degreeCertificate: DegreeCertificateEntity) {
-    const variables = {}
+  // getDegreeCertificateVariables(degreeCertificate: DegreeCertificateEntity) {
+  //   const variables = {}
 
-    return new ApiResponseDto(
-      'Variables de acta encontradas con éxito',
-      variables,
-    )
-  }
+  //   return new ApiResponseDto(
+  //     'Variables de acta encontradas con éxito',
+  //     variables,
+  //   )
+  // }
   async getPositionVariables() {
     try {
       const variables = {}
