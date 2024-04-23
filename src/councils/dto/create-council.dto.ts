@@ -5,7 +5,6 @@ import {
   IsISO8601,
   IsNotEmpty,
   IsOptional,
-  ValidateIf,
 } from 'class-validator'
 import { COUNCIL_TYPES, ICouncil } from '../interfaces/council.interface'
 import { ApiProperty } from '@nestjs/swagger'
@@ -64,7 +63,7 @@ export class CreateCouncilDto implements ICouncil {
   @IsNotEmpty({
     message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
       '{field}': 'members',
-    })
+    }),
   })
   members: CreateAttendanceDto[]
 
