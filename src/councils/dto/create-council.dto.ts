@@ -10,6 +10,8 @@ import {
 import { COUNCIL_TYPES, ICouncil } from '../interfaces/council.interface'
 import { ApiProperty } from '@nestjs/swagger'
 import { CreateAttendanceDto } from './create-attendance.dto'
+import { DtoUtils } from '../../shared/utils/dtos'
+import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
 
 export class CreateCouncilDto implements ICouncil {
   @ApiProperty({
@@ -54,14 +56,17 @@ export class CreateCouncilDto implements ICouncil {
   userId: number
 
   @ApiProperty({
-    description: 'Arreglo de asistencias',
+    description: 'Arreglo de miembros del consejo',
   })
-  @ValidateIf((o) => o.attendees)
   @IsArray({
-    message: 'Attendees must be a valid array of objects',
+    message: 'Members must be a valid array of objects',
   })
-  @IsOptional()
-  attendees?: CreateAttendanceDto[]
+  @IsNotEmpty({
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+      '{field}': 'members',
+    })
+  })
+  members: CreateAttendanceDto[]
 
   @ApiProperty({
     description: 'Estado del consejo',

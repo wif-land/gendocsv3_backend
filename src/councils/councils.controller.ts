@@ -16,6 +16,7 @@ import { UpdateCouncilDto } from './dto/update-council.dto'
 import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { CouncilFiltersDto } from './dto/council-filters.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @ApiTags('Councils')
 @Controller('councils')
@@ -30,7 +31,10 @@ export class CouncilsController {
   @ApiResponse({ type: CouncilEntity })
   @Post()
   async create(@Body() createCouncilDto: CreateCouncilDto) {
-    return this.councilsService.create(createCouncilDto)
+    return new ApiResponseDto(
+      'Consejo creado exitosamente',
+      await this.councilsService.create(createCouncilDto),
+    )
   }
 
   @ApiResponse({ isArray: true, type: CouncilEntity })

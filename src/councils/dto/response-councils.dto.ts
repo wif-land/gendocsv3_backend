@@ -11,7 +11,7 @@ export class ResponseCouncilsDto {
   driveId: string
   createdAt: Date
   updatedAt: Date
-  attendees: CouncilAttendanceEntity[]
+  members: CouncilAttendanceEntity[]
   isActive: boolean
   isArchived: boolean
   type: COUNCIL_TYPES
@@ -27,7 +27,7 @@ export class ResponseCouncilsDto {
     this.updatedAt = council.updatedAt
     this.isActive = council.isActive
     this.isArchived = council.isArchived
-    this.attendees = council.attendance
+    this.members = council.attendance
     this.type = council.type
   }
 }
