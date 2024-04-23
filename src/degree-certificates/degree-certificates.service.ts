@@ -539,24 +539,24 @@ export class DegreeCertificatesService {
       )
     }
 
-    const gradeCells = await this.getGradeCellsByCertificateType(
-      degreeCertificate.certificateType.id,
-    )
+    // const gradeCells = await this.getGradeCellsByCertificateType(
+    //   degreeCertificate.certificateType.id,
+    // )
 
-    const gradeCellsData = await this.variablesService.getGradeCellsVariables(
-      gradeCells,
-    )
+    // // const gradeCellsData = await this.variablesService.getGradeCellsVariables(
+    // //   gradeCells,
+    // // )
 
-    const studentData =
-      this.variablesService.getStudentVariables(degreeCertificate)
-    // TODO: Make the method getDegreeCertificateVariables
-    // TODO: Make the gradesSheet logic to variables
-    // TODO: Generate and insert the templates on migrations and seeders
-    // TODO: Test the generation of the documents
-    const dregreeCertificateData =
-      this.variablesService.getDegreeCertificateVariables(degreeCertificate)
+    // // const studentData =
+    // //   this.variablesService.getStudentVariables(degreeCertificate)
+    // // // TODO: Make the method getDegreeCertificateVariables
+    // // // TODO: Make the gradesSheet logic to variables
+    // // // TODO: Generate and insert the templates on migrations and seeders
+    // // // TODO: Test the generation of the documents
+    // // const dregreeCertificateData =
+    // //   this.variablesService.getDegreeCertificateVariables(degreeCertificate)
 
-    await this.filesService.replaceTextOnDocument(studentData, driveId)
+    // await this.filesService.replaceTextOnDocument(studentData, driveId)
 
     const degreeCertificateUpdated =
       await this.degreeCertificateRepository.save({
