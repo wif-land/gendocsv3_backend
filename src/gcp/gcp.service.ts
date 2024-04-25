@@ -4,11 +4,13 @@ import { GoogleAuth } from 'google-auth-library'
 import { docs, docs_v1 } from '@googleapis/docs'
 import { drive, drive_v3 } from '@googleapis/drive'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { sheets, sheets_v4 } from '@googleapis/sheets'
 
 @Injectable()
 export class GcpService {
   private drive: drive_v3.Drive
   private docs: docs_v1.Docs
+  private sheets: sheets_v4.Sheets
 
   constructor(private configService: ConfigService) {
     const auth: GoogleAuth = new GoogleAuth({
@@ -16,6 +18,7 @@ export class GcpService {
       scopes: [
         'https://www.googleapis.com/auth/drive',
         'https://www.googleapis.com/auth/documents',
+        'https://www.googleapis.com/auth/spreadsheets',
       ],
     })
 
@@ -26,6 +29,11 @@ export class GcpService {
 
     this.docs = docs({
       version: 'v1',
+      auth,
+    })
+
+    this.sheets = sheets({
+      version: 'v4',
       auth,
     })
   }
@@ -153,6 +161,19 @@ export class GcpService {
       return new ApiResponseDto('Documento eliminado con éxito', {
         success: true,
       })
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  async getValuesFromSheet(spreadsheetId: string, range: string) {
+    try {
+      const { data } = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range,
+      })
+
+      return new ApiResponseDto('Datos obtenidos con éxito', data.values)
     } catch (error) {
       throw new Error(error.message)
     }

@@ -98,4 +98,17 @@ export class FilesService {
 
     return result
   }
+
+  async getValuesFromSheet(sheetId: string, range: string) {
+    const values = await this.gcpService.getValuesFromSheet(sheetId, range)
+
+    if (!values) {
+      throw new HttpException(
+        'Error getting values from sheet',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    return values
+  }
 }

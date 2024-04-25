@@ -20,7 +20,10 @@ import { DegreeCertificateBadRequestError } from './errors/degree-certificate-ba
 import { DegreeCertificateAlreadyExists } from './errors/degree-certificate-already-exists'
 import { DegreeCertificateNotFoundError } from './errors/degree-certificate-not-found'
 import { YearModuleService } from '../year-module/year-module.service'
-import { DEGREE_MODULES } from '../shared/enums/degree-certificates'
+import {
+  DEGREE_MODULES,
+  DEGREE_CERTIFICATE_GRADES,
+} from '../shared/enums/degree-certificates'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { FilesService } from '../files/files.service'
 import { StudentsService } from '../students/students.service'
@@ -31,6 +34,9 @@ import { VariablesService } from '../variables/variables.service'
 import { CertificateTypeStatusEntity } from './entities/certificate-type-status.entity'
 import { CellsGradeDegreeCertificateTypeEntity } from './entities/cells-grade-degree-certificate-type.entity'
 import { CreateCellGradeDegreeCertificateTypeDto } from './dto/create-cells-grade-degree-certificate-type.dto'
+import { transformNumberToWords } from '../shared/utils/number'
+import { timeout } from 'rxjs'
+import { DegreeCertificateAttendanceService } from '../degree-certificate-attendance/degree-certificate-attendance.service'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -39,6 +45,7 @@ export class DegreeCertificatesService {
     private readonly filesService: FilesService,
     private readonly studentService: StudentsService,
     private readonly variablesService: VariablesService,
+    private readonly degreeCertificateAttendanceService: DegreeCertificateAttendanceService,
 
     @InjectRepository(DegreeCertificateEntity)
     private readonly degreeCertificateRepository: Repository<DegreeCertificateEntity>,
@@ -473,6 +480,38 @@ export class DegreeCertificatesService {
       success: true,
     })
   }
+
+  async getCellsVariables(
+    cells: CellsGradeDegreeCertificateTypeEntity[],
+    gradesSheetDriveId: string,
+  ) {
+    const cellsData = {}
+
+    cells.map(async (cell) => {
+      const { data: values } = await this.filesService.getValuesFromSheet(
+        gradesSheetDriveId,
+        DEGREE_CERTIFICATE_GRADES.DEFAULT_SHEET + cell.cell,
+      )
+
+      const value = values.length > 0 ? values[0][0] : '0.0'
+
+      const textValue = transformNumberToWords(value)
+
+      // eslint-disable-next-line no-magic-numbers
+      timeout(5000)
+
+      cellsData[`{{{${cell.gradeVariable}}}}`] = value
+      cellsData[`{{{${cell.gradeTextVariable}}}}`] = textValue
+
+      return {
+        [`{{{${cell.gradeVariable}}}}`]: value,
+        [`{{{${cell.gradeTextVariable}}}}`]: textValue,
+      }
+    })
+
+    return cellsData
+  }
+
   async generateDocument(id: number) {
     const degreeCertificate = await this.degreeCertificateRepository.findOneBy({
       id,
@@ -526,6 +565,11 @@ export class DegreeCertificatesService {
       )
     }
 
+    const { data: attendance } =
+      await this.degreeCertificateAttendanceService.findByDegreeCertificate(
+        degreeCertificate.id,
+      )
+
     const { data: driveId } =
       await this.filesService.createDocumentByParentIdAndCopy(
         `${degreeCertificate.number} - ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code} - ${degreeCertificate.certificateStatus.code}`,
@@ -539,24 +583,32 @@ export class DegreeCertificatesService {
       )
     }
 
-    // const gradeCells = await this.getGradeCellsByCertificateType(
-    //   degreeCertificate.certificateType.id,
-    // )
+    const gradeCells = await this.getGradeCellsByCertificateType(
+      degreeCertificate.certificateType.id,
+    )
 
-    // // const gradeCellsData = await this.variablesService.getGradeCellsVariables(
-    // //   gradeCells,
-    // // )
+    const gradeCellsData = await this.getCellsVariables(
+      gradeCells,
+      degreeCertificate.gradesSheetDriveId,
+    )
 
-    // // const studentData =
-    // //   this.variablesService.getStudentVariables(degreeCertificate)
-    // // // TODO: Make the method getDegreeCertificateVariables
-    // // // TODO: Make the gradesSheet logic to variables
-    // // // TODO: Generate and insert the templates on migrations and seeders
-    // // // TODO: Test the generation of the documents
-    // // const dregreeCertificateData =
-    // //   this.variablesService.getDegreeCertificateVariables(degreeCertificate)
+    // TODO: Make the method getDegreeCertificateVariables
+    // TODO: Make the gradesSheet logic to variables
+    // TODO: Generate and insert the templates on migrations and seeders
+    // TODO: Test the generation of the documents
+    const dregreeCertificateData =
+      this.variablesService.getDegreeCertificateVariables(
+        degreeCertificate,
+        attendance,
+      )
 
-    // await this.filesService.replaceTextOnDocument(studentData, driveId)
+    await this.filesService.replaceTextOnDocument(
+      {
+        ...dregreeCertificateData,
+        ...gradeCellsData,
+      },
+      driveId,
+    )
 
     const degreeCertificateUpdated =
       await this.degreeCertificateRepository.save({
