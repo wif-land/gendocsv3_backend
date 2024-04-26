@@ -7,6 +7,7 @@ import { CouncilEntity } from '../../councils/entities/council.entity'
 import { DocumentEntity } from '../../documents/entities/document.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
+import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
 
 @Entity('users')
 export class UserEntity extends BaseAppEntity {
@@ -154,4 +155,10 @@ export class UserEntity extends BaseAppEntity {
   })
   @OneToMany(() => DocumentEntity, (document) => document.user)
   documents: DocumentEntity[]
+
+  @OneToMany(
+    () => DegreeCertificateEntity,
+    (degreeCertificate) => degreeCertificate.user,
+  )
+  degreeCertificates: DegreeCertificateEntity[]
 }

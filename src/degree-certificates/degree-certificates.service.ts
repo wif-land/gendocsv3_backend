@@ -35,7 +35,6 @@ import { CertificateTypeStatusEntity } from './entities/certificate-type-status.
 import { CellsGradeDegreeCertificateTypeEntity } from './entities/cells-grade-degree-certificate-type.entity'
 import { CreateCellGradeDegreeCertificateTypeDto } from './dto/create-cells-grade-degree-certificate-type.dto'
 import { transformNumberToWords } from '../shared/utils/number'
-import { timeout } from 'rxjs'
 import { DegreeCertificateAttendanceService } from '../degree-certificate-attendance/degree-certificate-attendance.service'
 
 @Injectable()
@@ -159,7 +158,16 @@ export class DegreeCertificatesService {
   }
 
   async findAll(): Promise<ApiResponseDto<DegreeCertificateEntity[]>> {
-    const degreeCertificates = await this.degreeCertificateRepository.find()
+    const degreeCertificates = await this.degreeCertificateRepository.find({
+      relationLoadStrategy: 'join',
+      relations: {
+        student: true,
+        career: true,
+        certificateType: true,
+        certificateStatus: true,
+        degreeModality: true,
+      },
+    })
 
     return new ApiResponseDto(
       'Listado de certificados obtenido exitosamente',
@@ -168,22 +176,26 @@ export class DegreeCertificatesService {
   }
 
   async findReplicate(CreateCertificateDegreeDto: CreateDegreeCertificateDto) {
+    const submoduleYearModule = await this.getCurrentDegreeSubmoduleYearModule()
+
     const degreeCertificate = await this.degreeCertificateRepository.findOneBy({
       deletedAt: null,
       presentationDate: CreateCertificateDegreeDto.presentationDate,
       student: { id: CreateCertificateDegreeDto.studentId },
       isClosed: false,
       certificateType: { id: CreateCertificateDegreeDto.certificateTypeId },
-      certificateStatus: { id: CreateCertificateDegreeDto.certificateStatusId },
+      certificateStatus: {
+        id: CreateCertificateDegreeDto.certificateStatusId,
+      },
       degreeModality: { id: CreateCertificateDegreeDto.degreeModalityId },
       room: { id: CreateCertificateDegreeDto.roomId },
       submoduleYearModule: {
-        id: CreateCertificateDegreeDto.submoduleYearModuleId,
+        id: submoduleYearModule.id,
       },
     })
 
-    if (!degreeCertificate) {
-      return null
+    if (!degreeCertificate || degreeCertificate == null) {
+      return undefined
     }
 
     return degreeCertificate
@@ -215,7 +227,7 @@ export class DegreeCertificatesService {
   }
 
   async create(dto: CreateDegreeCertificateDto) {
-    if (this.findReplicate(dto)) {
+    if (await this.findReplicate(dto)) {
       throw new DegreeCertificateAlreadyExists(
         'Ya existe un certificado con los mismos datos',
       )
@@ -236,15 +248,22 @@ export class DegreeCertificatesService {
       )
     }
 
+    const submoduleYearModuleId =
+      await this.getCurrentDegreeSubmoduleYearModule()
+
     const degreeCertificate = this.degreeCertificateRepository.create({
       ...dto,
+      user: { id: dto.userId },
       auxNumber: await this.getLastNumberToRegister(student.career.id),
       student: { id: dto.studentId },
       certificateType: { id: dto.certificateTypeId },
       certificateStatus: { id: dto.certificateStatusId },
       degreeModality: { id: dto.degreeModalityId },
       room: { id: dto.roomId },
-      submoduleYearModule: { id: dto.submoduleYearModuleId },
+      submoduleYearModule: {
+        id: submoduleYearModuleId.id,
+      },
+      career: { id: student.career.id },
       isClosed: false,
     })
 
@@ -258,8 +277,23 @@ export class DegreeCertificatesService {
       degreeCertificate,
     )
 
+    const relationshipCertificate =
+      await this.degreeCertificateRepository.findOne({
+        where: { id: newCertificate.id },
+        relationLoadStrategy: 'join',
+        relations: {
+          student: true,
+          career: true,
+          certificateType: true,
+          certificateStatus: true,
+          degreeModality: true,
+          room: true,
+          submoduleYearModule: true,
+        },
+      })
+
     const { data: createdDegreeCertificate } = await this.generateGradeSheet(
-      newCertificate,
+      relationshipCertificate,
     )
 
     return new ApiResponseDto(
@@ -276,16 +310,24 @@ export class DegreeCertificatesService {
       where: {
         submoduleYearModule: { id: submoduleYearModuleId },
         career: { id: careerId },
-        deletedAt: null,
-        number: null,
+        deletedAt: IsNull(),
+        number: IsNull(),
       },
       order: { createdAt: 'ASC' },
+      relationLoadStrategy: 'join',
+      relations: {
+        student: true,
+        career: true,
+        certificateType: true,
+        certificateStatus: true,
+        degreeModality: true,
+        room: true,
+        submoduleYearModule: true,
+      },
     })
 
     if (!degreeCertificates || degreeCertificates.length === 0) {
-      throw new DegreeCertificateNotFoundError(
-        'No se encontraron certificados para generar',
-      )
+      return undefined
     }
 
     return degreeCertificates
@@ -481,40 +523,45 @@ export class DegreeCertificatesService {
     })
   }
 
-  async getCellsVariables(
-    cells: CellsGradeDegreeCertificateTypeEntity[],
-    gradesSheetDriveId: string,
-  ) {
-    const cellsData = {}
+  async getCellsVariables(cells, gradesSheetDriveId) {
+    const cellsVariables = {}
 
-    cells.map(async (cell) => {
-      const { data: values } = await this.filesService.getValuesFromSheet(
+    const cellsDataPromises = cells.map(async (cell) => {
+      const values = await this.filesService.getValuesFromSheet(
         gradesSheetDriveId,
         DEGREE_CERTIFICATE_GRADES.DEFAULT_SHEET + cell.cell,
       )
 
-      const value = values.length > 0 ? values[0][0] : '0.0'
+      const cleanValues = values.values ?? []
+      const value = cleanValues.length > 0 ? cleanValues[0][0] : '0.0'
+      const textValue = transformNumberToWords(Number(value)).toLowerCase()
 
-      const textValue = transformNumberToWords(value)
-
-      // eslint-disable-next-line no-magic-numbers
-      timeout(5000)
-
-      cellsData[`{{{${cell.gradeVariable}}}}`] = value
-      cellsData[`{{{${cell.gradeTextVariable}}}}`] = textValue
-
-      return {
-        [`{{{${cell.gradeVariable}}}}`]: value,
-        [`{{{${cell.gradeTextVariable}}}}`]: textValue,
-      }
+      cellsVariables[`{{${cell.gradeVariable}}}`] = value
+      cellsVariables[`{{${cell.gradeTextVariable}}}`] = textValue
     })
 
-    return cellsData
+    await Promise.all(cellsDataPromises)
+
+    return cellsVariables
   }
 
   async generateDocument(id: number) {
-    const degreeCertificate = await this.degreeCertificateRepository.findOneBy({
-      id,
+    const degreeCertificate = await this.degreeCertificateRepository.findOne({
+      where: { id },
+      relationLoadStrategy: 'join',
+      relations: {
+        student: {
+          canton: true,
+        },
+        career: {
+          coordinator: true,
+        },
+        certificateType: true,
+        certificateStatus: true,
+        degreeModality: true,
+        room: true,
+        submoduleYearModule: true,
+      },
     })
 
     if (!degreeCertificate) {
@@ -524,7 +571,7 @@ export class DegreeCertificatesService {
     }
 
     if (
-      this.getCertificatesToGenerate(
+      await this.getCertificatesToGenerate(
         degreeCertificate.career.id,
         degreeCertificate.submoduleYearModule.id,
       )
@@ -596,8 +643,8 @@ export class DegreeCertificatesService {
     // TODO: Make the gradesSheet logic to variables
     // TODO: Generate and insert the templates on migrations and seeders
     // TODO: Test the generation of the documents
-    const dregreeCertificateData =
-      this.variablesService.getDegreeCertificateVariables(
+    const { data: dregreeCertificateData } =
+      await this.variablesService.getDegreeCertificateVariables(
         degreeCertificate,
         attendance,
       )
@@ -630,7 +677,6 @@ export class DegreeCertificatesService {
       certificateStatus: { id: dto.certificateStatusId },
       degreeModality: { id: dto.degreeModalityId },
       room: { id: dto.roomId },
-      submoduleYearModule: { id: dto.submoduleYearModuleId },
       ...dto,
     })
 

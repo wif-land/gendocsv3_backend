@@ -6,6 +6,7 @@ import { DocumentEntity } from '../../documents/entities/document.entity'
 import { GENDER } from '../../shared/enums/genders'
 import { CityEntity } from '../../cities/entities/city.entity'
 import { CouncilAttendanceEntity } from '../../councils/entities/council-attendance.entity'
+import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
 
 @Entity('students')
 export class StudentEntity extends BasePerson {
@@ -174,4 +175,10 @@ export class StudentEntity extends BasePerson {
     (councilAttendance) => councilAttendance.student,
   )
   councilAttendance: CouncilAttendanceEntity[]
+
+  @OneToMany(
+    () => DegreeCertificateEntity,
+    (degreeCertificate) => degreeCertificate.student,
+  )
+  degreeCertificates: DegreeCertificateEntity[]
 }

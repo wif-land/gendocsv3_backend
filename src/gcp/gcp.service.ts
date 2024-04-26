@@ -127,6 +127,7 @@ export class GcpService {
 
   async replaceTextOnDocument(data: object, documentId: string) {
     try {
+      //   console.log(data)
       const requests = Object.keys(data).map((key) => ({
         replaceAllText: {
           containsText: {
@@ -173,7 +174,7 @@ export class GcpService {
         range,
       })
 
-      return new ApiResponseDto('Datos obtenidos con éxito', data.values)
+      return new ApiResponseDto('Datos obtenidos con éxito', data)
     } catch (error) {
       throw new Error(error.message)
     }

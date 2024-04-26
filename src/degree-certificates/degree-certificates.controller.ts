@@ -36,6 +36,16 @@ export class DegreeCertificatesController {
     return await this.degreeCertificatesService.create(dto)
   }
 
+  @Patch('generate-numeration/:careerId')
+  async generateNumeration(@Param('careerId', ParseIntPipe) careerId: number) {
+    return await this.degreeCertificatesService.generateNumeration(careerId)
+  }
+
+  @Patch('generate-document/:id')
+  async generateDocument(@Param('id', ParseIntPipe) id: number) {
+    return await this.degreeCertificatesService.generateDocument(id)
+  }
+
   @Patch(':id')
   async updateDegreeCertificate(
     @Param('id', ParseIntPipe) id: number,

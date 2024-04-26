@@ -22,9 +22,6 @@ export class CreateDegreeCertificateDto {
   studentId: number
 
   @IsInt()
-  careerId: number
-
-  @IsInt()
   certificateTypeId: number
 
   @IsInt()
@@ -39,25 +36,13 @@ export class CreateDegreeCertificateDto {
   @IsInt()
   duration: number
 
-  @IsString()
-  // eslint-disable-next-line no-magic-numbers
-  @MinLength(5)
+  @IsOptional()
   link: string
-
-  @IsInt()
-  submoduleYearModuleId: number
-
-  @IsString()
-  // eslint-disable-next-line no-magic-numbers
-  @MinLength(5)
-  gradesSheetDriveId: string
-
-  @IsString()
-  // eslint-disable-next-line no-magic-numbers
-  @MinLength(5)
-  documentDriveId: string
 
   @IsBoolean()
   @IsOptional()
   isClosed: boolean
+
+  @IsInt()
+  userId: number
 }

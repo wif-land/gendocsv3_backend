@@ -32,7 +32,7 @@ export const GENDER_DESIGNATION = [
 ]
 
 export const GENDER_DESIGNATION_VARIABLE = (index: number) =>
-  `{{DISNACION_GENERO}}_${index}`
+  `{{DISNACION_GENERO_${index}}}`
 
 export const MEMBERS_DESIGNATION = {
   [DEGREE_ATTENDANCE_ROLES.PRINCIPAL]: {
@@ -69,5 +69,5 @@ export enum DEGREE_CERTIFICATE_VARIABLES {
 }
 
 export enum DEGREE_CERTIFICATE_GRADES {
-  DEFAULT_SHEET = 'Sheet1',
+  DEFAULT_SHEET = 'Sheet1!',
 }

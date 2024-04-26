@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { CreateYearModuleDto } from './dto/create-year-module.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { YearModuleEntity } from './entities/year-module.entity'
-import { Repository } from 'typeorm'
+import { IsNull, Not, Repository } from 'typeorm'
 import { GcpService } from '../gcp/gcp.service'
 import { SubmoduleYearModuleEntity } from './entities/submodule-year-module.entity'
 import { SystemYearEntity } from './entities/system-year.entity'
@@ -48,8 +48,15 @@ export class YearModuleService {
 
   async getCurrentSystemYear() {
     const systemYear = await this.systemYearRepository.findOne({
+      where: {
+        currentYear: Not(IsNull()),
+      },
       order: { currentYear: 'DESC' },
     })
+
+    if (!systemYear) {
+      throw new YearModuleNotFound('Año del sistema no encontrado')
+    }
 
     return systemYear.currentYear
   }

@@ -22,7 +22,7 @@ export class CellsGradeDegreeCertificateTypeEntity extends BaseAppEntity {
   })
   gradeTextVariable: string
 
-  @ManyToOne(() => CertificateTypeEntity)
+  @ManyToOne(() => CertificateTypeEntity, { eager: true })
   @JoinColumn({ name: 'certificate_type_id' })
   certificateType: CertificateTypeEntity
 }

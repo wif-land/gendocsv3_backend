@@ -39,7 +39,6 @@ import { transformNumberToWords } from '../shared/utils/number'
 import { StudentEntity } from '../students/entities/student.entity'
 import { DegreeCertificateAttendanceEntity } from '../degree-certificate-attendance/entities/degree-certificate-attendance.entity'
 import { ADJECTIVES } from '../shared/enums/adjectives'
-import moment from 'moment-timezone'
 
 @Injectable()
 export class VariablesService {
@@ -244,9 +243,7 @@ export class VariablesService {
         ? formatDateText(document.student.endStudiesDate)
         : '*NO POSEE FECHA DE FIN DE ESTUDIOS',
 
-      [DefaultVariable.COORDINADOR]: getFullName(
-        document.student.career.coordinator,
-      ),
+      [DefaultVariable.COORDINADOR]: getFullName(document.career.coordinator),
       [DefaultVariable.CANTON]: document.student.canton.name,
       [DefaultVariable.PROVINCE]: document.student.canton.province.name,
       [STUDENT_DEGREE_CERTIFICATE.CREDITS_TEXT]: transformNumberToWords(
@@ -440,7 +437,6 @@ export class VariablesService {
       .orWhere('position.variable = :variable', {
         variable: DEGREE_CERTIFICATE_VARIABLES.IC_UNIT_PRESIDENT,
       })
-      .andWhere('position.isActive = :isActive', { isActive: true })
 
     const positions = await qb.getMany()
 
@@ -509,16 +505,19 @@ export class VariablesService {
     }
   }
 
-  getDegreeCertificateVariables(
+  async getDegreeCertificateVariables(
     degreeCertificate: DegreeCertificateEntity,
     degreeCertificateAttendance: DegreeCertificateAttendanceEntity[],
   ) {
     // set timezone GMT-5
-    const presentationDate = moment(degreeCertificate.presentationDate)
-      .tz('America/Bogota')
-      .toDate()
+    // const presentationDate = moment(degreeCertificate.presentationDate)
+    //   .tz('America/Bogota')
+    //   .toDate()
 
-    const studentData =
+    const presentationDate = new Date(
+      degreeCertificate.presentationDate.toString(),
+    )
+    const { data: studentData } =
       this.getStudentDegreeCertificateVariables(degreeCertificate)
 
     const memberData = this.getDegreeCertificateMemberVariables(
@@ -530,7 +529,7 @@ export class VariablesService {
       presentationDate,
     )
 
-    const positionsVariables = this.getPositionVariables()
+    const { data: positionsVariables } = await this.getPositionVariables()
 
     return new ApiResponseDto('Variables de acta generadas éxito', {
       ...studentData,
