@@ -6,7 +6,7 @@ export class CertificateStatusEntity extends BaseAppEntity {
   @Column({
     name: 'code',
     type: 'varchar',
-    length: 10,
+    length: 20,
     unique: true,
   })
   code: string

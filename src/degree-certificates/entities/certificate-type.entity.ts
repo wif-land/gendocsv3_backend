@@ -15,7 +15,6 @@ export class CertificateTypeEntity extends BaseAppEntity {
     name: 'name',
     type: 'varchar',
     length: 100,
-    unique: true,
   })
   name: string
 
