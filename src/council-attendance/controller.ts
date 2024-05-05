@@ -34,14 +34,6 @@ export class CouncilsAttendanceController {
     )
   }
 
-  @Post()
-  async create(@Body() body: any) {
-    return new ApiResponseDto(
-      'Creado exitosamente',
-      await this.attendanceService.create(body),
-    )
-  }
-
   @Post('default/:moduleId')
   async createEditDefault(
     @Param('moduleId') moduleId: number,
@@ -49,7 +41,10 @@ export class CouncilsAttendanceController {
   ) {
     return new ApiResponseDto(
       'Representantes modificados exitosamente',
-      await this.attendanceService.createEditDefault(moduleId, body),
+      await this.attendanceService.handleDefaultMembersManipulation(
+        moduleId,
+        body,
+      ),
     )
   }
 }
