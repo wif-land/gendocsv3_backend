@@ -36,6 +36,7 @@ import { CellsGradeDegreeCertificateTypeEntity } from './entities/cells-grade-de
 import { CreateCellGradeDegreeCertificateTypeDto } from './dto/create-cells-grade-degree-certificate-type.dto'
 import { transformNumberToWords } from '../shared/utils/number'
 import { DegreeCertificateAttendanceService } from '../degree-certificate-attendance/degree-certificate-attendance.service'
+import { UpdateCellGradeDegreeCertificateTypeDto } from './dto/update-cells-grade-degree-certificate-type.dto'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -101,28 +102,6 @@ export class DegreeCertificatesService {
     return certificateStatus
   }
 
-  async showCertificateTypesCarrerByCarrer(carrerId: number) {
-    const certificateTypes = await this.getCertificateTypesCarrerByCarrer(
-      carrerId,
-    )
-
-    return new ApiResponseDto(
-      'Listado de modalidades de grado obtenido exitosamente',
-      certificateTypes,
-    )
-  }
-
-  async showCertificateStatusByType(certificateTypeId: number) {
-    const certificateStatus = await this.getCertificateStatusByType(
-      certificateTypeId,
-    )
-
-    return new ApiResponseDto(
-      'Listado de estados de certificado obtenido exitosamente',
-      certificateStatus,
-    )
-  }
-
   async getLastNumberToRegister(carrerId: number): Promise<number> {
     const systemYear = await this.yearModuleService.getCurrentSystemYear()
 
@@ -148,15 +127,6 @@ export class DegreeCertificatesService {
 
     return number
   }
-
-  async showLastNumberToRegister(
-    carrerId: number,
-  ): Promise<ApiResponseDto<number>> {
-    const number = await this.getLastNumberToRegister(carrerId)
-
-    return new ApiResponseDto('Siguiente número de registro encontrado', number)
-  }
-
   async findAll(): Promise<ApiResponseDto<DegreeCertificateEntity[]>> {
     const degreeCertificates = await this.degreeCertificateRepository.find({
       relationLoadStrategy: 'join',
@@ -427,15 +397,6 @@ export class DegreeCertificatesService {
     return cells
   }
 
-  async showGradeCellsByCertificateType(certificateTypeId: number) {
-    const cells = await this.getGradeCellsByCertificateType(certificateTypeId)
-
-    return new ApiResponseDto(
-      'Listado de celdas de calificación obtenido exitosamente',
-      cells,
-    )
-  }
-
   async createCellGradeByCertificateType(
     createCellGradeDegreeCertificateTypeDto: CreateCellGradeDegreeCertificateTypeDto,
   ) {
@@ -477,9 +438,9 @@ export class DegreeCertificatesService {
     )
   }
 
-  async updateCellDegreeByCertificateType(
+  async updateCellGradeByCertificateType(
     id: number,
-    updateCellGradeDegreeCertificateTypeDto: CreateCellGradeDegreeCertificateTypeDto,
+    updateCellGradeDegreeCertificateTypeDto: UpdateCellGradeDegreeCertificateTypeDto,
   ) {
     const cell = await this.cellsGradeDegreeCertificateTypeRepository.preload({
       id,
@@ -505,7 +466,7 @@ export class DegreeCertificatesService {
     )
   }
 
-  async deleteCellDegreeByCertificateType(id: number) {
+  async deleteCellGradeByCertificateType(id: number) {
     const cell = this.cellsGradeDegreeCertificateTypeRepository.findOneBy({
       id,
     })
