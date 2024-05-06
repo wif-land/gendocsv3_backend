@@ -11,7 +11,9 @@ import {
 export class CreateDegreeCertificateDto {
   @IsString()
   // eslint-disable-next-line no-magic-numbers
-  @MinLength(5)
+  @MinLength(5, {
+    message: 'El título debe ser mayor a 5 caracteres',
+  })
   topic: string
 
   @IsDate()

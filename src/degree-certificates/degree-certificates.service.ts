@@ -37,6 +37,7 @@ import { CreateCellGradeDegreeCertificateTypeDto } from './dto/create-cells-grad
 import { transformNumberToWords } from '../shared/utils/number'
 import { DegreeCertificateAttendanceService } from '../degree-certificate-attendance/degree-certificate-attendance.service'
 import { UpdateCellGradeDegreeCertificateTypeDto } from './dto/update-cells-grade-degree-certificate-type.dto'
+import { DegreeCertificateConflict } from './errors/degree-certificate-conflict'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -196,6 +197,19 @@ export class DegreeCertificatesService {
     )
   }
 
+  async revokeGradeSheet(degreeCertificate: DegreeCertificateEntity) {
+    const { data: driveId } = await this.filesService.renameAsset(
+      degreeCertificate.gradesSheetDriveId,
+      `(ANULADA) GR ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code} - ${degreeCertificate.certificateStatus.code}`,
+    )
+
+    if (!driveId) {
+      return false
+    }
+
+    return true
+  }
+
   async create(dto: CreateDegreeCertificateDto) {
     if (await this.findReplicate(dto)) {
       throw new DegreeCertificateAlreadyExists(
@@ -342,6 +356,12 @@ export class DegreeCertificatesService {
       submoduleYearModule.id,
     )
 
+    if (!degreeCertificates) {
+      throw new DegreeCertificateNotFoundError(
+        'No se encontraron certificados para generar la numeración',
+      )
+    }
+
     const lastNumber = await this.getLastNumberGenerated(
       careerId,
       submoduleYearModule.id,
@@ -442,13 +462,18 @@ export class DegreeCertificatesService {
     id: number,
     updateCellGradeDegreeCertificateTypeDto: UpdateCellGradeDegreeCertificateTypeDto,
   ) {
+    const gradeTextVariable =
+      updateCellGradeDegreeCertificateTypeDto.gradeVariable
+        ? `${updateCellGradeDegreeCertificateTypeDto.gradeVariable}_TEXT`
+        : undefined
+
     const cell = await this.cellsGradeDegreeCertificateTypeRepository.preload({
       id,
       ...updateCellGradeDegreeCertificateTypeDto,
       certificateType: {
         id: updateCellGradeDegreeCertificateTypeDto.certificateTypeId,
       },
-      gradeTextVariable: `${updateCellGradeDegreeCertificateTypeDto.gradeVariable}_TEXT`,
+      gradeTextVariable,
     })
 
     if (!cell) {
@@ -631,14 +656,17 @@ export class DegreeCertificatesService {
   }
 
   async update(id: number, dto: UpdateDegreeCertificateDto) {
-    const degreeCertificate = await this.degreeCertificateRepository.preload({
-      id,
-      student: { id: dto.studentId },
-      certificateType: { id: dto.certificateTypeId },
-      certificateStatus: { id: dto.certificateStatusId },
-      degreeModality: { id: dto.degreeModalityId },
-      room: { id: dto.roomId },
-      ...dto,
+    const degreeCertificate = await this.degreeCertificateRepository.findOne({
+      where: { id },
+      relationLoadStrategy: 'join',
+      relations: {
+        student: true,
+        certificateType: true,
+        certificateStatus: true,
+        degreeModality: true,
+        room: true,
+        submoduleYearModule: true,
+      },
     })
 
     if (!degreeCertificate) {
@@ -647,9 +675,52 @@ export class DegreeCertificatesService {
       )
     }
 
+    const degreeCertificatePreloaded =
+      await this.degreeCertificateRepository.merge(degreeCertificate, {
+        student: { id: dto.studentId },
+        certificateType: { id: dto.certificateTypeId },
+        certificateStatus: { id: dto.certificateStatusId },
+        degreeModality: { id: dto.degreeModalityId },
+        room: { id: dto.roomId },
+        ...dto,
+      })
+
+    if (!degreeCertificatePreloaded) {
+      throw new DegreeCertificateBadRequestError(
+        'Los datos del certificado son incorrectos',
+      )
+    }
+
     const certificateUpdated = await this.degreeCertificateRepository.save(
-      degreeCertificate,
+      degreeCertificatePreloaded,
     )
+
+    if (dto.certificateTypeId) {
+      const certificateType = await this.certificateTypeRepository.findOneBy({
+        id: dto.certificateTypeId,
+      })
+
+      if (!certificateType) {
+        throw new DegreeCertificateNotFoundError(
+          `El tipo de certificado con id ${dto.certificateTypeId} no existe`,
+        )
+      }
+
+      // eslint-disable-next-line no-extra-parens
+      if (!(await this.revokeGradeSheet(certificateUpdated))) {
+        throw new DegreeCertificateConflict(
+          'No se pudo anular la hoja de notas anterior del certificado',
+        )
+      }
+
+      const { data: UpdatedCertificatedGradeSheet } =
+        await this.generateGradeSheet(degreeCertificatePreloaded)
+
+      return new ApiResponseDto(
+        'Certificado actualizado correctamente',
+        UpdatedCertificatedGradeSheet,
+      )
+    }
 
     return new ApiResponseDto(
       'Certificado actualizado correctamente',
