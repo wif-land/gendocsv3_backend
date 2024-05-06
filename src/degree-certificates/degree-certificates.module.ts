@@ -7,6 +7,14 @@ import { CertificateTypeEntity } from './entities/certificate-type.entity'
 import { DegreeCertificateEntity } from './entities/degree-certificate.entity'
 import { DegreeModalityEntity } from './entities/degree-modality.entity'
 import { RoomEntity } from './entities/room.entity'
+import { YearModuleModule } from '../year-module/year-module.module'
+import { FilesModule } from '../files/files.module'
+import { StudentsModule } from '../students/students.module'
+import { VariablesModule } from '../variables/variables.module'
+import { CertificateTypeStatusEntity } from './entities/certificate-type-status.entity'
+import { CertificateTypeCareerEntity } from './entities/certicate-type-career.entity'
+import { CellsGradeDegreeCertificateTypeEntity } from './entities/cells-grade-degree-certificate-type.entity'
+import { DegreeCertificateAttendanceModule } from '../degree-certificate-attendance/degree-certificate-attendance.module'
 
 @Module({
   controllers: [DegreeCertificatesController],
@@ -18,7 +26,15 @@ import { RoomEntity } from './entities/room.entity'
       DegreeCertificateEntity,
       DegreeModalityEntity,
       RoomEntity,
+      CertificateTypeStatusEntity,
+      CertificateTypeCareerEntity,
+      CellsGradeDegreeCertificateTypeEntity,
     ]),
+    DegreeCertificateAttendanceModule,
+    YearModuleModule,
+    FilesModule,
+    StudentsModule,
+    VariablesModule,
   ],
 })
 export class DegreeCertificatesModule {}

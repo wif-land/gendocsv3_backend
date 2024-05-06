@@ -3,6 +3,7 @@ import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { YearModuleEntity } from './year-module.entity'
 import { ProcessEntity } from '../../processes/entities/process.entity'
+import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
 
 @Entity('submodule_year_module')
 export class SubmoduleYearModuleEntity extends BaseAppEntity {
@@ -42,4 +43,10 @@ export class SubmoduleYearModuleEntity extends BaseAppEntity {
   })
   @OneToMany(() => ProcessEntity, (process) => process.submoduleYearModule)
   processes: ProcessEntity[]
+
+  @OneToMany(
+    () => DegreeCertificateEntity,
+    (degreeCertificate) => degreeCertificate.submoduleYearModule,
+  )
+  degreeCertificates: DegreeCertificateEntity[]
 }

@@ -1,6 +1,6 @@
 import { StudentError } from './student-error'
 
-export class StudentAlreadyExist extends StudentError {
+export class StudentAlreadyExists extends StudentError {
   constructor(detail: string, instance?: string) {
     super({
       statuscode: 409,
@@ -8,7 +8,7 @@ export class StudentAlreadyExist extends StudentError {
       title: 'Estudiante ya existente',
       detail:
         detail || 'El estudiante ya se encuentra registrado en el sistema',
-      instance: instance || 'students.errors.StudentAlreadyExist',
+      instance: instance || 'students.errors.StudentAlreadyExists',
     })
   }
 }

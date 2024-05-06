@@ -6,7 +6,7 @@ import { FunctionaryEntity } from './entities/functionary.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateFunctionaryDto } from './dto/update-functionary.dto'
 import { UpdateFunctionariesBulkItemDto } from './dto/update-functionaries-bulk.dto'
-import { FunctionaryAlreadyExist } from './errors/functionary-already-exists'
+import { FunctionaryAlreadyExists } from './errors/functionary-already-exists'
 import { FunctionaryBadRequestError } from './errors/functionary-bad-request'
 import { FunctionaryNotFoundError } from './errors/functionary-not-found'
 import { FunctionaryError } from './errors/functionary-error'
@@ -28,7 +28,7 @@ export class FunctionariesService {
     })
 
     if (alreadyExist) {
-      throw new FunctionaryAlreadyExist(
+      throw new FunctionaryAlreadyExists(
         `Funcionario con cédula ${createFunctionaryDto.dni} ya existe`,
       )
     }

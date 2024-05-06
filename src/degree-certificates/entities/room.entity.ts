@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm'
+import { Column, Entity, OneToMany } from 'typeorm'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
+import { DegreeCertificateEntity } from './degree-certificate.entity'
 
 @Entity('rooms')
 export class RoomEntity extends BaseAppEntity {
@@ -17,4 +18,10 @@ export class RoomEntity extends BaseAppEntity {
     default: true,
   })
   isActive: boolean
+
+  @OneToMany(
+    () => DegreeCertificateEntity,
+    (degreeCertificate) => degreeCertificate.room,
+  )
+  degreeCertificates: DegreeCertificateEntity[]
 }

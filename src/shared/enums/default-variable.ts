@@ -47,6 +47,8 @@ export enum DefaultVariable {
   ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP = '{{ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP}}',
   ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP = '{{ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP}}',
   COORDINADOR = '{{COORDINADOR}}',
+  CANTON = '{{CANTON}}',
+  PROVINCE = '{{PROVINCIA}}',
 
   /**
    * Variables utilizadas para generar la plantilla del acta
@@ -91,3 +93,6 @@ export enum DefaultVariable {
   PREFIX_CUSTOM = 'custom',
   PREFIX_CARGOS = 'position',
 }
+
+// TODO: Add variables for DegreeCertificate
+export enum DegreeCertificateVariables {}
