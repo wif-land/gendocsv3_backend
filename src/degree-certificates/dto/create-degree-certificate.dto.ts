@@ -3,22 +3,17 @@ import {
   IsBoolean,
   IsDate,
   IsInt,
-  IsNumber,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator'
 
 export class CreateDegreeCertificateDto {
-  @IsNumber()
-  number: number
-
-  @IsNumber()
-  auxNumber: number
-
   @IsString()
   // eslint-disable-next-line no-magic-numbers
-  @MinLength(5)
+  @MinLength(5, {
+    message: 'El título debe ser mayor a 5 caracteres',
+  })
   topic: string
 
   @IsDate()
@@ -27,9 +22,6 @@ export class CreateDegreeCertificateDto {
 
   @IsInt()
   studentId: number
-
-  @IsInt()
-  careerId: number
 
   @IsInt()
   certificateTypeId: number
@@ -46,25 +38,13 @@ export class CreateDegreeCertificateDto {
   @IsInt()
   duration: number
 
-  @IsString()
-  // eslint-disable-next-line no-magic-numbers
-  @MinLength(5)
+  @IsOptional()
   link: string
-
-  @IsInt()
-  submoduleYearModuleId: number
-
-  @IsString()
-  // eslint-disable-next-line no-magic-numbers
-  @MinLength(5)
-  gradesSheetDriveId: string
-
-  @IsString()
-  // eslint-disable-next-line no-magic-numbers
-  @MinLength(5)
-  documentDriveId: string
 
   @IsBoolean()
   @IsOptional()
   isClosed: boolean
+
+  @IsInt()
+  userId: number
 }

@@ -8,7 +8,6 @@ export class CareerEntity extends BaseAppEntity implements ICareer {
   @Column({
     name: 'name',
     type: 'varchar',
-    length: 50,
   })
   name: string
 

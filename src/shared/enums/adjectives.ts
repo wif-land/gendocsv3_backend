@@ -1,0 +1,4 @@
+export enum ADJECTIVES {
+  PLURAL = 'PLURAL',
+  SINGULAR = 'SINGUL',
+}

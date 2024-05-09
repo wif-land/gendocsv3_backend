@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common'
 
 export interface IError {
-  statuscode: HttpStatus
+  statuscode?: HttpStatus
   type?: string
   title?: string
   detail: string
@@ -10,7 +10,7 @@ export interface IError {
 
 export class BaseError extends HttpException implements IError {
   constructor(
-    public statuscode: HttpStatus,
+    public statuscode: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
     public type: string,
     public title: string,
     public detail: string,

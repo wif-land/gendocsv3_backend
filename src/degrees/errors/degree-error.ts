@@ -3,7 +3,7 @@ import { BaseError, IError } from '../../shared/utils/error'
 export class DegreeError extends BaseError {
   constructor({
     statuscode,
-    type = 'Error en el servicio de títulos',
+    type = 'degree-module-error',
     title = 'Error en el servicio de títulos',
     detail,
     instance,

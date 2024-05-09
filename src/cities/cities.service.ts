@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { ProvinceEntity } from './entities/province.entity'
 import { CreateProvinceDto } from './dto/create-province.dto'
 import { ProvinceAlreadyExistsError } from './errors/province-already-exists'
-import { CityAlreadyExistsError } from './errors/city-already-exists'
+import { CityAlreadyExists } from './errors/city-already-exists'
 import { CityNotFoundError } from './errors/city-not-found'
 import { ProvinceNotFoundError } from './errors/province-not-found'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
@@ -60,7 +60,7 @@ export class CitiesService {
     })
 
     if (alreadyExists) {
-      throw new CityAlreadyExistsError(
+      throw new CityAlreadyExists(
         `La ciudad ${createCityDto.name} ya existe en la provincia ${province.name}`,
       )
     }

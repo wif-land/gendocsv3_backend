@@ -7,18 +7,21 @@ import { CertificateStatusEntity } from './certificate-status.entity'
 import { DegreeModalityEntity } from './degree-modality.entity'
 import { RoomEntity } from './room.entity'
 import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
+import { UserEntity } from '../../users/entities/users.entity'
 
 @Entity('degree_certificates')
 export class DegreeCertificateEntity extends BaseAppEntity {
   @Column({
     name: 'number',
     type: 'int',
+    nullable: true,
   })
   number: number
 
   @Column({
     name: 'aux_number',
     type: 'int',
+    nullable: true,
   })
   auxNumber: number
 
@@ -34,8 +37,8 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   })
   presentationDate: Date
 
-  @ManyToOne(() => StudentEntity, {
-    eager: true,
+  @ManyToOne(() => StudentEntity, (student) => student.degreeCertificates, {
+    eager: false,
   })
   @JoinColumn({
     name: 'student_id',
@@ -43,37 +46,47 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   })
   student: StudentEntity
 
-  @ManyToOne(() => CareerEntity, {
-    eager: true,
-  })
+  @ManyToOne(() => CareerEntity)
   @JoinColumn({
     name: 'career_id',
     referencedColumnName: 'id',
   })
   career: CareerEntity
 
-  @ManyToOne(() => CertificateTypeEntity)
+  @ManyToOne(
+    () => CertificateTypeEntity,
+    (certificateType) => certificateType.degreeCertificates,
+    { eager: true },
+  )
   @JoinColumn({
     name: 'certificate_type_id',
     referencedColumnName: 'id',
   })
   certificateType: CertificateTypeEntity
 
-  @ManyToOne(() => CertificateStatusEntity)
+  @ManyToOne(
+    () => CertificateStatusEntity,
+    (certificateStatus) => certificateStatus.degreeCertificates,
+    { eager: true },
+  )
   @JoinColumn({
     name: 'certificate_status_id',
     referencedColumnName: 'id',
   })
   certificateStatus: CertificateStatusEntity
 
-  @ManyToOne(() => DegreeModalityEntity)
+  @ManyToOne(
+    () => DegreeModalityEntity,
+    (degreeModality) => degreeModality.degreeCertificates,
+    { eager: true },
+  )
   @JoinColumn({
     name: 'degree_modality_id',
     referencedColumnName: 'id',
   })
   degreeModality: DegreeModalityEntity
 
-  @ManyToOne(() => RoomEntity)
+  @ManyToOne(() => RoomEntity, (room) => room.degreeCertificates)
   @JoinColumn({
     name: 'room_id',
     referencedColumnName: 'id',
@@ -89,10 +102,14 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   @Column({
     name: 'link',
     type: 'varchar',
+    nullable: true,
   })
   link: string
 
-  @ManyToOne(() => SubmoduleYearModuleEntity)
+  @ManyToOne(
+    () => SubmoduleYearModuleEntity,
+    (submoduleYearModule) => submoduleYearModule.degreeCertificates,
+  )
   @JoinColumn({
     name: 'submodule_year_module_id',
     referencedColumnName: 'id',
@@ -102,19 +119,17 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   @Column({
     name: 'grades_sheet_drive_id',
     type: 'varchar',
+    nullable: true,
   })
   gradesSheetDriveId: string
 
   @Column({
-    name: 'document_drive_id',
-    type: 'varchar',
-  })
-  documentDriveId: string
-
-  @Column({
     name: 'certificate_drive_id',
     type: 'varchar',
+    nullable: true,
   })
+  certificateDriveId: string
+
   @Column({
     name: 'deleted_at',
     type: 'timestamp without time zone',
@@ -128,4 +143,10 @@ export class DegreeCertificateEntity extends BaseAppEntity {
     default: false,
   })
   isClosed: boolean
+
+  @ManyToOne(() => UserEntity, (user) => user.degreeCertificates)
+  @JoinColumn({
+    name: 'created_by',
+  })
+  user: UserEntity
 }

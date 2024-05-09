@@ -5,7 +5,10 @@ import { ModuleEntity } from './entities/modules.entity'
 import { CreateModuleDTO } from './dto/create-module.dto'
 import { GcpService } from '../gcp/gcp.service'
 import { YearModuleService } from '../year-module/year-module.service'
+import { ModulesNotFound } from './errors/module-not-found'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { ModulesAlreadyExists } from './errors/module-already-exists'
+import { ModulesError } from './errors/module-error'
 
 @Injectable()
 export class ModulesService {
@@ -17,7 +20,7 @@ export class ModulesService {
     private readonly yearModuleService: YearModuleService,
   ) {}
 
-  async create(module: CreateModuleDTO) {
+  async create(module: CreateModuleDTO): Promise<ApiResponseDto<ModuleEntity>> {
     try {
       const findModule = await this.moduleRepository.findOne({
         where: {
@@ -26,14 +29,21 @@ export class ModulesService {
       })
 
       if (findModule) {
-        throw new HttpException('Module already exists', HttpStatus.CONFLICT)
+        throw new ModulesAlreadyExists(
+          `El módulo con el código ${module.code} ya existe`,
+          'modules.services.ModulesService.create',
+        )
       }
 
       const newModule = await this.moduleRepository.create(module).save()
 
       return new ApiResponseDto('Módulo creado exitosamente', newModule)
     } catch (e) {
-      new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+      new ModulesError({
+        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        detail: e.message,
+        instance: 'modules.services.ModulesService.create',
+      })
     }
   }
 
@@ -46,12 +56,16 @@ export class ModulesService {
       })
 
       if (!modules) {
-        throw new HttpException('Modules not found', HttpStatus.NOT_FOUND)
+        throw new ModulesNotFound('No se encontraron módulos')
       }
 
       return new ApiResponseDto('Módulos encontrados exitosamente', modules)
     } catch (e) {
-      new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+      new ModulesError({
+        statuscode: HttpStatus.INTERNAL_SERVER_ERROR,
+        detail: e.message,
+        instance: 'modules.services.ModulesService.findAll',
+      })
     }
   }
 
@@ -65,7 +79,7 @@ export class ModulesService {
       })
 
       if (!modules) {
-        throw new HttpException('Modules not found', HttpStatus.NOT_FOUND)
+        throw new ModulesNotFound('No se encontraron módulos con documentos')
       }
 
       let folderId

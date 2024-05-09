@@ -3,7 +3,7 @@ import { BaseError, IError } from '../../shared/utils/error'
 export class StudentError extends BaseError {
   constructor({
     statuscode,
-    type = 'Error en el servicio de estudiantes',
+    type = 'student-module-error',
     title = 'Error en el servicio de estudiantes',
     detail,
     instance,

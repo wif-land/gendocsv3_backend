@@ -1,6 +1,6 @@
-import { DegreeCertificateError } from './degree-certificate'
+import { DegreeCertificateError } from './degree-certificate-error'
 
-export class DegreeCertificateAlreadyExist extends DegreeCertificateError {
+export class DegreeCertificateAlreadyExists extends DegreeCertificateError {
   constructor(detail: string, instance?: string) {
     super({
       statuscode: 409,
@@ -10,7 +10,7 @@ export class DegreeCertificateAlreadyExist extends DegreeCertificateError {
         detail ||
         'El acta de grado ya existe en el sistema, por favor verifique los datos e intente nuevamente',
       instance:
-        instance || 'degreeCertificates.errors.DegreeCertificateAlreadyExist',
+        instance || 'degreeCertificates.errors.DegreeCertificateAlreadyExists',
     })
   }
 }
