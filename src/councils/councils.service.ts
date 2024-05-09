@@ -41,87 +41,63 @@ export class CouncilsService {
   ) {}
 
   async create(createCouncilDto: CreateCouncilDto) {
-    // Define the return type of the method
-    const { attendees = [], ...councilData } = createCouncilDto
-    const hasAttendance = attendees.length > 0
+    const year = new Date().getFullYear()
 
-    try {
-      const year = new Date().getFullYear()
+    const yearModule = await this.yearModuleRepository.findOneBy({
+      year,
+      module: { id: createCouncilDto.moduleId },
+    })
 
-      const yearModule = await this.yearModuleRepository.findOneBy({
-        year,
-        module: { id: createCouncilDto.moduleId },
+    if (!yearModule) {
+      throw new NotFoundException('Year module not found')
+    }
+
+    const submoduleYearModule =
+      await this.submoduleYearModuleRepository.findOneBy({
+        name: SubmodulesNames.COUNCILS,
+        yearModule: { id: yearModule.id },
       })
 
-      if (!yearModule) {
-        throw new NotFoundException('Year module not found')
+    if (!submoduleYearModule) {
+      throw new NotFoundException('Submodule year module not found')
+    }
+
+    const { data: driveId } = await this.filesService.createFolderByParentId(
+      createCouncilDto.name,
+      submoduleYearModule.driveId,
+    )
+
+    const council = this.councilRepository.create({
+      ...createCouncilDto,
+      driveId,
+      module: { id: createCouncilDto.moduleId },
+      user: { id: createCouncilDto.userId },
+      submoduleYearModule: { id: submoduleYearModule.id },
+    })
+    const councilInserted = await this.councilRepository.save(council)
+    const councilMembers = createCouncilDto.members.map((item) => {
+      let memberParam = {}
+
+      if (item.isStudent) {
+        memberParam = {
+          student: { id: item.member },
+        }
+      } else {
+        memberParam = {
+          functionary: { id: item.member },
+        }
       }
 
-      const submoduleYearModule =
-        await this.submoduleYearModuleRepository.findOneBy({
-          name: SubmodulesNames.COUNCILS,
-          yearModule: { id: yearModule.id },
-        })
-
-      if (!submoduleYearModule) {
-        throw new NotFoundException('Submodule year module not found')
-      }
-
-      const { data: driveId } = await this.filesService.createFolderByParentId(
-        councilData.name,
-        submoduleYearModule.driveId,
-      )
-
-      const council = this.councilRepository.create({
-        ...councilData,
-        driveId,
-        module: { id: createCouncilDto.moduleId },
-        user: { id: createCouncilDto.userId },
-        submoduleYearModule: { id: submoduleYearModule.id },
+      return this.councilAttendanceRepository.save({
+        ...item,
+        ...memberParam,
+        council: { id: councilInserted.id },
       })
+    })
 
-      const councilInserted = await this.councilRepository.save(council)
-
-      if (!hasAttendance) {
-        return new ApiResponseDto(
-          'Consejo creado exitosamente',
-          councilInserted,
-        )
-      }
-
-      const promises = attendees.map((item) =>
-        this.functionaryRepository.findOne({
-          where: {
-            dni: item.functionaryId,
-          },
-        }),
-      )
-
-      const functionariesIds = (await Promise.all(promises)).map((item) => ({
-        id: item.id,
-        dni: item.dni,
-      }))
-
-      const councilAttendance = attendees.map((item) =>
-        this.councilAttendanceRepository.create({
-          ...item,
-          council: { id: councilInserted.id },
-          functionary: {
-            id: functionariesIds.find((f) => f.dni === item.functionaryId).id,
-          },
-        }),
-      )
-
-      const attendanceResult = await this.councilAttendanceRepository.save(
-        councilAttendance,
-      )
-
-      return new ApiResponseDto('Consejo creado exitosamente', {
-        ...councilInserted,
-        attendance: attendanceResult,
-      })
-    } catch (error) {
-      throw error
+    return {
+      ...councilInserted,
+      members: await Promise.all(councilMembers),
     }
   }
 

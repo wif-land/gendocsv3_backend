@@ -1,26 +1,35 @@
+import { Expose } from 'class-transformer'
 import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
 import { DtoUtils } from '../../shared/utils/dtos'
-import { CouncilAttendanceRole } from '../interfaces/council-attendance.interface'
-import { IsEnum, IsNotEmpty } from 'class-validator'
+import { IsNotEmpty } from 'class-validator'
 
 export class CreateAttendanceDto {
   @IsNotEmpty({
     message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
-      '{field}': 'functionaryId',
+      '{field}': 'member',
     }),
   })
-  functionaryId: string
+  @Expose({ name: 'id' })
+  member: string
 
-  @IsEnum(CouncilAttendanceRole, {
-    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.isEnum, {
-      '{field}': 'role',
-      enum: CouncilAttendanceRole,
-    }),
-  })
   @IsNotEmpty({
     message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
-      field: 'functionaryId',
+      '{field}': 'isStudent',
     }),
   })
-  role: CouncilAttendanceRole
+  isStudent: boolean
+
+  @IsNotEmpty({
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+      '{field}': 'positionName',
+    }),
+  })
+  positionName: string
+
+  @IsNotEmpty({
+    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+      '{field}': 'positionOrder',
+    }),
+  })
+  positionOrder: number
 }

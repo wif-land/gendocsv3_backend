@@ -2,8 +2,12 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
-import { DefaultCreationDTO } from './dto/default-creation.dto'
-import { DefaultEditionDTO } from './dto/default-edition.dto'
+import { CreateEditDefaultMemberDTO } from './dto/create-edit-default-member.dto'
+import { GetDefaultMembers } from './dto/default-members-get.dto'
+import { CreateDefaultMemberStrategy } from './strategies/members-manipulation/create-strategy'
+import { UpdateDefaultMemberStrategy } from './strategies/members-manipulation/update-members'
+import { DeleteDefaultMemberStrategy } from './strategies/members-manipulation/delete-default-members'
+import { DefaultMembersContext } from './strategies/members-manipulation/default-members-context'
 
 @Injectable()
 export class AttendanceService {
@@ -23,49 +27,49 @@ export class AttendanceService {
         },
       },
       relations: ['functionary', 'student'],
-      select: [
-        'student',
-        'functionary',
-        'positionOrder',
-        'positionName',
-        'id',
-        'createdAt',
-        'updatedAt',
-        'isPresident',
-      ],
+      select: ['student', 'functionary', 'positionOrder', 'positionName', 'id'],
       order: {
         positionOrder: 'ASC',
       },
     })
 
-    return defaultAttendance
+    return defaultAttendance.map(
+      (item) =>
+        new GetDefaultMembers(item.id, item.positionOrder, item.positionName, {
+          student: item.student,
+          functionary: item.functionary,
+        }),
+    )
   }
 
-  async create(body: any) {
-    return await this.councilAttendanceRepository.save(body)
-  }
+  async handleDefaultMembersManipulation(
+    moduleId: number,
+    body: CreateEditDefaultMemberDTO[],
+  ) {
+    const councilAttendanceCommands = new DefaultMembersContext(
+      this.councilAttendanceRepository,
+      moduleId,
+    )
 
-  async createDefault(body: DefaultCreationDTO[]) {
-    const promises = body.map(async (item) => {
-      const memberProps = {}
-      if (!item.isStudent) {
-        memberProps['functionary'] = {
-          id: item.member,
-        }
-      } else {
-        memberProps['student'] = {
-          id: item.member,
-        }
-      }
+    const toCreate = body.filter((item) => item.action === 'create')
+    councilAttendanceCommands
+      .setStrategy(new CreateDefaultMemberStrategy())
+      .setParams(toCreate)
+    const createPromises = councilAttendanceCommands.execute()
 
-      delete item.member
-      delete item.isStudent
+    const toUpdate = body.filter((item) => item.action === 'update')
+    councilAttendanceCommands
+      .setStrategy(new UpdateDefaultMemberStrategy())
+      .setParams(toUpdate)
+    const updatePromises = councilAttendanceCommands.execute()
 
-      await this.create({
-        ...item,
-        ...memberProps,
-      })
-    })
+    const toDelete = body.filter((item) => item.action === 'delete')
+    councilAttendanceCommands
+      .setStrategy(new DeleteDefaultMemberStrategy())
+      .setParams(toDelete)
+    const deletePromises = councilAttendanceCommands.execute()
+
+    const promises = [...createPromises, ...updatePromises, ...deletePromises]
 
     return await Promise.all(promises)
   }
@@ -92,51 +96,5 @@ export class AttendanceService {
         positionOrder: 'ASC',
       },
     })
-  }
-
-  async updateDefault(body: DefaultEditionDTO[]) {
-    const promises = body.map(async (item) => {
-      const prevItem = await this.councilAttendanceRepository.findOne({
-        where: {
-          id: item.id,
-        },
-        relations: ['functionary', 'student'],
-      })
-
-      console.log({ prevItem })
-
-      const extraParams = {
-        ...item,
-      }
-
-      if (item.member) {
-        if (item.isStudent && prevItem.functionary.id) {
-          extraParams['functionary'] = {
-            id: null,
-          }
-          extraParams['student'] = {
-            id: item.member,
-          }
-        }
-
-        if (!item.isStudent && prevItem.student.id) {
-          extraParams['functionary'] = {
-            id: item.member,
-          }
-          extraParams['student'] = {
-            id: null,
-          }
-        }
-      }
-
-      delete extraParams.isStudent
-      delete extraParams.member
-
-      await this.councilAttendanceRepository.update(item.id, extraParams)
-    })
-
-    await Promise.all(promises)
-
-    return body
   }
 }
