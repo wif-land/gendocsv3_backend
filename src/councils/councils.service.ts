@@ -41,6 +41,8 @@ export class CouncilsService {
   ) {}
 
   async create(createCouncilDto: CreateCouncilDto) {
+    console.log({ createCouncilDto })
+    console.log(createCouncilDto.members)
     const year = new Date().getFullYear()
 
     const yearModule = await this.yearModuleRepository.findOneBy({
@@ -75,16 +77,38 @@ export class CouncilsService {
       submoduleYearModule: { id: submoduleYearModule.id },
     })
     const councilInserted = await this.councilRepository.save(council)
-    const councilMembers = createCouncilDto.members.map((item) => {
+    const councilMembers = createCouncilDto.members.map(async (item) => {
       let memberParam = {}
 
       if (item.isStudent) {
+        const student = await this.dataSource
+          .getRepository('StudentEntity')
+          .findOne({
+            where: { dni: item.member },
+          })
+
+        if (!student) {
+          throw new NotFoundException(
+            `Student not found with dni ${item.member}`,
+          )
+        }
+
         memberParam = {
-          student: { id: item.member },
+          student: { id: student.id },
         }
       } else {
+        const functionary = await this.functionaryRepository.findOne({
+          where: { dni: item.member },
+        })
+
+        if (!functionary) {
+          throw new NotFoundException(
+            `Functionary not found with dni ${item.member}`,
+          )
+        }
+
         memberParam = {
-          functionary: { id: item.member },
+          functionary: { id: functionary.id },
         }
       }
 
@@ -92,8 +116,11 @@ export class CouncilsService {
         ...item,
         ...memberParam,
         council: { id: councilInserted.id },
+        id: undefined,
       })
     })
+
+    console.log(await Promise.all(councilMembers))
 
     return {
       ...councilInserted,
