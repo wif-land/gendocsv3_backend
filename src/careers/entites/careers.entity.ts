@@ -1,9 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
 import { ICareer } from '../interfaces/career.interface'
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
-import { CertificateTypeCareerEntity } from '../../degree-certificates/entities/certicate-type-career.entity'
-import { ApiProperty } from '@nestjs/swagger'
 
 @Entity('careers')
 export class CareerEntity extends BaseAppEntity implements ICareer {
