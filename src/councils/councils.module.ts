@@ -8,6 +8,7 @@ import { FilesModule } from '../files/files.module'
 import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
+import { StudentEntity } from '../students/entities/student.entity'
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
       YearModuleEntity,
       SubmoduleYearModuleEntity,
       FunctionaryEntity,
+      StudentEntity,
     ]),
   ],
   controllers: [CouncilsController],
