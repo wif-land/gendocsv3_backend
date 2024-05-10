@@ -21,6 +21,7 @@ import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { StudentEntity } from '../students/entities/student.entity'
 
 @Injectable()
 export class CouncilsService {
@@ -29,6 +30,8 @@ export class CouncilsService {
     private readonly councilRepository: Repository<CouncilEntity>,
     @InjectRepository(FunctionaryEntity)
     private readonly functionaryRepository: Repository<FunctionaryEntity>,
+    @InjectRepository(StudentEntity)
+    private readonly studentRepository: Repository<StudentEntity>,
     @InjectRepository(CouncilAttendanceEntity)
     private readonly councilAttendanceRepository: Repository<CouncilAttendanceEntity>,
     @InjectRepository(YearModuleEntity)
@@ -41,8 +44,6 @@ export class CouncilsService {
   ) {}
 
   async create(createCouncilDto: CreateCouncilDto) {
-    console.log({ createCouncilDto })
-    console.log(createCouncilDto.members)
     const year = new Date().getFullYear()
 
     const yearModule = await this.yearModuleRepository.findOneBy({
@@ -81,11 +82,9 @@ export class CouncilsService {
       let memberParam = {}
 
       if (item.isStudent) {
-        const student = await this.dataSource
-          .getRepository('StudentEntity')
-          .findOne({
-            where: { dni: item.member },
-          })
+        const student = await this.studentRepository.findOne({
+          where: { id: Number(item.member) },
+        })
 
         if (!student) {
           throw new NotFoundException(
@@ -98,7 +97,7 @@ export class CouncilsService {
         }
       } else {
         const functionary = await this.functionaryRepository.findOne({
-          where: { dni: item.member },
+          where: { id: Number(item.member) },
         })
 
         if (!functionary) {
@@ -119,8 +118,6 @@ export class CouncilsService {
         id: undefined,
       })
     })
-
-    console.log(await Promise.all(councilMembers))
 
     return {
       ...councilInserted,
