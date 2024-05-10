@@ -152,6 +152,7 @@ export class DegreeCertificatesService {
         certificateType: true,
         certificateStatus: true,
         degreeModality: true,
+        room: true,
       },
       take: limit,
       skip: offset,
