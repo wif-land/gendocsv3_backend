@@ -53,6 +53,9 @@ export class CouncilsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCouncilDto: UpdateCouncilDto,
   ) {
-    return this.councilsService.update(+id, updateCouncilDto)
+    return new ApiResponseDto(
+      'Consejo actualizado exitosamente',
+      await this.councilsService.update(id, updateCouncilDto),
+    )
   }
 }
