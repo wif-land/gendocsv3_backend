@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common'
 import { DegreeCertificatesService } from './degree-certificates.service'
 import { CreateCertificateStatusDto } from './dto/create-certificate-status.dto'
@@ -22,6 +23,7 @@ import { UpdateDegreeCertificateDto } from './dto/update-degree-certificate.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { CreateCellGradeDegreeCertificateTypeDto } from './dto/create-cells-grade-degree-certificate-type.dto'
 import { UpdateCellGradeDegreeCertificateTypeDto } from './dto/update-cells-grade-degree-certificate-type.dto'
+import { PaginationDto } from '../shared/dtos/pagination.dto'
 
 @Controller('degree-certificates')
 export class DegreeCertificatesController {
@@ -31,8 +33,8 @@ export class DegreeCertificatesController {
 
   // #region DegreeCertificates
   @Get()
-  async getDegreeCertificates() {
-    return await this.degreeCertificatesService.findAll()
+  async getDegreeCertificates(@Query() paginationDto: PaginationDto) {
+    return await this.degreeCertificatesService.findAll(paginationDto)
   }
 
   @Post()

@@ -38,6 +38,7 @@ import { transformNumberToWords } from '../shared/utils/number'
 import { DegreeCertificateAttendanceService } from '../degree-certificate-attendance/degree-certificate-attendance.service'
 import { UpdateCellGradeDegreeCertificateTypeDto } from './dto/update-cells-grade-degree-certificate-type.dto'
 import { DegreeCertificateConflict } from './errors/degree-certificate-conflict'
+import { PaginationDto } from '../shared/dtos/pagination.dto'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -74,8 +75,14 @@ export class DegreeCertificatesService {
   ) {}
 
   async getCertificateTypesCarrerByCarrer(carrerId: number) {
-    const certificateTypes = await this.cetificateTypeCareerRepository.findBy({
-      carrer: { id: carrerId },
+    const certificateTypes = await this.cetificateTypeCareerRepository.find({
+      where: {
+        carrer: { id: carrerId },
+      },
+      relationLoadStrategy: 'join',
+      relations: {
+        certificateType: true,
+      },
     })
 
     if (!certificateTypes || certificateTypes.length === 0) {
@@ -128,7 +135,15 @@ export class DegreeCertificatesService {
 
     return number
   }
-  async findAll(): Promise<ApiResponseDto<DegreeCertificateEntity[]>> {
+  async findAll(paginationDto: PaginationDto): Promise<
+    ApiResponseDto<{
+      count: number
+      degreeCertificates: DegreeCertificateEntity[]
+    }>
+  > {
+    // eslint-disable-next-line no-magic-numbers
+    const { limit = 10, offset = 0 } = paginationDto
+
     const degreeCertificates = await this.degreeCertificateRepository.find({
       relationLoadStrategy: 'join',
       relations: {
@@ -138,12 +153,18 @@ export class DegreeCertificatesService {
         certificateStatus: true,
         degreeModality: true,
       },
+      take: limit,
+      skip: offset,
     })
 
-    return new ApiResponseDto(
-      'Listado de certificados obtenido exitosamente',
+    const countQueryBuilder =
+      this.degreeCertificateRepository.createQueryBuilder('degreeCertificates')
+    const count = await countQueryBuilder.getCount()
+
+    return new ApiResponseDto('Certificados de grado encontrados', {
+      count,
       degreeCertificates,
-    )
+    })
   }
 
   async findReplicate(CreateCertificateDegreeDto: CreateDegreeCertificateDto) {
