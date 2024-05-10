@@ -218,6 +218,17 @@ export class DegreeCertificatesController {
       certificateStatus,
     )
   }
+
+  @Get('certificate-type-status-career')
+  async showCertificateTypeStatusCareer() {
+    const certificateTypeStatusCareer =
+      await this.degreeCertificatesService.getCertificateTypeStatusCareer()
+
+    return new ApiResponseDto(
+      'Listado de modalidades de grado, estados de certificado y carreras obtenido exitosamente',
+      certificateTypeStatusCareer,
+    )
+  }
   // #endregion
 
   // #region DegreeModalities
