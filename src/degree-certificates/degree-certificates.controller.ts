@@ -24,6 +24,8 @@ import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { CreateCellGradeDegreeCertificateTypeDto } from './dto/create-cells-grade-degree-certificate-type.dto'
 import { UpdateCellGradeDegreeCertificateTypeDto } from './dto/update-cells-grade-degree-certificate-type.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { Auth } from '../auth/decorators/auth-decorator'
+import { RolesType } from '../auth/decorators/roles-decorator'
 
 @Controller('degree-certificates')
 export class DegreeCertificatesController {
@@ -32,16 +34,19 @@ export class DegreeCertificatesController {
   ) {}
 
   // #region DegreeCertificates
+  @Auth(RolesType.ADMIN, RolesType.READER)
   @Get()
   async getDegreeCertificates(@Query() paginationDto: PaginationDto) {
     return await this.degreeCertificatesService.findAll(paginationDto)
   }
 
+  @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
   @Post()
   async createDegreeCertificate(@Body() dto: CreateDegreeCertificateDto) {
     return await this.degreeCertificatesService.create(dto)
   }
 
+  @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
   @Patch(':id')
   async updateDegreeCertificate(
     @Param('id', ParseIntPipe) id: number,
@@ -50,6 +55,7 @@ export class DegreeCertificatesController {
     return await this.degreeCertificatesService.update(id, dto)
   }
 
+  @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
   @Patch('numeration/generate/:careerId')
   async generateNumeration(@Param('careerId', ParseIntPipe) careerId: number) {
     return await this.degreeCertificatesService.generateNumeration(careerId)
