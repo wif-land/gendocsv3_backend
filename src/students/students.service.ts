@@ -85,6 +85,10 @@ export class StudentsService {
       },
       take: limit,
       skip: offset,
+      relations: {
+        career: true,
+        canton: true,
+      },
     })
 
     if (!students) {
@@ -127,6 +131,8 @@ export class StudentsService {
       .orderBy('students.id', 'ASC')
       .leftJoinAndSelect('students.career', 'career')
       .leftJoinAndSelect('career.coordinator', 'coordinator')
+      .leftJoinAndSelect('students.canton', 'canton')
+      .leftJoinAndSelect('canton.province', 'province')
       .take(limit)
       .skip(offset)
       .getMany()

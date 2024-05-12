@@ -147,7 +147,9 @@ export class DegreeCertificatesService {
     const degreeCertificates = await this.degreeCertificateRepository.find({
       relationLoadStrategy: 'join',
       relations: {
-        student: true,
+        student: {
+          canton: true,
+        },
         career: true,
         certificateType: true,
         certificateStatus: true,
@@ -288,7 +290,9 @@ export class DegreeCertificatesService {
         where: { id: newCertificate.id },
         relationLoadStrategy: 'join',
         relations: {
-          student: true,
+          student: {
+            canton: true,
+          },
           career: true,
           certificateType: true,
           certificateStatus: true,
