@@ -20,5 +20,5 @@ export class RolesGuard implements CanActivate {
   }
 }
 
-const matchRoles = (role: string[], userRole: string) =>
-  role.some((role) => role === userRole)
+const matchRoles = (roles: string[], userRole: string) =>
+  roles.some((role) => role === userRole)

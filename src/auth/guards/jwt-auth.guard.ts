@@ -1,7 +1,17 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, Injectable } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-
-// you can implement a handleRequest method to log the information that comes in the request in the Authorization header
+import { HttpCodes } from '../../shared/enums/http-codes'
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {}
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  handleRequest(err, user) {
+    if (err || !user) {
+      throw new HttpException(
+        'Error de autenticación. Vuelve a iniciar sesión',
+        HttpCodes.UNAUTHORIZED,
+      )
+    }
+
+    return user
+  }
+}
