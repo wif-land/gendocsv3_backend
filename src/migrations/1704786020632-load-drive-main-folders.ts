@@ -206,147 +206,189 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         certificateType: {
           id: 1,
         },
-        careerId: 1,
+        career: {
+          id: 1,
+        },
       },
       // 2
       {
         certificateType: {
           id: 1,
         },
-        careerId: 2,
+        career: {
+          id: 2,
+        },
       },
       // 3
       {
         certificateType: {
           id: 1,
         },
-        careerId: 3,
+        career: {
+          id: 3,
+        },
       },
       // 4
       {
         certificateType: {
           id: 2,
         },
-        careerId: 1,
+        career: {
+          id: 1,
+        },
       },
       // 5
       {
         certificateType: {
           id: 2,
         },
-        careerId: 2,
+        career: {
+          id: 2,
+        },
       },
       // 6
       {
         certificateType: {
           id: 2,
         },
-        careerId: 3,
+        career: {
+          id: 3,
+        },
       },
       // 7
       {
         certificateType: {
           id: 3,
         },
-        careerId: 1,
+        career: {
+          id: 1,
+        },
       },
       // 8
       {
         certificateType: {
           id: 3,
         },
-        careerId: 2,
+        career: {
+          id: 2,
+        },
       },
       // 9
       {
         certificateType: {
           id: 3,
         },
-        careerId: 3,
+        career: {
+          id: 3,
+        },
       },
       // 10
       {
         certificateType: {
           id: 4,
         },
-        careerId: 4,
+        career: {
+          id: 4,
+        },
       },
       // 11
       {
         certificateType: {
           id: 4,
         },
-        careerId: 5,
+        career: {
+          id: 5,
+        },
       },
       // 12
       {
         certificateType: {
           id: 4,
         },
-        careerId: 6,
+        career: {
+          id: 6,
+        },
       },
       // 13
       {
         certificateType: {
           id: 4,
         },
-        careerId: 7,
+        career: {
+          id: 7,
+        },
       },
       // 14
       {
         certificateType: {
           id: 5,
         },
-        careerId: 4,
+        career: {
+          id: 4,
+        },
       },
       // 15
       {
         certificateType: {
           id: 5,
         },
-        careerId: 5,
+        career: {
+          id: 5,
+        },
       },
       // 16
       {
         certificateType: {
           id: 5,
         },
-        careerId: 6,
+        career: {
+          id: 6,
+        },
       },
       // 17
       {
         certificateType: {
           id: 5,
         },
-        careerId: 7,
+        career: {
+          id: 7,
+        },
       },
       // 18
       {
         certificateType: {
           id: 6,
         },
-        careerId: 4,
+        career: {
+          id: 4,
+        },
       },
       // 19
       {
         certificateType: {
           id: 6,
         },
-        careerId: 5,
+        career: {
+          id: 5,
+        },
       },
       // 20
       {
         certificateType: {
           id: 6,
         },
-        careerId: 6,
+        career: {
+          id: 6,
+        },
       },
       // 21
       {
         certificateType: {
           id: 6,
         },
-        careerId: 7,
+        career: {
+          id: 7,
+        },
       },
     ]
 

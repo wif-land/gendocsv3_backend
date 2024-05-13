@@ -77,7 +77,7 @@ export class DegreeCertificatesService {
   async getCertificateTypesCarrerByCarrer(carrerId: number) {
     const certificateTypes = await this.cetificateTypeCareerRepository.find({
       where: {
-        carrer: { id: carrerId },
+        career: { id: carrerId },
       },
       relationLoadStrategy: 'join',
       relations: {
@@ -915,6 +915,32 @@ export class DegreeCertificatesService {
     return new ApiResponseDto('Tipo de certificado eliminado correctamente', {
       success: true,
     })
+  }
+
+  async getCertificateTypeStatusCareer() {
+    const certificateTypeStatusCareer =
+      await this.certificateTypeRepository.find({
+        relationLoadStrategy: 'join',
+        relations: {
+          certificateTypeCareers: {
+            career: true,
+          },
+          certificateTypeStatuses: {
+            certificateStatus: true,
+          },
+        },
+      })
+
+    if (
+      !certificateTypeStatusCareer ||
+      certificateTypeStatusCareer.length === 0
+    ) {
+      return new DegreeCertificateNotFoundError(
+        'No se encontraron estados de certificado por carrera',
+      )
+    }
+
+    return certificateTypeStatusCareer
   }
 
   async findAllDegreeModalities() {
