@@ -273,6 +273,7 @@ export class DegreeCertificatesService {
       },
       career: { id: student.career.id },
       isClosed: false,
+      link: dto.degreeModalityId === 1 ? dto.link : null,
     })
 
     if (!degreeCertificate) {
@@ -703,12 +704,13 @@ export class DegreeCertificatesService {
 
     const degreeCertificatePreloaded =
       await this.degreeCertificateRepository.merge(degreeCertificate, {
+        ...dto,
         student: { id: dto.studentId },
         certificateType: { id: dto.certificateTypeId },
         certificateStatus: { id: dto.certificateStatusId },
         degreeModality: { id: dto.degreeModalityId },
         room: { id: dto.roomId },
-        ...dto,
+        link: dto.degreeModalityId === 1 ? dto.link : null,
       })
 
     if (!degreeCertificatePreloaded) {
