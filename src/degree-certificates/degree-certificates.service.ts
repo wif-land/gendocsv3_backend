@@ -259,7 +259,7 @@ export class DegreeCertificatesService {
     const submoduleYearModuleId =
       await this.getCurrentDegreeSubmoduleYearModule()
 
-    const degreeCertificate = this.degreeCertificateRepository.create({
+    const degreeCertificate = await this.degreeCertificateRepository.create({
       ...dto,
       user: { id: dto.userId },
       auxNumber: await this.getLastNumberToRegister(student.career.id),
