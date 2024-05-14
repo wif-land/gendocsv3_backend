@@ -5,7 +5,14 @@ import {
 } from '@nestjs/common'
 import { CreateNumerationDocumentDto } from './dto/create-numeration-document.dto'
 import { InjectRepository } from '@nestjs/typeorm'
-import { DataSource, Repository } from 'typeorm'
+import {
+  DataSource,
+  LessThan,
+  MoreThan,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm'
 import { NumerationDocumentEntity } from './entities/numeration-document.entity'
 import { CouncilEntity } from '../councils/entities/council.entity'
 import { YearModuleEntity } from '../year-module/entities/year-module.entity'
@@ -15,6 +22,7 @@ import { NumerationByCouncil } from './dto/numeration-by-council.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { NumerationConflict } from './errors/numeration-conflict'
 import { NumerationBadRequest } from './errors/numeration-bad-request'
+import { YearModuleService } from '../year-module/year-module.service'
 
 @Injectable()
 export class NumerationDocumentService {
@@ -24,6 +32,7 @@ export class NumerationDocumentService {
     @InjectRepository(CouncilEntity)
     private readonly councilRepository: Repository<CouncilEntity>,
 
+    private readonly yearModuleService: YearModuleService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -46,16 +55,11 @@ export class NumerationDocumentService {
   }
 
   async getYearModule(council: CouncilEntity) {
-    const year = new Date().getFullYear()
+    const year = await this.yearModuleService.getCurrentSystemYear()
 
-    const qb = this.dataSource.manager
-      .createQueryBuilder(YearModuleEntity, 'year_module')
-      .leftJoinAndSelect('year_module.module', 'module')
-    qb.where('year_module.year = :year', { year })
-    qb.andWhere('year_module.module.id = :moduleId', {
-      moduleId: council.module.id,
+    const yearModule = await this.dataSource.manager.findOne(YearModuleEntity, {
+      where: { year, module: { id: council.module.id } },
     })
-    const yearModule = await qb.getOne()
 
     if (!yearModule) {
       throw new NumerationConflict('YearModule not found')
@@ -122,6 +126,214 @@ export class NumerationDocumentService {
     }
   }
 
+  async reserveNumeration(
+    start: number,
+    end: number,
+    councilId: number,
+    isExtension?: boolean,
+  ) {
+    if (isExtension) {
+      const council = await this.dataSource.manager.findOne(CouncilEntity, {
+        where: { id: councilId },
+      })
+      const yearModule = await this.getYearModule(council)
+      const numerations = await this.dataSource.manager.find(
+        NumerationDocumentEntity,
+        {
+          where: {
+            council: { id: councilId },
+            yearModule: { id: yearModule.data.id },
+          },
+          order: { number: 'DESC' },
+        },
+      )
+
+      if (!numerations || numerations.length === 0) {
+        throw new NumerationBadRequest(
+          'No hay numeración reservada para el consejo',
+        )
+      }
+
+      if (start <= numerations[0].number) {
+        const prevCouncilNumerations = await this.dataSource.manager.findOne(
+          NumerationDocumentEntity,
+          {
+            where: {
+              council: { id: Not(councilId) },
+              state: NumerationState.RESERVED,
+              number: numerations[0].number - 1,
+            },
+          },
+        )
+
+        if (!prevCouncilNumerations || prevCouncilNumerations === null) {
+          throw new NumerationBadRequest(
+            'El rango de numeración solicitado para ampliarse ya está en uso',
+          )
+        }
+
+        const lastPrevCouncilNumerationUsedOrEnqueued =
+          await this.dataSource.manager.findOne(NumerationDocumentEntity, {
+            where: {
+              council: { id: prevCouncilNumerations.council.id },
+              state: Not(NumerationState.RESERVED),
+              number: LessThan(numerations[0].number),
+            },
+            order: { number: 'DESC' },
+          })
+
+        if (
+          !lastPrevCouncilNumerationUsedOrEnqueued ||
+          lastPrevCouncilNumerationUsedOrEnqueued === null
+        ) {
+          const reasignedNumerations = await this.reasignNumerations(
+            numerations,
+            councilId,
+          )
+
+          if (!reasignedNumerations) {
+            throw new NumerationBadRequest(
+              'Error al reasignar numeraciones del consejo anterior',
+            )
+          }
+        }
+
+        const resevedNumertationsAfterStart =
+          await this.dataSource.manager.find(NumerationDocumentEntity, {
+            where: {
+              council: { id: prevCouncilNumerations.council.id },
+              state: NumerationState.RESERVED,
+              number:
+                LessThan(numerations[0].number) &&
+                MoreThan(lastPrevCouncilNumerationUsedOrEnqueued.number) &&
+                MoreThanOrEqual(start),
+            },
+            order: { number: 'DESC' },
+          })
+
+        if (resevedNumertationsAfterStart.length > 0) {
+          const reasignedNumerations = await this.reasignNumerations(
+            resevedNumertationsAfterStart,
+            councilId,
+          )
+
+          return reasignedNumerations
+        }
+      }
+
+      if (end <= numerations[0].number) {
+        const postCouncilNumerations = await this.dataSource.manager.findOne(
+          NumerationDocumentEntity,
+          {
+            where: {
+              council: { id: Not(councilId) },
+              state: NumerationState.RESERVED,
+              number: numerations[0].number + 1,
+            },
+          },
+        )
+
+        if (!postCouncilNumerations || postCouncilNumerations === null) {
+          throw new NumerationBadRequest(
+            'El rango de numeración solicitado para ampliarse ya está en uso',
+          )
+        }
+
+        const firstPostCouncilNumerationUsedOrEnqueued =
+          await this.dataSource.manager.findOne(NumerationDocumentEntity, {
+            where: {
+              council: { id: postCouncilNumerations.council.id },
+              state: Not(NumerationState.RESERVED),
+              number: MoreThan(numerations[0].number),
+            },
+            order: { number: 'ASC' },
+          })
+
+        if (
+          !firstPostCouncilNumerationUsedOrEnqueued ||
+          firstPostCouncilNumerationUsedOrEnqueued === null
+        ) {
+          const reasignedNumerations = await this.reasignNumerations(
+            numerations,
+            councilId,
+          )
+
+          if (!reasignedNumerations) {
+            throw new NumerationBadRequest(
+              'Error al reasignar numeraciones del consejo posterior',
+            )
+          }
+        }
+
+        const resevedNumertationsBeforeEnd = await this.dataSource.manager.find(
+          NumerationDocumentEntity,
+          {
+            where: {
+              council: { id: postCouncilNumerations.council.id },
+              state: NumerationState.RESERVED,
+              number:
+                MoreThan(numerations[0].number) &&
+                LessThan(firstPostCouncilNumerationUsedOrEnqueued.number) &&
+                LessThan(end),
+            },
+            order: { number: 'ASC' },
+          },
+        )
+
+        if (resevedNumertationsBeforeEnd.length > 0) {
+          const reasignedNumerations = await this.reasignNumerations(
+            resevedNumertationsBeforeEnd,
+            councilId,
+          )
+
+          return reasignedNumerations
+        }
+        // generar tambien disminuciones de rango
+        // if (end > numerations[0].number + 1) {
+        //   await this.reserveNumerationRange(
+        //     numerations[0].number + 1,
+        //     end,
+        //     councilId,
+        //     yearModuleId,
+        //   )
+        // }
+
+        return numerations
+      }
+    }
+  }
+
+  async reasignNumerations(
+    numerations: NumerationDocumentEntity[],
+    councilId: number,
+  ) {
+    const reasignedNumerations: NumerationDocumentEntity[] = []
+
+    await this.dataSource.manager.transaction(async (manager) => {
+      numerations.forEach(async (numeration) => {
+        const numerationDocument = manager.create(NumerationDocumentEntity, {
+          number: numeration.number,
+          state: NumerationState.RESERVED,
+          council: { id: councilId },
+          yearModule: { id: numeration.yearModule.id },
+        })
+        const numerations = await manager.save(numerationDocument)
+
+        if (!numerations) {
+          throw new NumerationConflict(
+            'Se produjo un conflicto al reservar la numeración',
+          )
+        }
+
+        reasignedNumerations.push(numerations)
+      })
+    })
+
+    await Promise.all(reasignedNumerations)
+
+    return reasignedNumerations
+  }
+
   verifyNumerationUsed(
     numeration: number,
     numerations: NumerationDocumentEntity[],
@@ -136,16 +348,12 @@ export class NumerationDocumentService {
   }
 
   async getAvailableCouncilNumeration(councilId: number) {
-    const qb = this.dataSource.manager
-      .createQueryBuilder(NumerationDocumentEntity, 'numeration_document')
-      .leftJoinAndSelect('numeration_document.council', 'council')
-    qb.where('numeration_document.council.id = :councilId', {
-      councilId,
-    })
-    qb.andWhere('numeration_document.state <> :state', {
-      state: NumerationState.USED,
-    })
-    const availableCounsilNumeration = await qb.getMany()
+    const availableCounsilNumeration = await this.dataSource.manager
+      .getRepository(NumerationDocumentEntity)
+      .find({
+        where: { council: { id: councilId }, state: Not(NumerationState.USED) },
+        order: { number: 'ASC' },
+      })
 
     if (
       !availableCounsilNumeration ||
@@ -163,6 +371,12 @@ export class NumerationDocumentService {
   }
 
   async create(createNumerationDocumentDto: CreateNumerationDocumentDto) {
+    if (createNumerationDocumentDto.number <= 0) {
+      throw new NumerationBadRequest(
+        'El número debe ser mayor a 0, posiblemente no existe numeración disponible para el consejo',
+      )
+    }
+
     const queryRunner = this.dataSource.createQueryRunner()
     await queryRunner.startTransaction()
 
@@ -271,6 +485,13 @@ export class NumerationDocumentService {
             (numeration) =>
               numeration.number === createNumerationDocumentDto.number,
           )
+
+          if (!numerationDocument) {
+            throw new NumerationBadRequest(
+              'El número ya es parte de la numeración de otro consejo',
+            )
+          }
+          // TODO: Make remove or move reserved numerations between councils when the council with the major range of numeration has only reserved numerations up to the requested number
 
           numerationDocument.state = NumerationState.USED
 
