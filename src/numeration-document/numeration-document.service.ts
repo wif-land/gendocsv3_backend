@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   HttpException,
   Injectable,
   InternalServerErrorException,
@@ -14,6 +13,8 @@ import { NumerationState } from '../shared/enums/numeration-state'
 import { DocumentEntity } from '../documents/entities/document.entity'
 import { NumerationByCouncil } from './dto/numeration-by-council.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { NumerationConflict } from './errors/numeration-conflict'
+import { NumerationBadRequest } from './errors/numeration-bad-request'
 
 @Injectable()
 export class NumerationDocumentService {
@@ -31,14 +32,14 @@ export class NumerationDocumentService {
       where: { id: councilId },
     })
 
-    if (!council) throw new BadRequestException('Council not found')
+    if (!council) throw new NumerationBadRequest('Council not found')
     return new ApiResponseDto('Consejo encontrado exitosamente', council)
   }
 
   async validateCouncilPresident(council: CouncilEntity) {
     const hasPresident = council.attendance.find((a) => a.isPresident)
     if (!hasPresident) {
-      throw new BadRequestException(
+      throw new NumerationBadRequest(
         'El consejo no tiene un presidente asignado',
       )
     }
@@ -57,7 +58,7 @@ export class NumerationDocumentService {
     const yearModule = await qb.getOne()
 
     if (!yearModule) {
-      throw new BadRequestException('YearModule not found')
+      throw new NumerationConflict('YearModule not found')
     }
 
     return new ApiResponseDto(
@@ -101,21 +102,23 @@ export class NumerationDocumentService {
     councilId: number,
     yearModuleId: number,
   ) {
-    try {
-      for (let i = start; i < end; i++) {
-        const numerationDocument = this.dataSource.manager.create(
-          NumerationDocumentEntity,
-          {
-            number: i,
-            state: NumerationState.RESERVED,
-            council: { id: councilId },
-            yearModule: { id: yearModuleId },
-          },
+    for (let i = start; i < end; i++) {
+      const numerationDocument = this.dataSource.manager.create(
+        NumerationDocumentEntity,
+        {
+          number: i,
+          state: NumerationState.RESERVED,
+          council: { id: councilId },
+          yearModule: { id: yearModuleId },
+        },
+      )
+      const numerations = await this.dataSource.manager.save(numerationDocument)
+
+      if (!numerations) {
+        throw new NumerationConflict(
+          'Se produjo un conflicto al reservar la numeración',
         )
-        await this.dataSource.manager.save(numerationDocument)
       }
-    } catch (error) {
-      throw new InternalServerErrorException(error.message)
     }
   }
 
@@ -128,7 +131,7 @@ export class NumerationDocumentService {
       numerations[0].state === NumerationState.USED &&
       numerations[0].number === numeration
     ) {
-      throw new BadRequestException('El número ya está en uso')
+      throw new NumerationConflict('El número ya está en uso')
     }
   }
 
@@ -148,7 +151,7 @@ export class NumerationDocumentService {
       !availableCounsilNumeration ||
       availableCounsilNumeration.length === 0
     ) {
-      throw new BadRequestException(
+      throw new NumerationBadRequest(
         'No hay números disponibles para el consejo y los siguientes se encuentran en uso',
       )
     }
@@ -216,7 +219,7 @@ export class NumerationDocumentService {
           createNumerationDocumentDto.number <=
             numerationsByYearModule[0].number
         ) {
-          throw new BadRequestException(
+          throw new NumerationBadRequest(
             'El número ya es parte de la numeración de otro consejo o ya está en uso',
           )
         }
@@ -259,7 +262,7 @@ export class NumerationDocumentService {
             createNumerationDocumentDto.number <=
             availableCouncilNumeration[0].number
           ) {
-            throw new BadRequestException(
+            throw new NumerationBadRequest(
               'El número ya es parte de la numeración de otro consejo',
             )
           }
@@ -304,7 +307,7 @@ export class NumerationDocumentService {
       )
 
       if (!documentDeleted) {
-        throw new BadRequestException('Error al eliminar el documento')
+        throw new NumerationBadRequest('Error al eliminar el documento')
       }
 
       return new ApiResponseDto('Documento eliminado exitosamente', {
@@ -328,7 +331,7 @@ export class NumerationDocumentService {
       })
 
       if (!council) {
-        throw new BadRequestException('Council not found')
+        throw new NumerationBadRequest('Council not found')
       }
 
       const numeration = await this.numerationDocumentRepository.find({
@@ -388,7 +391,7 @@ export class NumerationDocumentService {
         NumerationByCouncil,
       )
     } catch (error) {
-      if (error.status) throw new BadRequestException(error.message)
+      if (error.status) throw new NumerationBadRequest(error.message)
 
       throw new InternalServerErrorException(error.message)
     }
@@ -418,7 +421,7 @@ export class NumerationDocumentService {
       )
 
       if (!numerationDeleted) {
-        throw new BadRequestException('Error al eliminar la numeración')
+        throw new NumerationBadRequest('Error al eliminar la numeración')
       }
 
       return new ApiResponseDto('Numeración eliminada exitosamente', {
