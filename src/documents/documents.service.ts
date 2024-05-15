@@ -223,8 +223,6 @@ export class DocumentsService {
         await this.numerationDocumentService.remove(numeration.id)
       }
 
-      console.log(error)
-
       throw new Error(error.message)
     }
   }

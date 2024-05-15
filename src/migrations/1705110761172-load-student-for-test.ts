@@ -7,8 +7,6 @@ import { CityEntity } from '../cities/entities/city.entity'
 
 export class LoadStudentForTest1705110761172 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const careerRepository = queryRunner.connection.getRepository(CareerEntity)
-
     const studentRepository =
       queryRunner.connection.getRepository(StudentEntity)
 
