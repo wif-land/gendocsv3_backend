@@ -50,10 +50,9 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         internshipHours: 400,
         vinculationHours: 160,
         coordinator: { id: 1 },
-        name: 'Ingeniería en Sistemas Computacionales e InformáticosIngeniería en Sistemas',
+        name: 'Ingeniería en Sistemas Computacionales e Informáticos',
         credits: 246,
-        menDegree:
-          'Ingeniero en Sistemas Computacionales e InformáticosIngeniero en Sistemas',
+        menDegree: 'Ingeniero en Sistemas Computacionales e Informáticos',
         womenDegree: 'Ingeniera en Sistemas Computacionales e Informáticos',
         isActive: true,
       },

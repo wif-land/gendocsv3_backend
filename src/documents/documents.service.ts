@@ -45,7 +45,7 @@ export class DocumentsService {
     })
 
     if (!numeration) {
-      throw new Error('Numeration not created')
+      throw new ConflictException('Numeración no creada')
     }
 
     try {
@@ -61,22 +61,26 @@ export class DocumentsService {
 
       if (!document) {
         await this.numerationDocumentService.remove(numeration.id)
-        throw new Error('Document not created')
+        throw new Error('Error al crear el documento')
       }
       await this.documentsRepository.save(document)
 
       const savedDocument = await this.documentsRepository.findOneOrFail({
         where: { id: document.id },
-        relations: [
-          'numerationDocument',
-          'numerationDocument.council',
-          'numerationDocument.council.attendance',
-          'numerationDocument.council.attendance.functionary',
-          'user',
-          'templateProcess',
-          'documentFunctionaries',
-          'documentFunctionaries.functionary',
-        ],
+        relations: {
+          numerationDocument: {
+            council: {
+              attendance: {
+                functionary: true,
+              },
+            },
+          },
+          documentFunctionaries: {
+            functionary: true,
+          },
+          templateProcess: true,
+          user: true,
+        },
       })
 
       const generalData = await this.variableService.getGeneralVariables(
@@ -107,7 +111,19 @@ export class DocumentsService {
         const documentFunctionariesSaved =
           await this.documentFunctionaryRepository.find({
             where: { document: { id: savedDocument.id } },
-            relations: ['functionary'],
+            relationLoadStrategy: 'join',
+            relations: {
+              functionary: true,
+              document: {
+                numerationDocument: {
+                  council: {
+                    attendance: {
+                      functionary: true,
+                    },
+                  },
+                },
+              },
+            },
           })
 
         functionariesData = await this.variableService.getFunctionaryVariables(
@@ -116,13 +132,21 @@ export class DocumentsService {
       }
 
       if (createDocumentDto.studentId) {
-        const qb = this.dataSource
-          .createQueryBuilder(StudentEntity, 'student')
-          .leftJoinAndSelect('student.career', 'career')
-          .leftJoinAndSelect('career.coordinator', 'coordinator')
-          .where('student.id = :id', { id: createDocumentDto.studentId })
+        const student = await this.dataSource.manager
+          .getRepository(StudentEntity)
+          .findOne({
+            where: { id: createDocumentDto.studentId },
+            relationLoadStrategy: 'join',
+            relations: {
+              career: {
+                coordinator: true,
+              },
+              canton: {
+                province: true,
+              },
+            },
+          })
 
-        const student = await qb.getOne()
         // eslint-disable-next-line require-atomic-updates
         savedDocument.student = student
 
@@ -136,14 +160,16 @@ export class DocumentsService {
       }
 
       const variables = {
-        [DefaultVariable.PREFEX_GENERAL]: generalData,
-        [DefaultVariable.PREFIX_CONSEJO]: councilData,
+        [DefaultVariable.PREFEX_GENERAL]: generalData.data,
+        [DefaultVariable.PREFIX_CONSEJO]: councilData.data,
         [DefaultVariable.PREFIX_DOCENTES]: functionariesData
-          ? functionariesData
+          ? functionariesData.data
           : [],
-        [DefaultVariable.PREFIX_ESTUDIANTE]: studentData ? studentData : [],
-        [DefaultVariable.PREFIX_CARGOS]: positionsData,
-        [DefaultVariable.PREFIX_CUSTOM]: customVariablesData,
+        [DefaultVariable.PREFIX_ESTUDIANTE]: studentData
+          ? studentData.data
+          : [],
+        [DefaultVariable.PREFIX_CARGOS]: positionsData.data,
+        [DefaultVariable.PREFIX_CUSTOM]: customVariablesData.data,
       }
 
       const variablesJson = JSON.stringify(variables)
@@ -151,27 +177,34 @@ export class DocumentsService {
       // eslint-disable-next-line require-atomic-updates
       savedDocument.variables = JSON.parse(variablesJson)
 
-      driveId = await this.filesService.createDocumentByParentIdAndCopy(
-        formatNumeration(numeration.number),
-        savedDocument.numerationDocument.council.driveId,
-        savedDocument.templateProcess.driveId,
-      )
+      driveId = (
+        await this.filesService.createDocumentByParentIdAndCopy(
+          formatNumeration(numeration.number),
+          savedDocument.numerationDocument.council.driveId,
+          savedDocument.templateProcess.driveId,
+        )
+      ).data
+
       const formatVariables = {
-        ...generalData,
-        ...councilData,
+        ...generalData.data,
+        ...councilData.data,
         // eslint-disable-next-line no-extra-parens
-        ...(functionariesData ? functionariesData : []),
+        ...(functionariesData ? functionariesData.data : []),
         // eslint-disable-next-line no-extra-parens
-        ...(studentData ? studentData : []),
-        ...positionsData,
-        ...customVariablesData,
+        ...(studentData ? studentData.data : []),
+        ...positionsData.data,
+        ...customVariablesData.data,
       }
+
       await this.filesService.replaceTextOnDocument(formatVariables, driveId)
 
-      return await this.documentsRepository.update(savedDocument.id, {
+      const finalDocument = await this.documentsRepository.save({
+        id: savedDocument.id,
         driveId,
         variables: JSON.stringify(formatVariables),
       })
+
+      return new ApiResponseDto('Documento creado', finalDocument)
     } catch (error) {
       if (driveId) {
         await this.filesService.remove(driveId)
@@ -189,6 +222,7 @@ export class DocumentsService {
       if (numeration) {
         await this.numerationDocumentService.remove(numeration.id)
       }
+
       throw new Error(error.message)
     }
   }

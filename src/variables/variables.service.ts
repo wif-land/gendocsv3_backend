@@ -155,7 +155,7 @@ export class VariablesService {
   async getCouncilVariables(document: DocumentEntity) {
     try {
       const functionary = document.numerationDocument.council.attendance.find(
-        (attendance) => attendance.isPresident,
+        (attendance) => attendance.positionOrder === 1,
       ).functionary
 
       if (!functionary) {
