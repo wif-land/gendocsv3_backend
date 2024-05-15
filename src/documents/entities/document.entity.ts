@@ -20,7 +20,11 @@ export class DocumentEntity extends BaseAppEntity {
     example: '1',
     description: 'Id de la numeración del documento',
   })
-  @OneToOne(() => NumerationDocumentEntity, { eager: true, nullable: false })
+  @OneToOne(
+    () => NumerationDocumentEntity,
+    (numerationDocument) => numerationDocument.document,
+    { eager: true, nullable: false },
+  )
   @JoinColumn({ name: 'numeration_document_id' })
   numerationDocument: NumerationDocumentEntity
 
