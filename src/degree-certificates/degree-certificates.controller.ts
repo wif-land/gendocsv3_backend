@@ -35,9 +35,12 @@ export class DegreeCertificatesController {
 
   // #region DegreeCertificates
   @Auth(RolesType.ADMIN, RolesType.READER)
-  @Get()
-  async getDegreeCertificates(@Query() paginationDto: PaginationDto) {
-    return await this.degreeCertificatesService.findAll(paginationDto)
+  @Get('carrer/:carrerId')
+  async getDegreeCertificates(
+    @Param('carrerId', ParseIntPipe) carrerId: number,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return await this.degreeCertificatesService.findAll(paginationDto, carrerId)
   }
 
   @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
