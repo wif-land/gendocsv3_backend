@@ -18,6 +18,8 @@ import { formatNumeration } from '../shared/utils/string'
 import { ResponseDocumentDto } from './dto/response-document'
 import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { CouncilEntity } from '../councils/entities/council.entity'
+import { CreateRecopilationDto } from '../gcp/gcp.controller'
 
 @Injectable()
 export class DocumentsService {
@@ -332,5 +334,134 @@ export class DocumentsService {
     } catch (error) {
       throw new InternalServerErrorException(error.message)
     }
+  }
+
+  async generateRecopilationContent(councilId: number) {
+    const council = await this.dataSource.manager
+      .getRepository(CouncilEntity)
+      .findOne({
+        where: { id: councilId },
+        relations: {
+          attendance: {
+            functionary: true,
+          },
+          module: true,
+        },
+      })
+
+    if (!council) {
+      throw new NotFoundException('Consejo no encontrado')
+    }
+
+    const documents = await this.dataSource.manager
+      .getRepository(DocumentEntity)
+      .find({
+        where: {
+          numerationDocument: {
+            council: {
+              id: councilId,
+            },
+          },
+        },
+      })
+
+    if (!documents) {
+      throw new NotFoundException('Documentos no encontrados')
+    }
+
+    const createCompilationDto: CreateRecopilationDto = {
+      documentsInfo: documents.map((document) => ({
+        id: document.driveId,
+        year: council.date.getFullYear().toString(),
+        numdoc: formatNumeration(document.numerationDocument.number),
+      })),
+      templateId: council.module.compilationTemplateDriveId,
+    }
+    const documentsDataId = await this.filesService.compileSections(
+      createCompilationDto,
+    )
+
+    if (!documentsDataId) {
+      throw new ConflictException('Error al compilar documentos')
+    }
+
+    const updatedCouncil = await this.dataSource.manager
+      .getRepository(CouncilEntity)
+      .update(councilId, {
+        docContentDriveId: documentsDataId,
+      })
+
+    if (!updatedCouncil) {
+      throw new ConflictException('Error al actualizar el consejo')
+    }
+
+    return new ApiResponseDto('Recopilación de documentos creada', {
+      council: updatedCouncil,
+    })
+  }
+
+  async generateRecopilationDocument(councilId: number) {
+    const council = await this.dataSource.manager
+      .getRepository(CouncilEntity)
+      .findOne({
+        where: { id: councilId },
+        relations: {
+          attendance: {
+            functionary: true,
+          },
+          module: true,
+        },
+      })
+
+    const councilWithRecopilation = await this.dataSource.manager
+      .getRepository(CouncilEntity)
+      .findAndCount({
+        where: {
+          recopilationDriveId: null,
+        },
+      })
+
+    if (!council) {
+      throw new NotFoundException('Consejo no encontrado')
+    }
+
+    const docCouncil = await this.filesService.createDocumentByParentIdAndCopy(
+      'ACTA-',
+      council.driveId,
+      council.module.compilationTemplateDriveId,
+    )
+
+    if (!docCouncil) {
+      throw new ConflictException('Error al crear el documento')
+    }
+
+    const { data: recopilationVariblesData } =
+      await this.variableService.getRecopilationVariables(
+        councilWithRecopilation[1] ?? 1,
+        council,
+      )
+    const { data: replacedVariables } =
+      await this.filesService.replaceTextOnDocument(
+        recopilationVariblesData,
+        docCouncil.data,
+      )
+
+    if (!replacedVariables) {
+      throw new ConflictException('Error al reemplazar variables')
+    }
+
+    const updatedCouncil = await this.dataSource.manager
+      .getRepository(CouncilEntity)
+      .update(councilId, {
+        recopilationDriveId: docCouncil.data,
+      })
+
+    if (!updatedCouncil) {
+      throw new ConflictException('Error al actualizar el consejo')
+    }
+
+    return new ApiResponseDto('Documento de recopilación creado', {
+      council: updatedCouncil,
+    })
   }
 }

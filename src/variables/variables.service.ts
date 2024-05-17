@@ -39,6 +39,8 @@ import { transformNumberToWords } from '../shared/utils/number'
 import { StudentEntity } from '../students/entities/student.entity'
 import { DegreeCertificateAttendanceEntity } from '../degree-certificate-attendance/entities/degree-certificate-attendance.entity'
 import { ADJECTIVES } from '../shared/enums/adjectives'
+import { CouncilEntity } from '../councils/entities/council.entity'
+import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
 
 @Injectable()
 export class VariablesService {
@@ -338,7 +340,9 @@ export class VariablesService {
     }
   }
 
-  formatMembersNames(members: DegreeCertificateAttendanceEntity[]) {
+  formatMembersNames(
+    members: DegreeCertificateAttendanceEntity[] | CouncilAttendanceEntity[],
+  ) {
     if (members.length === 1) {
       return getFullName(members[0].functionary)
     }
@@ -537,6 +541,66 @@ export class VariablesService {
       ...titulationData,
       ...positionsVariables,
     })
+  }
+
+  async getRecopilationVariables(numdoc: number, council: CouncilEntity) {
+    try {
+      console.log(council.attendance)
+      const variables = {
+        [DefaultVariable.FECHA]: formatDate(council.date),
+        [DefaultVariable.RESPONSABLE]: getFullName(
+          council.attendance.find(
+            (attendance) => attendance.positionOrder === 1,
+          ).functionary,
+        ),
+        [DefaultVariable.NUMACT]: formatNumeration(numdoc),
+        [DefaultVariable.FECHAUP]: formatDateText(council.date),
+        [DefaultVariable.SESIONUP]: council.type.toUpperCase(),
+        [DefaultVariable.SESION]: council.type.toLowerCase(),
+        [DefaultVariable.Y]: council.date.getFullYear().toString(),
+        [DefaultVariable.DIASEM_T]: formatWeekDayName(council.date),
+        [DefaultVariable.NUMMES_T_U]: formatMonthName(
+          council.date,
+        ).toUpperCase(),
+        [DefaultVariable.MES_T_L]: formatMonthName(council.date).toLowerCase(),
+        [DefaultVariable.NUMDIA_T]: transformNumberToWords(
+          council.date.getDate(),
+        ),
+        [DefaultVariable.NUMANIO_T]: transformNumberToWords(
+          council.date.getFullYear(),
+        ),
+        [DefaultVariable.NUMANIO_T_L]: transformNumberToWords(
+          council.date.getFullYear(),
+        ).toLowerCase(),
+        [DefaultVariable.DIAS_T]: `${transformNumberToWords(
+          council.date.getDate(),
+        )} días`,
+        [DefaultVariable.HORA_T_L]: transformNumberToWords(
+          council.date.getHours(),
+        ),
+        [DefaultVariable.MINUTOS_T_L]: transformNumberToWords(
+          council.date.getMinutes(),
+        ).toLowerCase(),
+        [DefaultVariable.ASISTIERON]: this.formatMembersNames(
+          council.attendance.filter((attendance) => attendance.hasAttended),
+        ),
+        [DefaultVariable.NO_ASISTIERON]: this.formatMembersNames(
+          council.attendance.filter((attendance) => !attendance.hasAttended),
+        ),
+      }
+      console.log(variables)
+      const { data: positionsVariables } = await this.getPositionVariables()
+
+      return new ApiResponseDto(
+        'Variables de recopilación encontradas con éxito',
+        {
+          ...variables,
+          ...positionsVariables,
+        },
+      )
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
   }
 
   async getPositionVariables() {
