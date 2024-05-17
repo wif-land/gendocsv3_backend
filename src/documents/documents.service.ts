@@ -375,7 +375,7 @@ export class DocumentsService {
         year: council.date.getFullYear().toString(),
         numdoc: formatNumeration(document.numerationDocument.number),
       })),
-      templateId: council.module.compilationTemplateDriveId,
+      templateId: council.module.separatorTemplateDriveId,
     }
     const documentsDataId = await this.filesService.compileSections(
       createCompilationDto,
