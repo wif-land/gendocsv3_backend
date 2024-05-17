@@ -58,4 +58,15 @@ export class CouncilsController {
       await this.councilsService.update(id, updateCouncilDto),
     )
   }
+
+  @Post(':id/notify-members')
+  async notifyMembers(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: number[],
+  ) {
+    return new ApiResponseDto(
+      'Notificación enviada exitosamente',
+      await this.councilsService.notifyMembers(id, body),
+    )
+  }
 }

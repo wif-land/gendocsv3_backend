@@ -388,4 +388,23 @@ export class CouncilsService {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
+
+  async notifyMembers(id: number, members: number[]) {
+    const council = await this.councilRepository.findOne({
+      where: { id },
+    })
+
+    if (!council) {
+      throw new NotFoundException(`Consejo no encontrado`)
+    }
+
+    const mutation = `
+      UPDATE council_attendance
+      SET has_been_notified = true
+      WHERE id IN (${members.join(', ')})
+      AND council_id = ${id}
+    `
+
+    await this.dataSource.query(mutation)
+  }
 }
