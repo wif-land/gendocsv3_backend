@@ -373,6 +373,7 @@ export class GcpService {
           if (element.type === 'paragraph') {
             for (const el of element.content) {
               if (el.type === 'text') {
+                // eslint-disable-next-line no-console
                 console.log(el)
                 const textStyle = el.textRunStyle
                   ? {
@@ -432,6 +433,7 @@ export class GcpService {
             })
 
             // Move currentIndex to the start of the first cell after the table
+            // eslint-disable-next-line no-magic-numbers
             currentIndex += 4 // Assume the start of the first cell
 
             for (
@@ -460,6 +462,7 @@ export class GcpService {
                   },
                 })
 
+                // eslint-disable-next-line no-magic-numbers
                 currentIndex += cellContent.length + 2 // Move index to the start of the next cell
               }
               currentIndex += 1 // Move index to the start of the next row
