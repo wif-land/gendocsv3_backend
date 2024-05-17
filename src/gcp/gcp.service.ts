@@ -450,6 +450,7 @@ export class GcpService {
                 const cellContent = cell?.content
                   .map((c) =>
                     c.paragraph?.elements
+                      // eslint-disable-next-line no-extra-parens
                       .map((e) => (e.textRun ? e.textRun?.content : ''))
                       .join(''),
                   )
