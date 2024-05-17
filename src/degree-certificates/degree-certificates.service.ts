@@ -135,7 +135,10 @@ export class DegreeCertificatesService {
 
     return number
   }
-  async findAll(paginationDto: PaginationDto): Promise<
+  async findAll(
+    paginationDto: PaginationDto,
+    carrerId: number,
+  ): Promise<
     ApiResponseDto<{
       count: number
       degreeCertificates: DegreeCertificateEntity[]
@@ -155,6 +158,10 @@ export class DegreeCertificatesService {
         certificateStatus: true,
         degreeModality: true,
         room: true,
+      },
+      where: {
+        career: { id: carrerId },
+        deletedAt: IsNull(),
       },
       take: limit,
       skip: offset,
@@ -673,7 +680,7 @@ export class DegreeCertificatesService {
     const degreeCertificateUpdated =
       await this.degreeCertificateRepository.save({
         ...degreeCertificate,
-        driveId,
+        certificateDriveId: driveId,
       })
 
     return new ApiResponseDto(

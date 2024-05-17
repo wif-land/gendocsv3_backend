@@ -115,18 +115,20 @@ export class UsersService {
       const hasAccessModules = !!user.accessModules
 
       if (hasAccessModules) {
-        const { data } = await this.userAccessModulesService.update({
+        const result = await this.userAccessModulesService.update({
           userId: id,
           modulesIds: user.accessModules,
         })
 
-        if (data.modules.length === 0) {
+        if (result.data.modules.length === 0) {
           throw new HttpException(
             'No se pudo actualizar los modulos del usuario',
             HttpStatus.CONFLICT,
           )
         }
-        userToUpdate.accessModules = data.modules.map((module) => module.id)
+        userToUpdate.accessModules = result.data.modules.map(
+          (module) => module.id,
+        )
       }
 
       const userGetted = await this.userRepository.findOne({

@@ -69,6 +69,7 @@ export class UserAccessModulesService {
   }
 
   async update(createUserAccessModuleDto: CreateUserAccessModuleDto) {
+    console.log(createUserAccessModuleDto)
     const { userId, modulesIds } = createUserAccessModuleDto
     const modules: ModuleEntity[] = []
 
@@ -89,6 +90,8 @@ export class UserAccessModulesService {
         userId,
       })
 
+      console.log(user.accessModules)
+
       for (const moduleId of modulesIds) {
         const userAccessModuleCreated = this.userAccessModulesRepository.create(
           {
@@ -107,6 +110,8 @@ export class UserAccessModulesService {
         const userAccessModule = await this.userAccessModulesRepository.save(
           userAccessModuleCreated,
         )
+
+        console.log(userAccessModule)
 
         const module = await this.dataSource
           .createQueryBuilder()
@@ -132,7 +137,7 @@ export class UserAccessModulesService {
         modules,
       })
     } catch (e) {
-      new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
