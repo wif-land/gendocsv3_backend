@@ -41,6 +41,7 @@ export class GcpController {
 
       return recopilation
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(error)
       return error
     }

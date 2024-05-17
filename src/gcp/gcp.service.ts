@@ -236,6 +236,7 @@ export class GcpService {
     return data
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async extractSections(documentId: string): Promise<any[]> {
     const doc = await this.docs.documents.get({
       documentId,
@@ -243,6 +244,7 @@ export class GcpService {
 
     const content = doc.data.body.content
     const inlineObjects = doc.data.inlineObjects
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sections: any[] = []
     let isExtracting = false
     let section = []
