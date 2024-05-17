@@ -127,7 +127,6 @@ export class GcpService {
 
   async replaceTextOnDocument(data: object, documentId: string) {
     try {
-      //   console.log(data)
       const requests = Object.keys(data).map((key) => ({
         replaceAllText: {
           containsText: {
@@ -179,4 +178,566 @@ export class GcpService {
       throw new Error(error.message)
     }
   }
+
+  async getDocumentContent(documentId: string) {
+    try {
+      const { data } = await this.docs.documents.get({
+        documentId,
+      })
+
+      return new ApiResponseDto(
+        'Contenido obtenido con éxito',
+        data.body.content,
+      )
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  async resolveTemplateSeparator(
+    templateId: string,
+    numdoc: string,
+    year: string,
+  ) {
+    try {
+      const template = await this.getDocumentContent(templateId)
+      const replacedTemplateValuesContent = await this.getContentReplacedValues(
+        template.data,
+        {
+          numdoc,
+          year,
+        },
+      )
+
+      return replacedTemplateValuesContent
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  async getContentReplacedValues(
+    data: docs_v1.Schema$StructuralElement[],
+    variables: { numdoc: string; year: string },
+  ) {
+    data.forEach((element) => {
+      if (element.paragraph) {
+        element.paragraph.elements.forEach((paragraph) => {
+          if (paragraph.textRun) {
+            paragraph.textRun.content = paragraph.textRun.content
+              // eslint-disable-next-line no-template-curly-in-string
+              .replace('${NUMDOC}', variables.numdoc)
+              // eslint-disable-next-line no-template-curly-in-string
+              .replace('${Y}', variables.year)
+          }
+        })
+      }
+    })
+
+    return data
+  }
+
+  async extractSections(documentId: string): Promise<any[]> {
+    const doc = await this.docs.documents.get({
+      documentId,
+    })
+
+    const content = doc.data.body.content
+    const inlineObjects = doc.data.inlineObjects
+    const sections: any[] = []
+    let isExtracting = false
+    let section = []
+
+    for (const element of content) {
+      if (element.paragraph) {
+        const paragraphElements = []
+        element.paragraph.elements.forEach((el) => {
+          const textRun = el.textRun
+          if (textRun && textRun.content) {
+            const text = textRun.content
+            if (text.includes('{{FROM}}')) {
+              isExtracting = true
+              section = []
+            }
+            if (
+              isExtracting &&
+              !text.includes('{{FROM}}') &&
+              !text.includes('{{TO}}')
+            ) {
+              paragraphElements.push({
+                type: 'text',
+                content: text,
+                lengthIndex: el.endIndex - el.startIndex,
+                textRunStyle: textRun.textStyle,
+              })
+            }
+            if (text.includes('{{TO}}')) {
+              isExtracting = false
+              sections.push(section)
+            }
+          }
+
+          if (el.inlineObjectElement && isExtracting) {
+            const inlineObjectId = el.inlineObjectElement.inlineObjectId
+            const inlineObject = inlineObjects[inlineObjectId]
+            paragraphElements.push({
+              type: 'image',
+              content: inlineObject,
+              lengthIndex: el.endIndex - el.startIndex,
+            })
+          }
+        })
+        if (paragraphElements.length > 0 && isExtracting) {
+          section.push({ type: 'paragraph', content: paragraphElements })
+        }
+      } else if (element.table && isExtracting) {
+        section.push({
+          type: 'table',
+          content: element.table,
+          lengthIndex: element.endIndex - element.startIndex,
+          tableStyle: element.table.tableStyle,
+        })
+      }
+    }
+
+    return sections
+  }
+
+  async compileSections(
+    documentsInfo: { id: string; numdoc: string; year: string }[],
+    separatorId: string,
+  ): Promise<string> {
+    const newDoc = await this.docs.documents.create({
+      requestBody: {
+        title: 'Compiled Document',
+      },
+    })
+
+    const documentId = newDoc.data.documentId
+    await this.moveAsset(documentId, '1EYGkaFUASK151DnkJKcdk-5YgfxxigAO')
+    let currentIndex = 1
+    const requests = []
+
+    for (const doc of documentsInfo) {
+      const sections = await this.extractSections(doc.id)
+      const separatorString = await this.resolveTemplateSeparator(
+        separatorId,
+        doc.numdoc,
+        doc.year,
+      )
+
+      for (const element of separatorString) {
+        if (element.paragraph) {
+          for (const el of element.paragraph.elements) {
+            if (el.textRun) {
+              const textStyle = el.textRun.textStyle
+                ? {
+                    bold: el.textRun.textStyle.bold,
+                    italic: el.textRun.textStyle.italic,
+                    underline: el.textRun.textStyle.underline,
+                    fontSize: el.textRun.textStyle.fontSize,
+                    foregroundColor: el.textRun.textStyle.foregroundColor,
+                    weightedFontFamily: el.textRun.textStyle.weightedFontFamily,
+                    // Other styles can be added here
+                  }
+                : {}
+
+              requests.push({
+                insertText: {
+                  endOfSegmentLocation: { segmentId: '' },
+                  text: el.textRun.content,
+                },
+              })
+
+              // Apply the text style
+              requests.push({
+                updateTextStyle: {
+                  range: {
+                    startIndex: currentIndex,
+                    endIndex: currentIndex + el.textRun.content.length,
+                  },
+                  text_style: textStyle,
+                  fields:
+                    'bold,italic,underline,fontSize,foregroundColor,weightedFontFamily', // Add other fields as needed
+                },
+              })
+
+              currentIndex += el.textRun.content.length
+            }
+          }
+        }
+      }
+      for (const section of sections) {
+        for (const element of section) {
+          if (element.type === 'paragraph') {
+            for (const el of element.content) {
+              if (el.type === 'text') {
+                console.log(el)
+                const textStyle = el.textRunStyle
+                  ? {
+                      bold: el.textRunStyle.bold,
+                      italic: el.textRunStyle.italic,
+                      underline: el.textRunStyle.underline,
+                      fontSize: el.textRunStyle.fontSize,
+                      foregroundColor: el.textRunStyle.foregroundColor,
+                      weightedFontFamily: el.textRunStyle.weightedFontFamily,
+                      // Other styles can be added here
+                    }
+                  : {}
+
+                requests.push({
+                  insertText: {
+                    endOfSegmentLocation: { segmentId: '' },
+                    text: el.content,
+                  },
+                })
+
+                // Apply the text style
+                requests.push({
+                  updateTextStyle: {
+                    range: {
+                      startIndex: currentIndex,
+                      endIndex: currentIndex + el.content.length,
+                    },
+                    text_style: textStyle,
+                    fields:
+                      'bold,italic,underline,fontSize,foregroundColor,weightedFontFamily', // Add other fields as needed
+                  },
+                })
+
+                currentIndex += el.content.length
+              } else if (el.type === 'image') {
+                requests.push({
+                  insertInlineImage: {
+                    uri: el.content.inlineObjectProperties?.embeddedObject
+                      ?.imageProperties.contentUri,
+                    endOfSegmentLocation: { segmentId: '' },
+                  },
+                })
+
+                // Apply the image style
+
+                currentIndex += el.lengthIndex
+              }
+            }
+          } else if (element.type === 'table') {
+            const table = element.content
+            requests.push({
+              insertTable: {
+                rows: table.tableRows?.length,
+                columns: table.columns,
+                endOfSegmentLocation: { segmentId: '' },
+              },
+            })
+
+            // Move currentIndex to the start of the first cell after the table
+            currentIndex += 4 // Assume the start of the first cell
+
+            for (
+              let rowIndex = 0;
+              rowIndex < table.tableRows?.length;
+              rowIndex++
+            ) {
+              for (
+                let colIndex = 0;
+                colIndex < table.tableRows[rowIndex]?.tableCells?.length;
+                colIndex++
+              ) {
+                const cell = table.tableRows[rowIndex]?.tableCells[colIndex]
+                const cellContent = cell?.content
+                  .map((c) =>
+                    c.paragraph?.elements
+                      .map((e) => (e.textRun ? e.textRun?.content : ''))
+                      .join(''),
+                  )
+                  .join('')
+
+                requests.push({
+                  insertText: {
+                    location: { index: currentIndex },
+                    text: cellContent,
+                  },
+                })
+
+                currentIndex += cellContent.length + 2 // Move index to the start of the next cell
+              }
+              currentIndex += 1 // Move index to the start of the next row
+            }
+          }
+        }
+      }
+    }
+
+    await this.docs.documents.batchUpdate({
+      documentId,
+      requestBody: { requests },
+    })
+
+    return documentId
+  }
+
+  // async extractSections(documentId: string) {
+  //   const doc = await this.docs.documents.get({
+  //     documentId,
+  //   })
+
+  //   const content = doc.data.body.content
+  //   const inlineObjects = doc.data.inlineObjects
+  //   const lists = doc.data.lists // Extract lists information
+  //   const sections: any[] = []
+  //   let isExtracting = false
+  //   let section = []
+
+  //   for (const element of content) {
+  //     if (element.paragraph) {
+  //       console.log(element.paragraph)
+  //       const paragraphElements = []
+  //       const paragraphStyle = element.paragraph.paragraphStyle // Get the paragraph style
+  //       const bullet = element.paragraph.bullet // Check if this is part of a list
+
+  //       element.paragraph.elements.forEach((el) => {
+  //         const textRun = el.textRun
+  //         if (textRun && textRun.content) {
+  //           const text = textRun.content
+  //           if (text.includes('{{FROM}}')) {
+  //             isExtracting = true
+  //             section = []
+  //           }
+  //           if (
+  //             isExtracting &&
+  //             !text.includes('{{FROM}}') &&
+  //             !text.includes('{{TO}}')
+  //           ) {
+  //             paragraphElements.push({
+  //               type: 'text',
+  //               content: text,
+  //               lengthIndex: el.endIndex - el.startIndex,
+  //               textRunStyle: textRun.textStyle,
+  //             })
+  //           }
+  //           if (text.includes('{{TO}}')) {
+  //             isExtracting = false
+  //             sections.push(section)
+  //           }
+  //         }
+
+  //         if (el.inlineObjectElement && isExtracting) {
+  //           const inlineObjectId = el.inlineObjectElement.inlineObjectId
+  //           const inlineObject = inlineObjects[inlineObjectId]
+  //           paragraphElements.push({
+  //             type: 'image',
+  //             content: inlineObject,
+  //             lengthIndex: el.endIndex - el.startIndex,
+  //           })
+  //         }
+  //       })
+  //       if (paragraphElements.length > 0 && isExtracting) {
+  //         section.push({
+  //           type: 'paragraph',
+  //           content: paragraphElements,
+  //           paragraphStyle,
+  //           bullet,
+  //         })
+  //       }
+  //     } else if (element.table && isExtracting) {
+  //       section.push({
+  //         type: 'table',
+  //         content: element.table,
+  //         lengthIndex: element.endIndex - element.startIndex,
+  //         tableStyle: element.table.tableStyle,
+  //       })
+  //     }
+  //   }
+
+  //   return { sections, lists }
+  // }
+
+  // async compileSections(
+  //   documentsInfo: { id: string; numdoc: string; year: string }[],
+  //   separatorId: string,
+  // ): Promise<string> {
+  //   const newDoc = await this.docs.documents.create({
+  //     requestBody: {
+  //       title: 'Compiled Document',
+  //     },
+  //   })
+
+  //   const documentId = newDoc.data.documentId
+  //   await this.moveAsset(documentId, '1EYGkaFUASK151DnkJKcdk-5YgfxxigAO')
+  //   let currentIndex = 1
+  //   const requests = []
+
+  //   for (const doc of documentsInfo) {
+  //     const { sections, lists } = await this.extractSections(doc.id)
+
+  //     const separatorString = await this.resolveTemplateSeparator(
+  //       separatorId,
+  //       doc.numdoc,
+  //       doc.year,
+  //     )
+
+  //     for (const element of separatorString) {
+  //       if (element.paragraph) {
+  //         for (const el of element.paragraph.elements) {
+  //           if (el.textRun) {
+  //             const textStyle = el.textRun.textStyle
+  //               ? {
+  //                   bold: el.textRun.textStyle.bold,
+  //                   italic: el.textRun.textStyle.italic,
+  //                   underline: el.textRun.textStyle.underline,
+  //                   fontSize: el.textRun.textStyle.fontSize,
+  //                   foregroundColor: el.textRun.textStyle.foregroundColor,
+  //                   weightedFontFamily: el.textRun.textStyle.weightedFontFamily,
+  //                 }
+  //               : {}
+
+  //             requests.push({
+  //               insertText: {
+  //                 endOfSegmentLocation: { segmentId: '' },
+  //                 text: el.textRun.content,
+  //               },
+  //             })
+
+  //             requests.push({
+  //               updateTextStyle: {
+  //                 range: {
+  //                   startIndex: currentIndex + 1,
+  //                   endIndex: currentIndex + el.textRun.content.length + 2,
+  //                 },
+  //                 text_style: textStyle,
+  //                 fields:
+  //                   'bold,italic,underline,fontSize,foregroundColor,weightedFontFamily',
+  //               },
+  //             })
+
+  //             currentIndex += el.textRun.content.length
+  //           }
+  //         }
+  //       }
+  //     }
+
+  //     for (const section of sections) {
+  //       for (const element of section) {
+  //         if (element.type === 'paragraph') {
+  //           let listPrefix = ''
+  //           if (element.bullet) {
+  //             const listId = element.bullet.listId
+  //             const nestingLevel = element.bullet.nestingLevel || 0
+  //             const list = lists[listId]
+  //             if (list) {
+  //               const listStyle =
+  //                 list.listProperties.nestingLevels[nestingLevel]
+  //               listPrefix = listStyle.glyphType ? '1. ' : '• '
+  //               // Adjust currentIndex for the bullet/number
+  //               requests.push({
+  //                 insertText: {
+  //                   endOfSegmentLocation: { segmentId: '' },
+  //                   text: listPrefix,
+  //                 },
+  //               })
+  //               currentIndex += listPrefix.length
+  //             }
+  //           }
+
+  //           for (const el of element.content) {
+  //             if (el.type === 'text') {
+  //               const textStyle = el.textRunStyle
+  //                 ? {
+  //                     bold: el.textRunStyle.bold,
+  //                     italic: el.textRunStyle.italic,
+  //                     underline: el.textRunStyle.underline,
+  //                     fontSize: el.textRunStyle.fontSize,
+  //                     foregroundColor: el.textRunStyle.foregroundColor,
+  //                     weightedFontFamily: el.textRunStyle.weightedFontFamily,
+  //                   }
+  //                 : {}
+
+  //               requests.push({
+  //                 insertText: {
+  //                   endOfSegmentLocation: { segmentId: '' },
+  //                   text: el.content,
+  //                 },
+  //               })
+
+  //               requests.push({
+  //                 updateTextStyle: {
+  //                   range: {
+  //                     startIndex: currentIndex - 3,
+  //                     endIndex: currentIndex + el.content.length,
+  //                   },
+  //                   text_style: textStyle,
+  //                   fields:
+  //                     'bold,italic,underline,fontSize,foregroundColor,weightedFontFamily',
+  //                 },
+  //               })
+
+  //               currentIndex += el.content.length
+  //             } else if (el.type === 'image') {
+  //               requests.push({
+  //                 insertInlineImage: {
+  //                   uri: el.content.inlineObjectProperties?.embeddedObject
+  //                     ?.imageProperties.contentUri,
+  //                   endOfSegmentLocation: { segmentId: '' },
+  //                 },
+  //               })
+
+  //               currentIndex += el.lengthIndex
+  //             }
+  //           }
+  //           if (listPrefix) {
+  //             currentIndex += listPrefix.length // Adjust index for the list prefix if added
+  //           }
+  //         } else if (element.type === 'table') {
+  //           const table = element.content
+  //           requests.push({
+  //             insertTable: {
+  //               rows: table.tableRows?.length,
+  //               columns: table.columns,
+  //               endOfSegmentLocation: { segmentId: '' },
+  //             },
+  //           })
+
+  //           currentIndex += 4 // Assume the start of the first cell
+
+  //           for (
+  //             let rowIndex = 0;
+  //             rowIndex < table.tableRows?.length;
+  //             rowIndex++
+  //           ) {
+  //             for (
+  //               let colIndex = 0;
+  //               colIndex < table.tableRows[rowIndex]?.tableCells?.length;
+  //               colIndex++
+  //             ) {
+  //               const cell = table.tableRows[rowIndex]?.tableCells[colIndex]
+  //               const cellContent = cell?.content
+  //                 .map((c) =>
+  //                   c.paragraph?.elements
+  //                     .map((e) => (e.textRun ? e.textRun?.content : ''))
+  //                     .join(''),
+  //                 )
+  //                 .join('')
+
+  //               requests.push({
+  //                 insertText: {
+  //                   location: { index: currentIndex },
+  //                   text: cellContent,
+  //                 },
+  //               })
+
+  //               currentIndex += cellContent.length + 2 // Move index to the start of the next cell
+  //             }
+  //             currentIndex += 1 // Move index to the start of the next row
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   await this.docs.documents.batchUpdate({
+  //     documentId,
+  //     requestBody: { requests },
+  //   })
+
+  //   return documentId
+  // }
 }
