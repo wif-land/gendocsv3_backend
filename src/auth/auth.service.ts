@@ -39,7 +39,7 @@ export class AuthService {
     }
 
     return new ApiResponseDto(
-      'Usuario autenticado',
+      `Bienvenido ${user.firstName} ${user.firstLastName}!`,
       this.jwtService.sign(payload),
     )
   }

@@ -126,62 +126,57 @@ export class ProcessesService {
     // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = paginationDto
 
-    try {
-      const qb = this.dataSource
-        .createQueryBuilder(ProcessEntity, 'processes')
-        .leftJoinAndSelect('processes.user', 'user')
-        .leftJoinAndSelect('processes.module', 'module')
-        .leftJoinAndSelect(
-          'processes.submoduleYearModule',
-          'submoduleYearModule',
-        )
-        .leftJoinAndSelect('processes.templateProcesses', 'templates')
-        .where('module.id = :moduleId', { moduleId })
-        .orderBy('processes.createdAt', 'DESC')
+    const qb = this.dataSource
+      .createQueryBuilder(ProcessEntity, 'processes')
+      .leftJoinAndSelect('processes.user', 'user')
+      .leftJoinAndSelect('processes.module', 'module')
+      .leftJoinAndSelect('processes.submoduleYearModule', 'submoduleYearModule')
+      .leftJoinAndSelect('processes.templateProcesses', 'templates')
+      .where('module.id = :moduleId', { moduleId })
+      .orderBy('processes.createdAt', 'DESC')
 
-      qb.take(limit)
-      qb.skip(offset)
+    qb.take(limit)
+    qb.skip(offset)
 
-      const countqb = this.dataSource
-        .createQueryBuilder(ProcessEntity, 'processes')
-        .leftJoinAndSelect('processes.module', 'module')
-        .where('module.id = :moduleId', { moduleId })
+    const countqb = this.dataSource
+      .createQueryBuilder(ProcessEntity, 'processes')
+      .leftJoinAndSelect('processes.module', 'module')
+      .where('module.id = :moduleId', { moduleId })
 
-      const count = await countqb.getCount()
+    const count = await countqb.getCount()
 
-      const processes = await qb.getMany()
+    const processes = await qb.getMany()
 
-      // templates by processes ids
-      const temQb = this.dataSource
-        .createQueryBuilder(TemplateProcess, 'template')
-        .leftJoinAndSelect('template.process', 'process')
-        .leftJoinAndSelect('template.user', 'user')
-        .where('template.process.id IN (:...processesIds)', {
-          processesIds: processes.map((process) => process.id),
-        })
+    const templatesQuery = this.dataSource
+      .createQueryBuilder(TemplateProcess, 'template')
+      .leftJoinAndSelect('template.process', 'process')
+      .leftJoinAndSelect('template.user', 'user')
 
-      const templates = await temQb.getMany()
-
-      if (!processes) {
-        throw new HttpException('Processes not found', HttpStatus.NOT_FOUND)
-      }
-
-      processes.forEach((process) => {
-        process.templateProcesses = templates.filter(
-          (template) => template.process.id === process.id,
-        )
+    if (processes.length > 0) {
+      templatesQuery.where('template.process.id IN (:...processesIds)', {
+        processesIds: processes.map((process) => process.id),
       })
+    }
 
-      const processesResponse = processes.map(
-        (process) => new ResponseProcessDto(process),
+    const templates = await templatesQuery.getMany()
+
+    if (!processes) {
+      throw new HttpException('Proceso no encontrado', HttpStatus.NOT_FOUND)
+    }
+
+    processes.forEach((process) => {
+      process.templateProcesses = templates.filter(
+        (template) => template.process.id === process.id,
       )
+    })
 
-      return new ApiResponseDto('Procesos encontrados exitosamente', {
-        count,
-        processes: processesResponse,
-      })
-    } catch (e) {
-      new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    const processesResponse = processes.map(
+      (process) => new ResponseProcessDto(process),
+    )
+
+    return {
+      count,
+      processes: processesResponse,
     }
   }
 
