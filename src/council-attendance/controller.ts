@@ -5,11 +5,14 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  Patch,
 } from '@nestjs/common'
 import { AttendanceService } from './service'
 import { ApiTags } from '@nestjs/swagger'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { CreateEditDefaultMemberDTO } from './dto/create-edit-default-member.dto'
+import { Auth } from '../auth/decorators/auth-decorator'
+import { RolesType } from '../auth/decorators/roles-decorator'
 
 @ApiTags('Attendance')
 @Controller('attendance')
@@ -45,6 +48,15 @@ export class CouncilsAttendanceController {
         moduleId,
         body,
       ),
+    )
+  }
+
+  @Auth(RolesType.ADMIN, RolesType.WRITER, RolesType.API, RolesType.READER)
+  @Patch(':id')
+  async toggleHasAssisted(@Param('id', ParseIntPipe) id: number) {
+    return new ApiResponseDto(
+      'Representantes modificados exitosamente',
+      await this.attendanceService.toggleHasAssisted(id),
     )
   }
 }
