@@ -240,6 +240,19 @@ export class CouncilsService {
     })
   }
 
+  async getById(id: number) {
+    const council = await this.councilRepository.findOne({
+      where: { id },
+      relations: ['attendance', 'attendance.functionary', 'attendance.student'],
+    })
+
+    if (!council) {
+      throw new NotFoundException(`Council not found with id ${id}`)
+    }
+
+    return new ResponseCouncilsDto(council)
+  }
+
   async update(id: number, updateCouncilDto: UpdateCouncilDto) {
     const queryBuilder = this.dataSource.createQueryBuilder(
       CouncilEntity,
@@ -406,5 +419,6 @@ export class CouncilsService {
     `
 
     await this.dataSource.query(mutation)
+    return true
   }
 }

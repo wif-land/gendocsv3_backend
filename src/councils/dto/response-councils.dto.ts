@@ -1,4 +1,3 @@
-import { CouncilAttendanceEntity } from '../entities/council-attendance.entity'
 import { CouncilEntity } from '../entities/council.entity'
 import { COUNCIL_TYPES } from '../interfaces/council.interface'
 
@@ -11,7 +10,7 @@ export class ResponseCouncilsDto {
   driveId: string
   createdAt: Date
   updatedAt: Date
-  members: CouncilAttendanceEntity[]
+  members: any
   isActive: boolean
   isArchived: boolean
   type: COUNCIL_TYPES
@@ -27,7 +26,10 @@ export class ResponseCouncilsDto {
     this.updatedAt = council.updatedAt
     this.isActive = council.isActive
     this.isArchived = council.isArchived
-    this.members = council.attendance
+    this.members = council.attendance.map((member) => ({
+      ...member,
+      member: member.student ?? member.functionary,
+    }))
     this.type = council.type
   }
 }
