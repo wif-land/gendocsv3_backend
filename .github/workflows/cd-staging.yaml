@@ -9,6 +9,7 @@ jobs:
   run_migrations_staging:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Build artifacts
         env:
           GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
