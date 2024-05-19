@@ -1,224 +1,211 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { CreateStudentDto } from './dto/create-student.dto'
 import { UpdateStudentDto } from './dto/update-student.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { Student } from './entities/student.entity'
-import { CreateStudentsBulkDto } from './dto/create-students-bulk.dto'
+import { StudentEntity } from './entities/student.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { StudentBadRequestError } from './errors/student-bad-request'
+import { StudentAlreadyExists } from './errors/student-already-exists'
+import { StudentError } from './errors/student-error'
+import { StudentNotFoundError } from './errors/student-not-found'
 import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
+import { StudentFiltersDto } from './dto/student-filters.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class StudentsService {
   constructor(
-    @InjectRepository(Student)
-    private readonly studentRepository: Repository<Student>,
+    @InjectRepository(StudentEntity)
+    private readonly studentRepository: Repository<StudentEntity>,
   ) {}
 
-  async create(createStudentDto: CreateStudentDto): Promise<Student> {
-    try {
-      const student = this.studentRepository.create({
-        ...createStudentDto,
-        career: { id: createStudentDto.career },
-      })
-
-      if (!student) {
-        throw new BadRequestException('Student not created')
-      }
-
-      return await this.studentRepository.save(student)
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+  async create(createStudentDto: CreateStudentDto) {
+    if (this.studentRepository.findOneBy({ dni: createStudentDto.dni })) {
+      throw new StudentAlreadyExists(
+        `El estudiante con cédula ${createStudentDto.dni} ya existe`,
+      )
     }
+
+    const student = this.studentRepository.create({
+      ...createStudentDto,
+      career: { id: createStudentDto.career },
+      canton: { id: createStudentDto.canton },
+    })
+
+    if (!student) {
+      throw new StudentBadRequestError(
+        'Los datos del estudiante son incorrectos',
+      )
+    }
+
+    const newStudent = await this.studentRepository.save(student)
+
+    return new ApiResponseDto('Estudiante creado correctamente', newStudent)
   }
 
-  async createBulk(
-    createStudentsBulkDto: CreateStudentsBulkDto,
-  ): Promise<boolean> {
+  async createBulk(createStudentsBulkDto: UpdateStudentsBulkItemDto[]) {
     const queryRunner =
       this.studentRepository.manager.connection.createQueryRunner()
-    await queryRunner.startTransaction()
+    await queryRunner.connect()
 
     try {
-      for (const studentDto of createStudentsBulkDto.students) {
-        let student = await this.studentRepository.findOne({
-          where: { dni: studentDto.dni },
-        })
+      await queryRunner.startTransaction()
 
-        if (student) {
-          student = this.studentRepository.merge(student, {
-            ...studentDto,
-            career: { id: studentDto.career },
-          })
-        } else {
-          student = this.studentRepository.create({
-            ...studentDto,
-            career: { id: studentDto.career },
-          })
-        }
-
-        await queryRunner.manager.save(student)
-      }
+      await this.studentRepository.upsert(
+        createStudentsBulkDto as unknown as Partial<StudentEntity>[],
+        {
+          conflictPaths: ['dni'],
+          skipUpdateIfNoValuesChanged: true,
+        },
+      )
 
       await queryRunner.commitTransaction()
-      await queryRunner.release()
 
-      return true
+      return new ApiResponseDto('Estudiantes creados correctamente', {
+        success: true,
+      })
     } catch (error) {
       await queryRunner.rollbackTransaction()
       await queryRunner.release()
-      throw new HttpException(error.message, error.status)
+      throw new StudentError({
+        statuscode: 500,
+        detail: error.message,
+        instance: 'students.errors.StudentsService.createBulk',
+      })
     }
   }
 
   async findAll(paginationDTO: PaginationDto) {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDTO
-    try {
-      const students = await this.studentRepository.find({
-        order: {
-          id: 'ASC',
-        },
-        take: limit,
-        skip: offset,
-      })
+    const students = await this.studentRepository.find({
+      order: {
+        id: 'ASC',
+      },
+      take: limit,
+      skip: offset,
+      relations: {
+        career: true,
+        canton: true,
+      },
+    })
 
-      if (!students) {
-        throw new BadRequestException('Students not found')
-      }
-
-      const count = await this.studentRepository.count()
-
-      return {
-        count,
-        students,
-      }
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!students) {
+      throw new StudentNotFoundError('No se encontraron estudiantes')
     }
+
+    const count = await this.studentRepository.count()
+
+    return new ApiResponseDto('Estudiantes encontrados', { count, students })
   }
 
-  async findOne(id: number): Promise<Student> {
-    try {
-      const student = await this.studentRepository.findOneBy({ id })
+  async findOne(id: number) {
+    const student = await this.studentRepository.findOneBy({ id })
 
-      if (!student) {
-        throw new BadRequestException(`Student with id ${id} not found`)
-      }
-
-      return student
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!student) {
+      throw new StudentNotFoundError(`Estudiante con id ${id} no encontrado`)
     }
+
+    return new ApiResponseDto('Estudiante encontrado', student)
   }
 
-  async findByField(field: string, paginationDTO: PaginationDto) {
+  async findByFilters(filters: StudentFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = paginationDTO
+    const { limit = 5, offset = 0 } = filters
 
-    const queryBuilder = this.studentRepository.createQueryBuilder('students')
+    const qb = this.studentRepository.createQueryBuilder('students')
 
-    const students = await queryBuilder
-      .where(
-        `UPPER(students.first_name) like :field 
-        or UPPER(students.second_name) like :field 
-        or UPPER(students.first_last_name) like :field 
-        or UPPER(students.second_last_name) like :field 
-        or students.dni like :field`,
-        { field: `%${field.toUpperCase()}%` },
+    qb.where(
+      '( (:state :: BOOLEAN) IS NULL OR students.isActive = (:state :: BOOLEAN) )',
+      {
+        state: filters.state,
+      },
+    )
+      .andWhere(
+        "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', students.firstName, students.secondName, students.firstLastName, students.secondLastName) ILIKE :term OR students.dni ILIKE :term )",
+        {
+          term: filters.field && `%${filters.field.trim()}%`,
+        },
       )
       .orderBy('students.id', 'ASC')
+      .leftJoinAndSelect('students.career', 'career')
+      .leftJoinAndSelect('career.coordinator', 'coordinator')
+      .leftJoinAndSelect('students.canton', 'canton')
+      .leftJoinAndSelect('canton.province', 'province')
       .take(limit)
       .skip(offset)
       .getMany()
 
-    const count = await queryBuilder.getCount()
+    const count = await qb.getCount()
+    const students = await qb.getMany()
 
     if (!students || !count) {
-      throw new NotFoundException('Students not found')
+      throw new StudentNotFoundError(
+        'No se encontraron estudiantes con los datos proporcionados',
+      )
     }
 
-    return {
+    return new ApiResponseDto('Estudiantes encontrados', {
       count,
       students,
-    }
+    })
   }
 
-  async update(
-    id: number,
-    updateStudentDto: UpdateStudentDto,
-  ): Promise<Student> {
+  async update(id: number, updateStudentDto: UpdateStudentDto) {
     try {
-      const student = await this.studentRepository.preload({
+      let student = await this.studentRepository.preload({
         ...updateStudentDto,
         id,
         career: { id: updateStudentDto.career },
+        canton: { id: updateStudentDto.canton },
       })
 
       if (!student) {
-        throw new BadRequestException('Student not found')
+        throw new StudentNotFoundError('Estudiante no encontrado')
       }
 
-      return await this.studentRepository.save(student)
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
-    }
-  }
+      student = await this.studentRepository.save(student)
 
-  async updateBulk(updateStudentsBulkDto: UpdateStudentsBulkItemDto[]) {
-    const queryRunner =
-      this.studentRepository.manager.connection.createQueryRunner()
-    await queryRunner.startTransaction()
+      const updatedStudent = await this.studentRepository
+        .createQueryBuilder('student')
+        .leftJoinAndSelect('student.career', 'career')
+        .leftJoinAndSelect('career.coordinator', 'coordinator')
+        .where('student.id = :id', { id })
+        .getOne()
 
-    try {
-      const updatedStudents = []
-      for (const studentDto of updateStudentsBulkDto) {
-        const student = await this.studentRepository.preload({
-          ...studentDto,
-          id: studentDto.id,
-          career: { id: studentDto.career },
+      if (!updatedStudent) {
+        throw new StudentError({
+          detail: 'Error al actualizar los datos del estudiante',
+          instance: 'students.errors.StudentsService.update',
         })
-
-        if (!student) {
-          throw new BadRequestException('Student not found')
-        }
-
-        await queryRunner.manager.save(student)
-        updatedStudents.push(student)
       }
 
-      await queryRunner.commitTransaction()
-      await queryRunner.release()
-
-      return updatedStudents
+      return new ApiResponseDto(
+        'Estudiante actualizado correctamente',
+        updatedStudent,
+      )
     } catch (error) {
-      await queryRunner.rollbackTransaction()
-      await queryRunner.release()
-      throw new HttpException(error.message, error.status)
+      throw new StudentError({
+        detail: error.message,
+        instance: 'students.errors.StudentsService.update',
+      })
     }
   }
 
-  async remove(id: number): Promise<boolean> {
-    try {
-      const student = await this.findOne(id)
+  async remove(id: number) {
+    const { data: student } = await this.findOne(id)
 
-      if (!student) {
-        throw new NotFoundException('Student not found')
-      }
-
-      student.isActive = false
-
-      await this.studentRepository.save(student)
-
-      return true
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!student) {
+      throw new StudentNotFoundError('Estudiante no encontrado')
     }
+
+    student.isActive = false
+
+    await this.studentRepository.save(student)
+
+    return new ApiResponseDto('Estudiante eliminado correctamente', {
+      success: true,
+    })
   }
 }

@@ -2,13 +2,15 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { CreateCareerDto } from './dto/create-career.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Not, Repository } from 'typeorm'
-import { Career } from './entites/careers.entity'
+import { CareerEntity } from './entites/careers.entity'
+import { UpdateCareerDto } from './dto/update-carreer.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class CareersService {
   constructor(
-    @InjectRepository(Career)
-    private readonly careerRepository: Repository<Career>,
+    @InjectRepository(CareerEntity)
+    private readonly careerRepository: Repository<CareerEntity>,
   ) {}
 
   async create(data: CreateCareerDto) {
@@ -34,11 +36,16 @@ export class CareersService {
         coordinator: { id: data.coordinator },
       })
 
-      if (!career) {
-        throw new HttpException('Career not created', HttpStatus.BAD_REQUEST)
+      const newCareer = await this.careerRepository.save(career)
+
+      if (!newCareer) {
+        throw new HttpException(
+          'Error al crear la carrera',
+          HttpStatus.BAD_REQUEST,
+        )
       }
 
-      return await this.careerRepository.save(career)
+      return new ApiResponseDto('Carrera creada con éxito', newCareer)
     } catch (error) {
       throw new HttpException(error.message, error.status)
     }
@@ -52,25 +59,21 @@ export class CareersService {
         },
       })
 
-      if (!carrers) {
-        throw new HttpException('Careers not found', HttpStatus.NOT_FOUND)
-      }
-
-      return carrers
+      return new ApiResponseDto('Carreras encontradas', carrers)
     } catch (error) {
       throw new HttpException(error.message, error.status)
     }
   }
 
-  async update(id: number, data: Partial<CreateCareerDto>) {
+  async update(id: number, data: UpdateCareerDto) {
     try {
       let coordinatorId: number
-      if (data.coordinator === undefined) {
+      if (data.coordinator == null) {
         coordinatorId = (await this.careerRepository.findOneBy({ id }))
           .coordinator.id
       }
 
-      if (data !== undefined && data.isActive) {
+      if (data.isActive) {
         const existingCareer = await this.careerRepository.findOne({
           where: {
             coordinator: { id: data.coordinator || coordinatorId },
@@ -90,14 +93,16 @@ export class CareersService {
       const career = await this.careerRepository.preload({
         id,
         ...data,
-        coordinator: { id: data.coordinator },
+        coordinator: { id: data.coordinator || coordinatorId },
       })
 
-      if (!career) {
-        throw new HttpException('Career not found', HttpStatus.BAD_REQUEST)
+      const careerUpdated = await this.careerRepository.save(career)
+
+      if (!careerUpdated) {
+        throw new HttpException('Carrera no encontrada', HttpStatus.BAD_REQUEST)
       }
 
-      return await this.careerRepository.save(career)
+      return new ApiResponseDto('Carrera actualizada con éxito', careerUpdated)
     } catch (error) {
       throw new HttpException(error.message, error.status)
     }

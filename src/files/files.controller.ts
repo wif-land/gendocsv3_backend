@@ -10,7 +10,9 @@ export class FilesController {
 
   @Auth()
   @Post()
-  async createDocument(): Promise<string> {
-    return await this.filesService.createDocument('Test from JAIR!')
+  async createDocument() {
+    const document = await this.filesService.createDocument('Test from JAIR!')
+
+    return document
   }
 }

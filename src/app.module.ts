@@ -32,6 +32,11 @@ import { CouncilsModule } from './councils/councils.module'
 import { NumerationDocumentModule } from './numeration-document/numeration-document.module'
 import { DocumentsModule } from './documents/documents.module'
 import { PositionsModule } from './positions/positions.module'
+import { DegreesModule } from './degrees/degrees.module'
+import { CitiesModule } from './cities/cities.module'
+import { DegreeCertificatesModule } from './degree-certificates/degree-certificates.module'
+import { CouncilsAttendanceModule } from './council-attendance/module'
+import { DegreeCertificateAttendanceModule } from './degree-certificate-attendance/degree-certificate-attendance.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -61,7 +66,7 @@ export default connectionSource
     }),
     TypeOrmModule.forRoot({
       ...config,
-      dropSchema: process.env.NODE_ENV === 'staging',
+      dropSchema: process.env.DROP_SCHEMA === 'true',
     } as TypeOrmModuleOptions),
     LogModule,
     TerminusModule,
@@ -85,6 +90,11 @@ export default connectionSource
     NumerationDocumentModule,
     DocumentsModule,
     PositionsModule,
+    DegreesModule,
+    CitiesModule,
+    DegreeCertificatesModule,
+    CouncilsAttendanceModule,
+    DegreeCertificateAttendanceModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],

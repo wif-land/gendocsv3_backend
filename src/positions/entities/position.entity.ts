@@ -1,10 +1,10 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 
 @Entity('positions')
-export class PositionEntity extends BaseApp {
+export class PositionEntity extends BaseAppEntity {
   @ApiProperty({
     // eslint-disable-next-line no-template-curly-in-string
     example: '${name}',

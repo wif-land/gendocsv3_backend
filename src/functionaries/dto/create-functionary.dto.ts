@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator'
+import { GENDER } from '../../shared/enums/genders'
 
 export class CreateFunctionaryDto {
   @ApiProperty({
@@ -80,20 +81,12 @@ export class CreateFunctionaryDto {
   dni: string
 
   @ApiProperty({
-    description: 'Segundo nivel de educación',
-  })
-  @IsString({
-    message: 'secondLevelDegree is required',
-  })
-  secondLevelDegree: string
-
-  @ApiProperty({
     description: 'Tercer nivel de educación',
   })
   @IsString({
     message: 'thirdLevelDegree is required',
   })
-  thirdLevelDegree: string
+  thirdLevelDegree: number
 
   @ApiProperty({
     description: 'Cuarto nivel de educación',
@@ -101,7 +94,15 @@ export class CreateFunctionaryDto {
   @IsString({
     message: 'fourthLevelDegree is required',
   })
-  fourthLevelDegree: string
+  fourthLevelDegree: number
+
+  @ApiProperty({
+    description: 'Género del funcionario',
+    required: false,
+    enum: GENDER,
+  })
+  @IsOptional()
+  gender: GENDER
 
   @ApiProperty({
     description: 'Estado del funcionario',

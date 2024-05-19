@@ -14,6 +14,7 @@ import { CreateUserDTO } from './dto/create-user.dto'
 import { UsersService } from './users.service'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UserEntity } from './entities/users.entity'
+import { UserFiltersDto } from './dto/user-filters.dto'
 
 @ApiTags('users')
 @Controller('users')
@@ -44,11 +45,8 @@ export class UsersController {
   }
 
   @ApiResponse({ isArray: true, type: UserEntity })
-  @Get(`:field`)
-  async findByField(
-    @Param('field') field: string,
-    @Query() paginationDto: PaginationDto,
-  ) {
-    return await this.userService.findByField(field, paginationDto)
+  @Get(`filter`)
+  async findByFilters(@Query() filters: UserFiltersDto) {
+    return await this.userService.findByFilters(filters)
   }
 }

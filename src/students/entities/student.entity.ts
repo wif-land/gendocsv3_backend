@@ -1,11 +1,15 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { BasePerson } from '../../shared/entities/base-person.entity'
 import { ApiProperty } from '@nestjs/swagger'
-import { Career } from '../../careers/entites/careers.entity'
+import { CareerEntity } from '../../careers/entites/careers.entity'
 import { DocumentEntity } from '../../documents/entities/document.entity'
+import { GENDER } from '../../shared/enums/genders'
+import { CityEntity } from '../../cities/entities/city.entity'
+import { CouncilAttendanceEntity } from '../../councils/entities/council-attendance.entity'
+import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
 
 @Entity('students')
-export class Student extends BasePerson {
+export class StudentEntity extends BasePerson {
   @ApiProperty({
     example: '070747643',
     description: 'Cédula de identidad',
@@ -42,12 +46,14 @@ export class Student extends BasePerson {
   @ApiProperty({
     example: 'Masculino',
     description: 'Género',
+    enum: GENDER,
   })
   @Column({
     name: 'gender',
     type: 'varchar',
+    enum: GENDER,
   })
-  gender: string
+  gender: GENDER
 
   @ApiProperty({
     example: '1997-07-07',
@@ -61,13 +67,17 @@ export class Student extends BasePerson {
 
   @ApiProperty({
     example: 'Machala',
-    description: 'Cantón de nacimiento',
+    description: 'Cantón de residencia del estudiante',
   })
-  @Column({
-    name: 'canton',
-    type: 'varchar',
+  @ManyToOne(() => CityEntity, {
+    nullable: false,
+    eager: false,
   })
-  canton: string
+  @JoinColumn({
+    name: 'canton_id',
+    referencedColumnName: 'id',
+  })
+  canton: CityEntity
 
   @ApiProperty({
     example: '78',
@@ -91,10 +101,63 @@ export class Student extends BasePerson {
   isActive: boolean
 
   @ApiProperty({
+    example: 'Bachiiller en Ciencias',
+    description: 'bachelor_degeree',
+  })
+  @Column({
+    name: 'bachelor_degree',
+    type: 'varchar',
+  })
+  bachelorDegree: string
+
+  @ApiProperty({
+    example: '2021-07-07',
+    description: 'Fecha de inicio de estudios del estudiante',
+  })
+  @Column({
+    name: 'start_studies_date',
+    type: 'date',
+  })
+  startStudiesDate: Date
+
+  @ApiProperty({
+    example: '2021-07-07',
+    description: 'Fecha de fin de estudios del estudiante',
+  })
+  @Column({
+    name: 'end_studies_date',
+    type: 'date',
+    nullable: true,
+  })
+  endStudiesDate: Date
+
+  @ApiProperty({
+    example: '92',
+    description: 'Horas de vinculación',
+  })
+  @Column({
+    name: 'vinculation_hours',
+    type: 'smallint',
+    nullable: true,
+  })
+  vinculationHours: number
+
+  @ApiProperty({
+    example: '142',
+    description: 'Horas de practicas',
+  })
+  @Column({
+    name: 'intership_hours',
+    type: 'smallint',
+    nullable: true,
+  })
+  internshipHours: number
+
+  @ApiProperty({
     example: '1',
     description: 'Carrera a la que pertenece el estudiante',
   })
-  @ManyToOne(() => Career, {
+  @ManyToOne(() => CareerEntity, {
     nullable: false,
     eager: true,
   })
@@ -102,8 +165,20 @@ export class Student extends BasePerson {
     name: 'career_id',
     referencedColumnName: 'id',
   })
-  career: Career
+  career: CareerEntity
 
   @OneToMany(() => DocumentEntity, (document) => document.student)
   documents: DocumentEntity[]
+
+  @OneToMany(
+    () => CouncilAttendanceEntity,
+    (councilAttendance) => councilAttendance.student,
+  )
+  councilAttendance: CouncilAttendanceEntity[]
+
+  @OneToMany(
+    () => DegreeCertificateEntity,
+    (degreeCertificate) => degreeCertificate.student,
+  )
+  degreeCertificates: DegreeCertificateEntity[]
 }

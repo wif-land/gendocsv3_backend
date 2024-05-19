@@ -1,6 +1,5 @@
-import { CouncilAttendanceEntity } from '../entities/council-attendance.entity'
 import { CouncilEntity } from '../entities/council.entity'
-import { CouncilType } from '../interfaces/council.interface'
+import { COUNCIL_TYPES } from '../interfaces/council.interface'
 
 export class ResponseCouncilsDto {
   id: number
@@ -11,10 +10,10 @@ export class ResponseCouncilsDto {
   driveId: string
   createdAt: Date
   updatedAt: Date
-  attendees: CouncilAttendanceEntity[]
+  members: any
   isActive: boolean
   isArchived: boolean
-  type: CouncilType
+  type: COUNCIL_TYPES
 
   constructor(council: CouncilEntity) {
     this.id = council.id
@@ -27,7 +26,10 @@ export class ResponseCouncilsDto {
     this.updatedAt = council.updatedAt
     this.isActive = council.isActive
     this.isArchived = council.isArchived
-    this.attendees = council.attendance
+    this.members = council.attendance.map((member) => ({
+      ...member,
+      member: member.student ?? member.functionary,
+    }))
     this.type = council.type
   }
 }

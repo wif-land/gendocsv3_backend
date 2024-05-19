@@ -37,6 +37,21 @@ export class LoadInitPositionsVariables1705112420411
         name: 'Docente de la Universidad Técnica de Ambato',
         functionary: { id: 2 },
       },
+      {
+        variable: '{{DECANA}}',
+        name: 'DECANA',
+        functionary: { id: 3 },
+      },
+      {
+        variable: '{{PRE_UNI_TIT}}',
+        name: 'Presidente de la unidad de titulación',
+        functionary: { id: 4 },
+      },
+      {
+        variable: '{{PRESIDENTE_UNIDAD_IC}}',
+        name: 'Presidente de la unidad de integración curricular',
+        functionary: { id: 5 },
+      },
     ]
 
     await positionsRepository.save(positionForTest)

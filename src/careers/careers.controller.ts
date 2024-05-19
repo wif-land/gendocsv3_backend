@@ -12,6 +12,8 @@ import { Auth } from '../auth/decorators/auth-decorator'
 import { CareersService } from './careers.service'
 import { CreateCareerDto } from './dto/create-career.dto'
 import { RolesType } from '../auth/decorators/roles-decorator'
+import { UpdateCareerDto } from './dto/update-carreer.dto'
+
 @ApiTags('Careers')
 @Controller('careers')
 export class CareersController {
@@ -33,7 +35,7 @@ export class CareersController {
   @Put()
   async update(
     @Query('id', ParseIntPipe) id: number,
-    @Body() data: Partial<CreateCareerDto>,
+    @Body() data: UpdateCareerDto,
   ) {
     return await this.careersService.update(id, data)
   }

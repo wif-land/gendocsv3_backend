@@ -12,6 +12,7 @@ import { Repository } from 'typeorm'
 import { PositionEntity } from './entities/position.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Injectable()
 export class PositionsService {
@@ -22,7 +23,7 @@ export class PositionsService {
     private readonly functionaryRepository: Repository<FunctionaryEntity>,
   ) {}
 
-  async create(createPositionDto: CreatePositionDto): Promise<PositionEntity> {
+  async create(createPositionDto: CreatePositionDto) {
     try {
       const functionaryId = await this.functionaryRepository.findOne({
         where: { dni: createPositionDto.functionary },
@@ -44,7 +45,10 @@ export class PositionsService {
         relations: ['functionary'],
       })
 
-      return detailedPosition
+      return new ApiResponseDto(
+        'Posición creada exitosamente',
+        detailedPosition,
+      )
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -69,16 +73,16 @@ export class PositionsService {
 
       const count = await this.positionRepository.count()
 
-      return {
+      return new ApiResponseDto('Posiciones encontradas exitosamente', {
         count,
         positions,
-      }
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async findOne(id: number): Promise<PositionEntity> {
+  async findOne(id: number) {
     try {
       const position = await this.positionRepository.findOneBy({ id })
 
@@ -86,7 +90,7 @@ export class PositionsService {
         throw new NotFoundException('Position not found')
       }
 
-      return position
+      return new ApiResponseDto('Posición encontrada exitosamente', position)
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -116,16 +120,13 @@ export class PositionsService {
       throw new NotFoundException('Position not found')
     }
 
-    return {
+    return new ApiResponseDto('Posiciones encontradas exitosamente', {
       count,
       positions,
-    }
+    })
   }
 
-  async update(
-    id: number,
-    updatePositionDto: UpdatePositionDto,
-  ): Promise<PositionEntity> {
+  async update(id: number, updatePositionDto: UpdatePositionDto) {
     try {
       const functionarieId = await this.functionaryRepository.findOne({
         where: { dni: updatePositionDto.functionary },
@@ -141,25 +142,36 @@ export class PositionsService {
         throw new NotFoundException('Position not found')
       }
 
-      return await this.positionRepository.save(position)
+      const positionUpdated = await this.positionRepository.save(position)
+
+      return new ApiResponseDto(
+        'Posición actualizada exitosamente',
+        positionUpdated,
+      )
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: number) {
     try {
       await this.positionRepository.delete({ id })
-      return true
+
+      return new ApiResponseDto('Posición eliminada exitosamente', {
+        success: true,
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
 
-  async removeBulk(ids): Promise<boolean> {
+  async removeBulk(ids: number[]) {
     try {
-      await this.positionRepository.delete(ids)
-      return true
+      this.positionRepository.delete(ids)
+
+      return new ApiResponseDto('Posiciones eliminadas exitosamente', {
+        success: true,
+      })
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

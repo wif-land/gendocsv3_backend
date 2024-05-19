@@ -1,5 +1,5 @@
-import { TemplateProcess } from '../../templates/entities/template-processes.entity'
-import { Process } from '../entities/process.entity'
+import { ResponseTemplateDto } from '../../templates/dto/response-template.dto'
+import { ProcessEntity } from '../entities/process.entity'
 
 export class ResponseProcessDto {
   id: number
@@ -11,9 +11,9 @@ export class ResponseProcessDto {
   userId: number
   moduleId: number
   submoduleYearModuleId: number
-  templateProcesses: TemplateProcess[]
+  templateProcesses: ResponseTemplateDto[]
 
-  constructor(process: Process) {
+  constructor(process: ProcessEntity) {
     this.id = process.id
     this.createdAt = process.createdAt
     this.updatedAt = process.updatedAt
@@ -23,6 +23,8 @@ export class ResponseProcessDto {
     this.userId = process.user.id
     this.moduleId = process.module.id
     this.submoduleYearModuleId = process.submoduleYearModule.id
-    this.templateProcesses = process.templateProcesses
+    this.templateProcesses = process.templateProcesses?.map(
+      (templateProcess) => new ResponseTemplateDto(templateProcess),
+    )
   }
 }

@@ -1,9 +1,10 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 import { UserEntity } from '../users/entities/users.entity'
 import { ModuleEntity } from '../modules/entities/modules.entity'
-import { Submodule } from '../submodules/entities/submodule.entity'
-import { SubmodulesModule } from '../submodules-modules/entities/submodule-module.entity'
-import { UserAccessModule } from '../users-access-modules/entities/user-access-module.entity'
+import { SubmoduleEntity } from '../submodules/entities/submodule.entity'
+import { SubmoduleModuleEntity } from '../submodules-modules/entities/submodule-module.entity'
+import { UserAccessModuleEntity } from '../users-access-modules/entities/user-access-module.entity'
+import { SystemYearEntity } from '../year-module/entities/system-year.entity'
 
 export class InitDatabase1704560301619 implements MigrationInterface {
   name?: string
@@ -12,8 +13,11 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     const connection = queryRunner.connection
 
     const userRepository = connection.getRepository(UserEntity)
+    const systemYearRepository = connection.getRepository(SystemYearEntity)
     const moduleRepository = connection.getRepository(ModuleEntity)
-    const submoduleRepository = connection.getRepository(Submodule)
+    const submoduleRepository = connection.getRepository(SubmoduleEntity)
+
+    const systemYear = 2024
 
     const adminUser = [
       {
@@ -105,12 +109,6 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         defaultTemplateDriveId: '1iUw4UWmx5KGWgFrPgSdB-cJAgIB4mntSOwanMU0v3c8',
       },
       {
-        code: 'ESTU',
-        name: 'ESTUDIANTES',
-        isActive: true,
-        hasDocuments: false,
-      },
-      {
         code: 'ADMIN',
         name: 'ADMINISTRADOR',
         isActive: true,
@@ -126,7 +124,6 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     ]
 
     const subModulesToInsert = [
-      { name: 'Buscar' },
       { name: 'Consejos' },
       { name: 'Procesos' },
       { name: 'Documentos' },
@@ -135,13 +132,16 @@ export class InitDatabase1704560301619 implements MigrationInterface {
       { name: 'Carreras' },
       { name: 'Usuarios' },
       { name: 'Actas de grado' },
-      { name: 'Historial' },
       { name: 'Cargos' },
     ]
 
     const queryRunner2 = connection.createQueryRunner()
     await queryRunner2.connect()
     await queryRunner2.startTransaction()
+
+    await queryRunner2.manager.save(
+      systemYearRepository.create({ currentYear: systemYear }),
+    )
 
     await queryRunner2.manager.save(
       adminUser.map((u) => userRepository.create(u as UserEntity)),
@@ -162,14 +162,18 @@ export class InitDatabase1704560301619 implements MigrationInterface {
     const connection = queryRunner.connection
 
     const userRepository = connection.getRepository(UserEntity)
+    const systemYearRepository = connection.getRepository(SystemYearEntity)
     const moduleRepository = connection.getRepository(ModuleEntity)
-    const submoduleRepository = connection.getRepository(Submodule)
-    const submodulesModuleRepository =
-      connection.getRepository(SubmodulesModule)
-    const userAccessModuleRepository =
-      connection.getRepository(UserAccessModule)
+    const submoduleRepository = connection.getRepository(SubmoduleEntity)
+    const submodulesModuleRepository = connection.getRepository(
+      SubmoduleModuleEntity,
+    )
+    const userAccessModuleRepository = connection.getRepository(
+      UserAccessModuleEntity,
+    )
 
     await userRepository.delete({})
+    await systemYearRepository.delete({})
     await moduleRepository.delete({})
     await submoduleRepository.delete({})
     await submodulesModuleRepository.delete({})

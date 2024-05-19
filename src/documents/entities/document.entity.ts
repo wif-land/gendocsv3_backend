@@ -7,20 +7,24 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { NumerationDocumentEntity } from '../../numeration-document/entities/numeration-document.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
-import { Student } from '../../students/entities/student.entity'
+import { StudentEntity } from '../../students/entities/student.entity'
 import { UserEntity } from '../../users/entities/users.entity'
 import { DocumentFunctionaryEntity } from './document-functionary.entity'
 
 @Entity('documents')
-export class DocumentEntity extends BaseApp {
+export class DocumentEntity extends BaseAppEntity {
   @ApiProperty({
     example: '1',
     description: 'Id de la numeración del documento',
   })
-  @OneToOne(() => NumerationDocumentEntity, { eager: true, nullable: false })
+  @OneToOne(
+    () => NumerationDocumentEntity,
+    (numerationDocument) => numerationDocument.document,
+    { eager: true, nullable: false },
+  )
   @JoinColumn({ name: 'numeration_document_id' })
   numerationDocument: NumerationDocumentEntity
 
@@ -42,9 +46,11 @@ export class DocumentEntity extends BaseApp {
     description:
       'Id del estudiante al que se le creó el documento en caso de tenerlo',
   })
-  @ManyToOne(() => Student, (student) => student.documents, { nullable: true })
+  @ManyToOne(() => StudentEntity, (student) => student.documents, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'student_id' })
-  student: Student
+  student: StudentEntity
 
   @ApiProperty({
     example: '1',

@@ -1,12 +1,13 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { RolesType } from '../../auth/decorators/roles-decorator'
 import { ModuleEntity } from '../../modules/entities/modules.entity'
-import { BaseAppEntity } from '../../shared/entities/base.entity'
-import { Process } from '../../processes/entities/process.entity'
+import { ProcessEntity } from '../../processes/entities/process.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { DocumentEntity } from '../../documents/entities/document.entity'
 import { ApiProperty } from '@nestjs/swagger'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
+import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
 
 @Entity('users')
 export class UserEntity extends BaseAppEntity {
@@ -126,10 +127,10 @@ export class UserEntity extends BaseAppEntity {
   @ApiProperty({
     example: '1',
     description: 'Procesos asociados al usuario',
-    type: () => Process,
+    type: () => ProcessEntity,
   })
-  @OneToMany(() => Process, (process) => process.user)
-  processes: Process[]
+  @OneToMany(() => ProcessEntity, (process) => process.user)
+  processes: ProcessEntity[]
 
   @ApiProperty({
     example: '1',
@@ -154,4 +155,10 @@ export class UserEntity extends BaseAppEntity {
   })
   @OneToMany(() => DocumentEntity, (document) => document.user)
   documents: DocumentEntity[]
+
+  @OneToMany(
+    () => DegreeCertificateEntity,
+    (degreeCertificate) => degreeCertificate.user,
+  )
+  degreeCertificates: DegreeCertificateEntity[]
 }

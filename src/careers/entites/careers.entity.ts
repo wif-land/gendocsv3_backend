@@ -1,14 +1,13 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
-import { BaseAppEntity } from '../../shared/entities/base.entity'
 import { ICareer } from '../interfaces/career.interface'
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('careers')
-export class Career extends BaseAppEntity implements ICareer {
+export class CareerEntity extends BaseAppEntity implements ICareer {
   @Column({
     name: 'name',
     type: 'varchar',
-    length: 50,
   })
   name: string
 

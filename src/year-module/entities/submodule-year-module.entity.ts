@@ -1,11 +1,12 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
-import { BaseApp } from '../../shared/entities/base-app.entity'
+import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { YearModuleEntity } from './year-module.entity'
-import { Process } from '../../processes/entities/process.entity'
+import { ProcessEntity } from '../../processes/entities/process.entity'
+import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
 
 @Entity('submodule_year_module')
-export class SubmoduleYearModuleEntity extends BaseApp {
+export class SubmoduleYearModuleEntity extends BaseAppEntity {
   @ApiProperty({
     example: 'procesos',
     description: 'Nombre del directorio',
@@ -38,8 +39,14 @@ export class SubmoduleYearModuleEntity extends BaseApp {
   @ApiProperty({
     example: '1',
     description: 'Procesos asociados al submódulo',
-    type: () => Process,
+    type: () => ProcessEntity,
   })
-  @OneToMany(() => Process, (process) => process.submoduleYearModule)
-  processes: Process[]
+  @OneToMany(() => ProcessEntity, (process) => process.submoduleYearModule)
+  processes: ProcessEntity[]
+
+  @OneToMany(
+    () => DegreeCertificateEntity,
+    (degreeCertificate) => degreeCertificate.submoduleYearModule,
+  )
+  degreeCertificates: DegreeCertificateEntity[]
 }

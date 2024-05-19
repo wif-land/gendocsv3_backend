@@ -5,144 +5,104 @@ import { GcpService } from '../gcp/gcp.service'
 export class FilesService {
   constructor(private readonly gcpService: GcpService) {}
 
-  async createDocument(title: string): Promise<string> {
-    try {
-      const document = await this.gcpService.createDocument(title)
+  async createDocument(title: string) {
+    const document = await this.gcpService.createDocument(title)
 
-      if (!document) {
-        throw new HttpException('Error creating document', HttpStatus.CONFLICT)
-      }
-
-      return document
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!document) {
+      throw new HttpException('Error creating document', HttpStatus.CONFLICT)
     }
+
+    return document
   }
 
-  async createDocumentByParentId(
-    title: string,
-    parentId: string,
-  ): Promise<string> {
-    try {
-      const document = await this.gcpService.createDocumentByParentId(
-        title,
-        parentId,
-      )
+  async createDocumentByParentId(title: string, parentId: string) {
+    const document = await this.gcpService.createDocumentByParentId(
+      title,
+      parentId,
+    )
 
-      if (!document) {
-        throw new HttpException('Error creating document', HttpStatus.CONFLICT)
-      }
-
-      return document
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!document) {
+      throw new HttpException('Error creating document', HttpStatus.CONFLICT)
     }
+
+    return document
   }
 
   async createDocumentByParentIdAndCopy(
     title: string,
     parentId: string,
     documentId: string,
-  ): Promise<string> {
-    try {
-      const document = await this.gcpService.createDocumentByParentIdAndCopy(
-        title,
-        parentId,
-        documentId,
+  ) {
+    const document = await this.gcpService.createDocumentByParentIdAndCopy(
+      title,
+      parentId,
+      documentId,
+    )
+
+    if (!document) {
+      throw new HttpException('Error creating document', HttpStatus.CONFLICT)
+    }
+
+    return document
+  }
+
+  async renameAsset(documentId: string, title: string) {
+    const document = await this.gcpService.renameAsset(documentId, title)
+
+    if (!document) {
+      throw new HttpException('Error renaming document', HttpStatus.CONFLICT)
+    }
+
+    return document
+  }
+
+  async moveAsset(documentId: string, parentId: string) {
+    const document = await this.gcpService.moveAsset(documentId, parentId)
+
+    if (!document) {
+      throw new HttpException('Error moving document', HttpStatus.CONFLICT)
+    }
+
+    return document
+  }
+
+  async createFolderByParentId(title: string, parentId: string) {
+    const folder = await this.gcpService.createFolderByParentId(title, parentId)
+
+    if (!folder) {
+      throw new HttpException('Error creating folder', HttpStatus.CONFLICT)
+    }
+
+    return folder
+  }
+
+  async replaceTextOnDocument(data: object, documentId: string) {
+    const result = await this.gcpService.replaceTextOnDocument(data, documentId)
+
+    if (!result) {
+      throw new HttpException(
+        'Error replacing text on document',
+        HttpStatus.CONFLICT,
       )
-
-      if (!document) {
-        throw new HttpException('Error creating document', HttpStatus.CONFLICT)
-      }
-
-      return document
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
+
+    return result
   }
 
-  async renameAsset(documentId: string, title: string): Promise<string> {
-    try {
-      const document = await this.gcpService.renameAsset(documentId, title)
+  async remove(assetId: string) {
+    const result = await this.gcpService.remove(assetId)
 
-      if (!document) {
-        throw new HttpException('Error renaming document', HttpStatus.CONFLICT)
-      }
-
-      return document
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!result) {
+      throw new HttpException('Error removing asset', HttpStatus.CONFLICT)
     }
+
+    return result
   }
 
-  async moveAsset(documentId: string, parentId: string): Promise<string> {
-    try {
-      const document = await this.gcpService.moveAsset(documentId, parentId)
+  async getValuesFromSheet(sheetId: string, range: string) {
+    const { data } = await this.gcpService.getValuesFromSheet(sheetId, range)
 
-      if (!document) {
-        throw new HttpException('Error moving document', HttpStatus.CONFLICT)
-      }
-
-      return document
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
-    }
-  }
-
-  async createFolderByParentId(
-    title: string,
-    parentId: string,
-  ): Promise<string> {
-    try {
-      const folder = await this.gcpService.createFolderByParentId(
-        title,
-        parentId,
-      )
-
-      if (!folder) {
-        throw new HttpException('Error creating folder', HttpStatus.CONFLICT)
-      }
-
-      return folder
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
-    }
-  }
-
-  async replaceTextOnDocument(
-    data: object,
-    documentId: string,
-  ): Promise<boolean> {
-    try {
-      const result = await this.gcpService.replaceTextOnDocument(
-        data,
-        documentId,
-      )
-
-      if (!result) {
-        throw new HttpException(
-          'Error replacing text on document',
-          HttpStatus.CONFLICT,
-        )
-      }
-
-      return result
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
-    }
-  }
-
-  async remove(assetId: string): Promise<boolean> {
-    try {
-      const result = await this.gcpService.remove(assetId)
-
-      if (!result) {
-        throw new HttpException('Error removing asset', HttpStatus.CONFLICT)
-      }
-
-      return result
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
-    }
+    const values = data
+    return values
   }
 }

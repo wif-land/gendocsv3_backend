@@ -3,6 +3,7 @@ import { AppModule } from './app.module'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ConfigService } from '@nestjs/config'
 import { Logger, ValidationPipe } from '@nestjs/common'
+import { AllExceptionsFilter } from './core/middleware/http-exception'
 
 const buildOptions = () =>
   new DocumentBuilder()
@@ -23,6 +24,7 @@ const bootstrap = async () => {
       forbidNonWhitelisted: true,
     }),
   )
+  app.useGlobalFilters(new AllExceptionsFilter())
   app.enableShutdownHooks()
   app.enableCors()
 

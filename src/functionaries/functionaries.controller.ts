@@ -16,6 +16,7 @@ import { FunctionaryEntity } from './entities/functionary.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateFunctionaryDto } from './dto/update-functionary.dto'
 import { UpdateFunctionariesBulkItemDto } from './dto/update-functionaries-bulk.dto'
+import { FunctionaryFiltersDto } from './dto/functionary-filters.dto'
 
 @ApiTags('Functionaries')
 @Controller('functionaries')
@@ -23,10 +24,10 @@ export class FunctionariesController {
   constructor(private readonly functionariesService: FunctionariesService) {}
 
   @Patch(`bulk`)
-  async bulkUpdate(
+  async createBulk(
     @Body() updateFunctionariesBulkDto: UpdateFunctionariesBulkItemDto[],
   ) {
-    return await this.functionariesService.bulkUpdate(
+    return await this.functionariesService.createBulk(
       updateFunctionariesBulkDto,
     )
   }
@@ -43,12 +44,9 @@ export class FunctionariesController {
   }
 
   @ApiResponse({ isArray: true, type: FunctionaryEntity })
-  @Get(`:field`)
-  async findByField(
-    @Param('field') field: string,
-    @Query() paginationDto: PaginationDto,
-  ) {
-    return await this.functionariesService.findByField(field, paginationDto)
+  @Get(`filter`)
+  async findByFilters(@Query() filters: FunctionaryFiltersDto) {
+    return await this.functionariesService.findByFilters(filters)
   }
 
   @Patch(':id')
