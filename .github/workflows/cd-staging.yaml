@@ -3,7 +3,7 @@ name: Continuous deployment for Gendocs backend
 on:
   push:
     branches:
-      - main
+      - release-staging
 
 jobs:
   run_migrations_staging:
