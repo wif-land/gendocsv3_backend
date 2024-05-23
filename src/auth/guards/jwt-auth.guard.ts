@@ -7,7 +7,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   handleRequest(err, user) {
     if (err || !user) {
       throw new HttpException(
-        'Error de autenticación. Vuelve a iniciar sesión',
+        'Error de autenticación. Por favor, inicie sesión.',
         HttpCodes.UNAUTHORIZED,
       )
     }
