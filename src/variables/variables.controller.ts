@@ -23,7 +23,7 @@ export class VariablesController {
 
   @Get()
   findAll() {
-    return this.variablesService.findAll()
+    return this.variablesService.showVariables()
   }
 
   @Get(':id')

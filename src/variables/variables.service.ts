@@ -51,6 +51,20 @@ export class VariablesService {
   ) {}
 
   async showVariables() {
+    const positions = await this.dataSource.manager
+      .getRepository(PositionEntity)
+      .find({
+        relationLoadStrategy: 'join',
+        relations: {
+          functionary: true,
+        },
+      })
+
+    const positionsVariables = positions.map((position) => ({
+      variable: position.variable,
+      example: getFullName(position.functionary),
+    }))
+
     const studentVariables = [
       {
         variable: DefaultVariable.ESTUDIANTE,
@@ -117,8 +131,12 @@ export class VariablesService {
         example: 'Bachiller en Ciencias',
       },
       {
-        variable: DefaultVariable.ESTUDIANTE_FECHA_INICIO_ESTUDIOS,
+        variable: DefaultVariable.ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP,
         example: '16 de julio de 2010',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP,
+        example: '16 de julio de 2015',
       },
       {
         variable: DefaultVariable.COORDINADOR,
@@ -134,13 +152,216 @@ export class VariablesService {
       },
     ]
 
-    return studentVariables
-    // const functionariesVariables
-    // const documentVariables
-    // const councilVariables
-    // const degreeCertificateVariables
-    // const positionsVariables
-    // const otherVariables
+    const functionariesVariables = [
+      {
+        variable: DefaultVariable.DOCENTE_N.replace('$i', '1'),
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DefaultVariable.DOCENTE_N.replace('$i', '2'),
+        example: 'Ing. Juan Pérez',
+      },
+    ]
+    const councilVariables = [
+      {
+        variable: DefaultVariable.FECHA,
+        example: '16 de julio de 2021',
+      },
+      {
+        variable: DefaultVariable.RESPONSABLE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DefaultVariable.NUMACT,
+        example: '001',
+      },
+      {
+        variable: DefaultVariable.FECHAUP,
+        example: '16 DE JULIO DE 2021',
+      },
+      {
+        variable: DefaultVariable.SESIONUP,
+        example: 'ORDINARIA',
+      },
+      {
+        variable: DefaultVariable.SESION,
+        example: 'ordinaria',
+      },
+      {
+        variable: DefaultVariable.Y,
+        example: '2022',
+      },
+      {
+        variable: DefaultVariable.DIASEM_T,
+        example: 'viernes',
+      },
+      {
+        variable: DefaultVariable.NUMMES_T_U,
+        example: 'JULIO',
+      },
+      {
+        variable: DefaultVariable.MES_T_L,
+        example: 'julio',
+      },
+      {
+        variable: DefaultVariable.NUMDIA_T,
+        example: 'dieciséis',
+      },
+      {
+        variable: DefaultVariable.NUMANIO_T,
+        example: 'dos mil veintiuno',
+      },
+      {
+        variable: DefaultVariable.NUMANIO_T_L,
+        example: 'dos mil veintiuno',
+      },
+      {
+        variable: DefaultVariable.DIAS_T,
+        example: 'dieciséis días',
+      },
+      {
+        variable: DefaultVariable.HORA_T_L,
+        example: 'dieciséis',
+      },
+      {
+        variable: DefaultVariable.MINUTOS_T_L,
+        example: 'dieciséis',
+      },
+      {
+        variable: DefaultVariable.ASISTIERON,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DefaultVariable.NO_ASISTIERON,
+        example: 'Ing. Juan Pérez',
+      },
+    ]
+    const documentVariables = [
+      {
+        variable: DefaultVariable.CREADOPOR,
+        example: 'Usuario admin',
+      },
+      {
+        variable: DefaultVariable.NUMDOC,
+        example: '001',
+      },
+      {
+        variable: DefaultVariable.YEAR,
+        example: '2022',
+      },
+    ]
+    const degreeCertificateVariables = [
+      {
+        variable: GENDER_DESIGNATION_VARIABLE(1),
+        example: 'el señor',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.PRINCIPAL][
+            ADJECTIVES.PLURAL
+          ],
+        example: 'designados mediante',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.PRINCIPAL][
+            ADJECTIVES.SINGULAR
+          ],
+        example: 'designado mediante',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.SUBSTITUTE][
+            ADJECTIVES.PLURAL
+          ],
+        example: 'principalizados mediante',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.SUBSTITUTE][
+            ADJECTIVES.SINGULAR
+          ],
+        example: 'principalizado mediante',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable:
+          DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT_DOC_ASSIGNED,
+        example: 'Presidente',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.MEMBERS_DEGREE_CERTIFICATE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_DEGREE_CERTIFICATE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_DEGREE_CERTIFICATE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.CREATED_BY,
+        example: 'Usuario admin',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DECANA,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.IC_UNIT_PRESIDENT,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_TYPE,
+        example: 'ACTA DE GRADO',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_TOPIC,
+        example: 'Tesis de analisis',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.CREDITS_TEXT,
+        example: 'cien',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.CREDITS_NUMBER,
+        example: '100',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.INTERNSHIP_HOURS,
+        example: '100',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.VINCULATION_HOURS,
+        example: '100',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.VINCULATION_HOURS_TEXT,
+        example: 'cien',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.INTERNSHIP_HOURS_TEXT,
+        example: 'cien',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.DEGREE_CERTIFICATE_STATUS,
+        example: 'GRADUADO',
+      },
+    ]
+
+    return new ApiResponseDto('Variables encontradas con éxito', {
+      positions: positionsVariables,
+      students: studentVariables,
+      functionaries: functionariesVariables,
+      council: councilVariables,
+      documents: documentVariables,
+      degreeCertificate: degreeCertificateVariables,
+    })
   }
 
   async create(createVariableDto: CreateVariableDto) {
@@ -329,11 +550,11 @@ export class VariablesService {
         (document as DegreeCertificateEntity).topic ?? '*NO POSEE TEMA',
       [DefaultVariable.ESTUDIANTE_TITULO_BACHILLER]:
         document.student.bachelorDegree ?? '*NO POSEE TÍTULO BACHILLER',
-      [DefaultVariable.ESTUDIANTE_FECHA_INICIO_ESTUDIOS]: document.student
-        .startStudiesDate
+      [DefaultVariable.ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP]: document
+        .student.startStudiesDate
         ? formatDateText(document.student.startStudiesDate)
         : '*NO POSEE FECHA DE INICIO DE ESTUDIOS',
-      [DefaultVariable.ESTUDIANTE_FECHA_FIN_ESTUDIOS]: document.student
+      [DefaultVariable.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP]: document.student
         .startStudiesDate
         ? formatDateText(document.student.endStudiesDate)
         : '*NO POSEE FECHA DE FIN DE ESTUDIOS',
