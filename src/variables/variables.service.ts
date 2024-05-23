@@ -355,12 +355,12 @@ export class VariablesService {
     ]
 
     return new ApiResponseDto('Variables encontradas con éxito', {
-      positions: positionsVariables,
-      students: studentVariables,
-      functionaries: functionariesVariables,
-      council: councilVariables,
-      documents: documentVariables,
-      degreeCertificate: degreeCertificateVariables,
+      Posiciones: positionsVariables,
+      Estudiantes: studentVariables,
+      Funcionarios: functionariesVariables,
+      Consejos: councilVariables,
+      Documentos: documentVariables,
+      Actas_de_grado: degreeCertificateVariables,
     })
   }
 
