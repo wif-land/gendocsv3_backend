@@ -131,6 +131,8 @@ export class VariablesService {
         example: 'Tungurahua',
       },
     ]
+
+    return studentVariables
     // const functionariesVariables
     // const documentVariables
     // const councilVariables
