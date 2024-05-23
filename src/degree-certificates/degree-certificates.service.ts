@@ -135,7 +135,10 @@ export class DegreeCertificatesService {
 
     return number
   }
-  async findAll(paginationDto: PaginationDto): Promise<
+  async findAll(
+    paginationDto: PaginationDto,
+    carrerId: number,
+  ): Promise<
     ApiResponseDto<{
       count: number
       degreeCertificates: DegreeCertificateEntity[]
@@ -155,6 +158,10 @@ export class DegreeCertificatesService {
         certificateStatus: true,
         degreeModality: true,
         room: true,
+      },
+      where: {
+        career: { id: carrerId },
+        deletedAt: IsNull(),
       },
       take: limit,
       skip: offset,
@@ -244,6 +251,18 @@ export class DegreeCertificatesService {
     const student: StudentEntity = (
       await this.studentService.findOne(dto.studentId)
     ).data
+
+    if (
+      student.gender == null ||
+      student.endStudiesDate == null ||
+      student.startStudiesDate == null ||
+      student.internshipHours == null ||
+      student.vinculationHours == null
+    ) {
+      throw new DegreeCertificateBadRequestError(
+        'El estudiante no cuenta con la información necesaria para generar la acta de grado',
+      )
+    }
 
     const certificateStatusType = await this.findCertificateStatusType(
       dto.certificateTypeId,
@@ -652,10 +671,6 @@ export class DegreeCertificatesService {
       degreeCertificate.gradesSheetDriveId,
     )
 
-    // TODO: Make the method getDegreeCertificateVariables
-    // TODO: Make the gradesSheet logic to variables
-    // TODO: Generate and insert the templates on migrations and seeders
-    // TODO: Test the generation of the documents
     const { data: dregreeCertificateData } =
       await this.variablesService.getDegreeCertificateVariables(
         degreeCertificate,
@@ -673,7 +688,7 @@ export class DegreeCertificatesService {
     const degreeCertificateUpdated =
       await this.degreeCertificateRepository.save({
         ...degreeCertificate,
-        driveId,
+        certificateDriveId: driveId,
       })
 
     return new ApiResponseDto(

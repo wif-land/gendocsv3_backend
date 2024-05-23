@@ -11,6 +11,7 @@ services:
       - ${DATABASE_PORT}:${DATABASE_PORT}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - gendocs-network
 

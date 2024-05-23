@@ -97,4 +97,14 @@ export class AttendanceService {
       },
     })
   }
+
+  async toggleHasAssisted(id: number) {
+    const member = await this.councilAttendanceRepository.findOne({
+      where: {
+        id,
+      },
+    })
+    member.hasAttended = !member.hasAttended
+    return await this.councilAttendanceRepository.save(member)
+  }
 }

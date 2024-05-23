@@ -17,6 +17,7 @@ import { ResponseProcessDto } from './dto/response-process.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UpdateProcessBulkItemDto } from './dto/update-processes-bulk.dto'
 import { ProcessFiltersDto } from './dto/process-filters.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @ApiTags('Processes')
 @Controller('processes')
@@ -47,7 +48,10 @@ export class ProcessesController {
   @ApiResponse({ isArray: true, type: ResponseProcessDto })
   @Get()
   async getProcesses(@Query() paginationDto: PaginationDto) {
-    return await this.processesService.getProcessesByModuleId(paginationDto)
+    return new ApiResponseDto(
+      'Lista de procesos',
+      await this.processesService.getProcessesByModuleId(paginationDto),
+    )
   }
 
   @Patch(':id')

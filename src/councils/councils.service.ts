@@ -240,6 +240,19 @@ export class CouncilsService {
     })
   }
 
+  async getById(id: number) {
+    const council = await this.councilRepository.findOne({
+      where: { id },
+      relations: ['attendance', 'attendance.functionary', 'attendance.student'],
+    })
+
+    if (!council) {
+      throw new NotFoundException(`Council not found with id ${id}`)
+    }
+
+    return new ResponseCouncilsDto(council)
+  }
+
   async update(id: number, updateCouncilDto: UpdateCouncilDto) {
     const queryBuilder = this.dataSource.createQueryBuilder(
       CouncilEntity,
@@ -387,5 +400,25 @@ export class CouncilsService {
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
+  }
+
+  async notifyMembers(id: number, members: number[]) {
+    const council = await this.councilRepository.findOne({
+      where: { id },
+    })
+
+    if (!council) {
+      throw new NotFoundException(`Consejo no encontrado`)
+    }
+
+    const mutation = `
+      UPDATE council_attendance
+      SET has_been_notified = true
+      WHERE id IN (${members.join(', ')})
+      AND council_id = ${id}
+    `
+
+    await this.dataSource.query(mutation)
+    return true
   }
 }

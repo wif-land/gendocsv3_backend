@@ -50,6 +50,99 @@ export class VariablesService {
     private dataSource: DataSource,
   ) {}
 
+  async showVariables() {
+    const studentVariables = [
+      {
+        variable: DefaultVariable.ESTUDIANTE,
+        example: 'Juan Pérez',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTEUP,
+        example: 'JUAN PÉREZ',
+      },
+      {
+        variable: DefaultVariable.CEDULA,
+        example: '1234567890',
+      },
+      {
+        variable: DefaultVariable.MATRICULA,
+        example: '0001',
+      },
+      {
+        variable: DefaultVariable.FOLIO,
+        example: '0001',
+      },
+      {
+        variable: DefaultVariable.TELEFONO,
+        example: '032382323',
+      },
+      {
+        variable: DefaultVariable.CELULAR,
+        example: '0999988888',
+      },
+      {
+        variable: DefaultVariable.CORREO,
+        example: 'estudiante@gmail.com',
+      },
+      {
+        variable: DefaultVariable.CORREOUTA,
+        example: 'estudiante@uta.edu.ec',
+      },
+      {
+        variable: DefaultVariable.NOMBRECARRERA,
+        example: 'Ingeniería en Sistemas',
+      },
+      {
+        variable: DefaultVariable.NOMBRECARRERAUP,
+        example: 'INGENIERÍA EN SISTEMAS',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_TITULO,
+        example: 'Ingeniero en Sistemas',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_FECHA_NACIMIENTO,
+        example: '16 de julio de 1990',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_TITULO_UPPER,
+        example: 'INGENIERO EN SISTEMAS',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_TEMA,
+        example: 'Tesis de analisis',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_TITULO_BACHILLER,
+        example: 'Bachiller en Ciencias',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_FECHA_INICIO_ESTUDIOS,
+        example: '16 de julio de 2010',
+      },
+      {
+        variable: DefaultVariable.COORDINADOR,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DefaultVariable.CANTON,
+        example: 'Ambato',
+      },
+      {
+        variable: DefaultVariable.PROVINCE,
+        example: 'Tungurahua',
+      },
+    ]
+
+    return studentVariables
+    // const functionariesVariables
+    // const documentVariables
+    // const councilVariables
+    // const degreeCertificateVariables
+    // const positionsVariables
+    // const otherVariables
+  }
+
   async create(createVariableDto: CreateVariableDto) {
     try {
       const alreadyExists = await this.variableRepository.findOne({
@@ -236,11 +329,11 @@ export class VariablesService {
         (document as DegreeCertificateEntity).topic ?? '*NO POSEE TEMA',
       [DefaultVariable.ESTUDIANTE_TITULO_BACHILLER]:
         document.student.bachelorDegree ?? '*NO POSEE TÍTULO BACHILLER',
-      [DefaultVariable.ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP]: document
-        .student.startStudiesDate
+      [DefaultVariable.ESTUDIANTE_FECHA_INICIO_ESTUDIOS]: document.student
+        .startStudiesDate
         ? formatDateText(document.student.startStudiesDate)
         : '*NO POSEE FECHA DE INICIO DE ESTUDIOS',
-      [DefaultVariable.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP]: document.student
+      [DefaultVariable.ESTUDIANTE_FECHA_FIN_ESTUDIOS]: document.student
         .startStudiesDate
         ? formatDateText(document.student.endStudiesDate)
         : '*NO POSEE FECHA DE FIN DE ESTUDIOS',
