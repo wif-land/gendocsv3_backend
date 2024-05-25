@@ -37,4 +37,18 @@ export class DocumentsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.documentsService.remove(+id)
   }
+
+  @Post('create-recopilation/:id')
+  createRecopilation(@Param('id', ParseIntPipe) id: number) {
+    try {
+      return this.documentsService.generateRecopilationDocument(id)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  @Post('create-recopilation/content/:id')
+  createRecopilationByTemplate(@Param('id', ParseIntPipe) id: number) {
+    return this.documentsService.generateRecopilationContent(id)
+  }
 }
