@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import Docx from 'docxml'
 @Injectable()
 export class DocxmlService {
   async createDocument() {
