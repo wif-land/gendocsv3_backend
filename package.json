@@ -45,6 +45,7 @@
     "class-validator": "^0.14.0",
     "date-fns": "^3.2.0",
     "date-fns-tz": "^2.0.0",
+    "docxml": "^5.15.1",
     "google-auth-library": "^9.4.1",
     "moment-timezone": "^0.5.45",
     "passport": "^0.7.0",

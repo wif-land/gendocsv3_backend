@@ -859,7 +859,6 @@ export class VariablesService {
 
   async getRecopilationVariables(numdoc: number, council: CouncilEntity) {
     try {
-      console.log(council.attendance)
       const variables = {
         [DefaultVariable.FECHA]: formatDate(council.date),
         [DefaultVariable.RESPONSABLE]: getFullName(
@@ -902,7 +901,6 @@ export class VariablesService {
           council.attendance.filter((attendance) => !attendance.hasAttended),
         ),
       }
-      console.log(variables)
       const { data: positionsVariables } = await this.getPositionVariables()
 
       return new ApiResponseDto(
