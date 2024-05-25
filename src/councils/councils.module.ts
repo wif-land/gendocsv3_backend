@@ -9,6 +9,8 @@ import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { StudentEntity } from '../students/entities/student.entity'
+import { MailService } from '../mails/mail.service'
+import { MailModule } from '../mails/mail.module'
 
 @Module({
   imports: [
@@ -21,8 +23,9 @@ import { StudentEntity } from '../students/entities/student.entity'
       FunctionaryEntity,
       StudentEntity,
     ]),
+    MailModule,
   ],
   controllers: [CouncilsController],
-  providers: [CouncilsService],
+  providers: [CouncilsService, MailService],
 })
 export class CouncilsModule {}

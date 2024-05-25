@@ -22,6 +22,7 @@ import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { StudentEntity } from '../students/entities/student.entity'
+import { MailService } from '../mails/mail.service'
 
 @Injectable()
 export class CouncilsService {
@@ -41,9 +42,11 @@ export class CouncilsService {
     @Inject(FilesService)
     private readonly filesService: FilesService,
     private readonly dataSource: DataSource,
+    private readonly mailService: MailService,
   ) {}
 
   async create(createCouncilDto: CreateCouncilDto) {
+    await this.mailService.testEmail()
     const year = new Date().getFullYear()
 
     const yearModule = await this.yearModuleRepository.findOneBy({
