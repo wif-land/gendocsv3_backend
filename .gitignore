@@ -406,3 +406,6 @@ credentials.json
 
 .env*
 pnpm-lock.yaml
+
+#temp folders
+temp-assets/

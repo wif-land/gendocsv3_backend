@@ -19,7 +19,7 @@ export class FileSystemService {
       throw new Error('No data received from GCP service')
     }
 
-    const tempDir = path.resolve(process.cwd(), 'temp')
+    const tempDir = path.resolve(process.cwd(), 'temp-assets')
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir)
     }
