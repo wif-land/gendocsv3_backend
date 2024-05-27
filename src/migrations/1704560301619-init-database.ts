@@ -43,6 +43,10 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         hasDocuments: true,
         driveId: '1XoGeTqOtnWEg4dFtikDUsPCxDN7K1azp',
         defaultTemplateDriveId: '1yvyjnw88KAkOwMynHV9s1bxWa-YKZ6IOwtcunyeDKdw',
+        compilationTemplateDriveId:
+          '1TEiLZ1YPnLecCKeJN1OB_SuffxjQ_VEB4s45f-L42DE',
+        separatorTemplateDriveId:
+          '1hSDUhZA0iA2gke0dLc106IpM6aOTDUJ68ctmvDockVQ',
       },
       {
         code: 'SUDE',
@@ -51,6 +55,10 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         hasDocuments: true,
         driveId: '1EPP29edJ0usV_1ai59TYOg8FWQxsJTXy',
         defaultTemplateDriveId: '1VwfM4QSlAtyX4Rnbl_43eE-xgtUrHrKfHpXHsyZUO7s',
+        separatorTemplateDriveId:
+          '1qiPMotV99bfP4MMqpnOxUDc7yjFZbB0H6ETaFVbHkeY',
+        compilationTemplateDriveId:
+          '1k0dr8OUcCeYkZROGhI8Rz7Y3pyH89cWvIBjj1a4N1vs',
       },
       {
         code: 'SIST',
@@ -59,6 +67,10 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         hasDocuments: true,
         driveId: '1jUcD9Jycz3FZbpbzkz_OV1KnCJ-nxLPH',
         defaultTemplateDriveId: '1BuZN4MeMnAamaFr16JQUuOYOTYkpm7G1gvDhBmmwMUw',
+        compilationTemplateDriveId:
+          '1ch6YtJnHJaFzn37GzLvAWAyyYfSqrCZ3xB1I-uuyElw',
+        separatorTemplateDriveId:
+          '1WxWYPpYzSbquBPGeBdr7PI-qyK2q0TbDjJoY4DsmsIg',
       },
       {
         code: 'INPA',
@@ -67,6 +79,10 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         hasDocuments: true,
         driveId: '1IBRuw2iYKN3Oc0muHtj7GAjWIaQrgLgz',
         defaultTemplateDriveId: '147QrYn9Cxy6p1qms0HnQD60RF_pkOdSSXzfVrE5ares',
+        compilationTemplateDriveId:
+          '1HNQWLaUzpWrV0bi0flEJCEXjCLJLwXUTYfFhEHiMLmw',
+        separatorTemplateDriveId:
+          '1ZV84qwYgx1bAzWMNueWmiJr-I2Q3wTk_hKJaIBq-IS4',
       },
       {
         code: 'ELEC',
@@ -75,6 +91,10 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         hasDocuments: true,
         driveId: '1VjBtMxtESjT8qTVkzGZGyVqAPjuF-4nE',
         defaultTemplateDriveId: '1VZxygcOXQF8FSgINMzgaJ3yQyDOL4azEKTf6zUt0lis',
+        compilationTemplateDriveId:
+          '1_GB_yjTjvSXXejsxTccb70IcmgMB0mUkT-FmRce_rdo',
+        separatorTemplateDriveId:
+          '1oB3XQJSLA7j5V-uA4KxWNTpP9J7iO7HgSHVvHUUVI_8',
       },
       {
         code: 'SOFT',
@@ -83,6 +103,10 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         hasDocuments: true,
         driveId: '1TNGmMLeAoy-43X2BWW2q_dgT7_lM5rdN',
         defaultTemplateDriveId: '1ZTnzJAaX7wTOMapCev9Acny8EtNfBL-VIqtHy2p0eqU',
+        compilationTemplateDriveId:
+          '1DikFxaYHcMtRMsjTrMXx2SxuuMe1gNFMk6aCMBRbAgQ',
+        separatorTemplateDriveId:
+          '1vHkOw5BPKdcGRuy-8aY9G1w0Ui--Ad-mFL5mHT4shxY',
       },
       {
         code: 'TECI',
@@ -91,6 +115,10 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         hasDocuments: true,
         driveId: '1CggaJGis8LbqugjXfct6bMpLabSyM92w',
         defaultTemplateDriveId: '1TbrRsX82BspnOFkX6b2CGqZel4q5xWq6GLuBrUHMdjM',
+        compilationTemplateDriveId:
+          '1Yxmnn3rB0uSGVj8AmSAqnSN0L1KLiU29O4cvUpMnlSI',
+        separatorTemplateDriveId:
+          '1zXogcewHhmmx3nS9tA-HczyUVbuqSVkU4KVY7gCqI38',
       },
       {
         code: 'TELE',
@@ -99,6 +127,10 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         hasDocuments: true,
         driveId: '1J-IItSC_3OQVYFVeMx_u6unZHrr4VFaY',
         defaultTemplateDriveId: '1Vuu3f6GOGhtRh4Hj2_8_PtkttLaCh9kyELs9igwcOlU',
+        compilationTemplateDriveId:
+          '1uhKYiPPBzzdXjjUW_W-YG51akPsujnFV0alUBOzi3qw',
+        separatorTemplateDriveId:
+          '1Njbz2C0zPD6tIMkSoFHEayMFLQBWeh2O98FV-NXppS4',
       },
       {
         code: 'INDS',
@@ -107,6 +139,10 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         hasDocuments: true,
         driveId: '1SoitmaQHSFopOcNva7N401qIEwIpdbii',
         defaultTemplateDriveId: '1iUw4UWmx5KGWgFrPgSdB-cJAgIB4mntSOwanMU0v3c8',
+        compilationTemplateDriveId:
+          '1Co1nslt-AT3KF9tUExZyuO6YcEMO8datFj-iQIV9pPM',
+        separatorTemplateDriveId:
+          '1RDaD8Gqu2ppPonTHb0N6J7w_ClMqauQLpZtIw7arXHQ',
       },
       {
         code: 'ADMIN',

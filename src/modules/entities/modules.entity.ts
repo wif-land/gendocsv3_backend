@@ -77,6 +77,28 @@ export class ModuleEntity extends BaseAppEntity {
   })
   defaultTemplateDriveId: string
 
+  @ApiProperty({
+    example: 'asdfklasjkdfkja;sdkfj',
+    description: 'Id de la plantilla separador de actas de consejo',
+  })
+  @Column({
+    name: 'separator_template_drive_id',
+    type: 'varchar',
+    nullable: true,
+  })
+  separatorTemplateDriveId: string
+
+  @ApiProperty({
+    example: 'asdfklasjkdfkja;sdkfj',
+    description: 'Id de la plantilla de recopilación de actas de consejo',
+  })
+  @Column({
+    name: 'compilation_template_drive_id',
+    type: 'varchar',
+    nullable: true,
+  })
+  compilationTemplateDriveId: string
+
   @OneToMany(
     () => CouncilAttendanceEntity,
     (councilAttendance) => councilAttendance.module,

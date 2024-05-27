@@ -252,6 +252,18 @@ export class DegreeCertificatesService {
       await this.studentService.findOne(dto.studentId)
     ).data
 
+    if (
+      student.gender == null ||
+      student.endStudiesDate == null ||
+      student.startStudiesDate == null ||
+      student.internshipHours == null ||
+      student.vinculationHours == null
+    ) {
+      throw new DegreeCertificateBadRequestError(
+        'El estudiante no cuenta con la información necesaria para generar la acta de grado',
+      )
+    }
+
     const certificateStatusType = await this.findCertificateStatusType(
       dto.certificateTypeId,
       dto.certificateStatusId,
@@ -659,10 +671,6 @@ export class DegreeCertificatesService {
       degreeCertificate.gradesSheetDriveId,
     )
 
-    // TODO: Make the method getDegreeCertificateVariables
-    // TODO: Make the gradesSheet logic to variables
-    // TODO: Generate and insert the templates on migrations and seeders
-    // TODO: Test the generation of the documents
     const { data: dregreeCertificateData } =
       await this.variablesService.getDegreeCertificateVariables(
         degreeCertificate,
