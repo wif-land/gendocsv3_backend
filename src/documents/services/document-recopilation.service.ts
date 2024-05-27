@@ -14,6 +14,7 @@ import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 
 @Injectable()
 export class DocumentRecopilationService {
+  [x: string]: any
   filesService: any
   constructor(
     @InjectDataSource()
@@ -63,8 +64,8 @@ export class DocumentRecopilationService {
       throw new NotFoundException('Documentos no encontrados')
     }
 
-    const councilPath = getCouncilPath(council)
-    const tempDocxPath = `${councilPath}/temp/`
+    // const councilPath = getCouncilPath(council)
+    // const tempDocxPath = `${councilPath}/temp/`
     // const prepareDirectory = await this.filesService.resolveDirectory(
     //   councilPath,
     // )
@@ -83,7 +84,10 @@ export class DocumentRecopilationService {
     })
   }
 
-  async prepareDocument(document: DocumentEntity, council: CouncilEntity): any {
+  async prepareDocument(
+    document: DocumentEntity,
+    council: CouncilEntity,
+  ): Promise<any> {
     const blob = await this.filesService.exportAsset(
       document.driveId,
       MIMETYPES.DOCX,
