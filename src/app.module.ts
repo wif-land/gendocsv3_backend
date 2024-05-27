@@ -37,8 +37,6 @@ import { CitiesModule } from './cities/cities.module'
 import { DegreeCertificatesModule } from './degree-certificates/degree-certificates.module'
 import { CouncilsAttendanceModule } from './council-attendance/module'
 import { DegreeCertificateAttendanceModule } from './degree-certificate-attendance/degree-certificate-attendance.module'
-import { FileSystemModule } from './file-system/file-system.module'
-import { DocxmlModule } from './docxml/docxml.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -97,8 +95,6 @@ export default connectionSource
     DegreeCertificatesModule,
     CouncilsAttendanceModule,
     DegreeCertificateAttendanceModule,
-    FileSystemModule,
-    DocxmlModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService],

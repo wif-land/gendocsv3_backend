@@ -65,12 +65,12 @@ export class DocumentRecopilationService {
 
     const councilPath = getCouncilPath(council)
     const tempDocxPath = `${councilPath}/temp/`
-    const prepareDirectory = await this.filesService.resolveDirectory(
-      councilPath,
-    )
-    const prepareDocxDirectory = await this.filesService.resolveDirectory(
-      tempDocxPath,
-    )
+    // const prepareDirectory = await this.filesService.resolveDirectory(
+    //   councilPath,
+    // )
+    // const prepareDocxDirectory = await this.filesService.resolveDirectory(
+    //   tempDocxPath,
+    // )
 
     const preparedDocuments = documents.map(
       async (document) => await this.prepareDocument(document, council),
