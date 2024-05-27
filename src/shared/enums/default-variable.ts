@@ -1,4 +1,4 @@
-export enum DefaultVariable {
+export enum DEFAULT_VARIABLE {
   FROM = '{{FROM}}',
   TO = '{{TO}}',
 

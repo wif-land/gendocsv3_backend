@@ -8,7 +8,7 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common'
-import { DocumentsService } from './documents.service'
+import { DocumentsService } from './services/documents.service'
 import { CreateDocumentDto } from './dto/create-document.dto'
 import { ApiTags } from '@nestjs/swagger'
 import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'

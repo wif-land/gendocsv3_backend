@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { FilesController } from './files.controller'
-import { FilesService } from './files.service'
+import { FilesService } from './services/files.service'
 import { GcpModule } from '../gcp/gcp.module'
 
 @Module({

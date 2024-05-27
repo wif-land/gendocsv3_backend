@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { GcpService } from '../gcp/gcp.service'
+import { GcpService } from '../../gcp/gcp.service'
 import * as fs from 'fs'
 import * as path from 'path'
 import { Readable } from 'stream'
-import { MIMETYPES } from '../shared/constants/mime-types'
+import { MIMETYPES } from '../../shared/constants/mime-types'
 
 @Injectable()
 export class FileSystemService {

@@ -4,22 +4,22 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common'
-import { CreateDocumentDto } from './dto/create-document.dto'
+import { CreateDocumentDto } from '../dto/create-document.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, Repository } from 'typeorm'
-import { DocumentEntity } from './entities/document.entity'
-import { NumerationDocumentService } from '../numeration-document/numeration-document.service'
-import { VariablesService } from '../variables/variables.service'
-import { DocumentFunctionaryEntity } from './entities/document-functionary.entity'
-import { DefaultVariable } from '../shared/enums/default-variable'
-import { StudentEntity } from '../students/entities/student.entity'
-import { FilesService } from '../files/files.service'
-import { formatNumeration } from '../shared/utils/string'
-import { ResponseDocumentDto } from './dto/response-document'
-import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
-import { ApiResponseDto } from '../shared/dtos/api-response.dto'
-import { CouncilEntity } from '../councils/entities/council.entity'
-import { CreateRecopilationDto } from '../gcp/gcp.controller'
+import { DocumentEntity } from '../entities/document.entity'
+import { NumerationDocumentService } from '../../numeration-document/numeration-document.service'
+import { VariablesService } from '../../variables/variables.service'
+import { DocumentFunctionaryEntity } from '../entities/document-functionary.entity'
+import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
+import { StudentEntity } from '../../students/entities/student.entity'
+import { FilesService } from '../../files/services/files.service'
+import { formatNumeration } from '../../shared/utils/string'
+import { ResponseDocumentDto } from '../dto/response-document'
+import { PaginationV2Dto } from '../../shared/dtos/paginationv2.dto'
+import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
+import { CouncilEntity } from '../../councils/entities/council.entity'
+import { CreateRecopilationDto } from '../../gcp/gcp.controller'
 
 @Injectable()
 export class DocumentsService {
@@ -162,16 +162,16 @@ export class DocumentsService {
       }
 
       const variables = {
-        [DefaultVariable.PREFEX_GENERAL]: generalData.data,
-        [DefaultVariable.PREFIX_CONSEJO]: councilData.data,
-        [DefaultVariable.PREFIX_DOCENTES]: functionariesData
+        [DEFAULT_VARIABLE.PREFEX_GENERAL]: generalData.data,
+        [DEFAULT_VARIABLE.PREFIX_CONSEJO]: councilData.data,
+        [DEFAULT_VARIABLE.PREFIX_DOCENTES]: functionariesData
           ? functionariesData.data
           : [],
-        [DefaultVariable.PREFIX_ESTUDIANTE]: studentData
+        [DEFAULT_VARIABLE.PREFIX_ESTUDIANTE]: studentData
           ? studentData.data
           : [],
-        [DefaultVariable.PREFIX_CARGOS]: positionsData.data,
-        [DefaultVariable.PREFIX_CUSTOM]: customVariablesData.data,
+        [DEFAULT_VARIABLE.PREFIX_CARGOS]: positionsData.data,
+        [DEFAULT_VARIABLE.PREFIX_CUSTOM]: customVariablesData.data,
       }
 
       const variablesJson = JSON.stringify(variables)

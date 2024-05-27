@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { GcpService } from '../gcp/gcp.service'
-import { CreateRecopilationDto } from '../gcp/gcp.controller'
+import { GcpService } from '../../gcp/gcp.service'
+import { CreateRecopilationDto } from '../../gcp/gcp.controller'
 
 @Injectable()
 export class FilesService {
