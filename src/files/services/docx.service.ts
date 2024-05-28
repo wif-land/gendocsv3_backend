@@ -30,7 +30,7 @@ export class DocxService {
 
     // Copy the first file as the base
     // eslint-disable-next-line prettier/prettier
-    if (!(await this.copyFile(docxFilesArray[0], outDocxFilePath))) {
+    if (!await this.copyFile(docxFilesArray[0], outDocxFilePath)) {
       // Cannot create file
       // eslint-disable-next-line no-magic-numbers
       return -2

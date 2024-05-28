@@ -5,9 +5,9 @@ import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 import { DocxService } from './docx.service'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 // eslint-disable-next-line import/no-unresolved
-import * as fs from 'fs/promises'
-// import * as DocxMerger from '@scholarcy/docx-merger'
-import * as builder from 'docx-builder'
+// import * as fs from 'fs/promises'
+// // import * as DocxMerger from '@scholarcy/docx-merger'
+// import * as builder from 'docx-builder'
 // eslint-disable-next-line import/no-unresolved
 
 @Injectable()
