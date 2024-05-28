@@ -24,12 +24,15 @@ export class DocxService {
     }
 
     if (!outDocxFilePath.endsWith('.docx')) {
+      // eslint-disable-next-line no-param-reassign
       outDocxFilePath += '.docx'
     }
 
     // Copy the first file as the base
+    // eslint-disable-next-line prettier/prettier
     if (!(await this.copyFile(docxFilesArray[0], outDocxFilePath))) {
       // Cannot create file
+      // eslint-disable-next-line no-magic-numbers
       return -2
     }
 
