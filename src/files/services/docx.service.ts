@@ -56,7 +56,12 @@ export class DocxService {
 
     // Función para eliminar headers y footers
     const removeHeadersAndFooters = async (): Promise<void> => {
-      const headersAndFooters = relationships.Relationship.Relationship.filter(
+      console.log(
+        'Removing headers and footers',
+        relationships,
+        relationships.Relationships.Relationship,
+      )
+      const headersAndFooters = relationships.Relationships.Relationship.filter(
         (rel) =>
           [
             'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
@@ -64,19 +69,21 @@ export class DocxService {
           ].includes(rel.$.Type),
       )
 
+      console.log('Removing headers and footers2')
+
       headersAndFooters.forEach((headerFooter) => {
         zip.deleteFile(`word/${headerFooter.$.Target}`)
       })
 
       const filteredRelationships =
-        relationships.Relationship.Relationship.filter(
+        relationships.Relationships.Relationship.filter(
           (rel) =>
             ![
               'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
               'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',
             ].includes(rel.$.Type),
         )
-      relationships.Relationship.Relationship = filteredRelationships
+      relationships.Relationships.Relationship = filteredRelationships
     }
 
     // Ejecutar la búsqueda de índices y la eliminación de headers y footers en paralelo

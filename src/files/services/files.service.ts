@@ -4,8 +4,12 @@ import { FileSystemService } from './file-system.service'
 import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 import { DocxService } from './docx.service'
 import { MIMETYPES } from '../../shared/constants/mime-types'
+// eslint-disable-next-line import/no-unresolved
 import { DocxMerger } from '@spfxappdev/docxmerger'
 import * as fs from 'fs/promises'
+import { XMLSerializer } from 'xmldom'
+
+global.XMLSerializer = XMLSerializer
 
 @Injectable()
 export class FilesService {
@@ -15,15 +19,45 @@ export class FilesService {
     private readonly docxService: DocxService,
   ) {}
 
+  // async mergeDocuments(
+  //   title: string,
+  //   documents: Buffer[],
+  //   generatedCouncilPath: string,
+  // ) {
+  //   const merger = new DocxMerger()
+  //   console.log('documents', documents)
+  //   await merger.merge(documents)
+
+  //   const mergedDocument = await merger.save()
+  //   console.log('documents', mergedDocument)
+
+  //   if (!mergedDocument) {
+  //     throw new HttpException(
+  //       'No se pudo generar los documentos recopilados',
+  //       HttpStatus.CONFLICT,
+  //     )
+  //   }
+
+  //   const tempDocxPath = `${generatedCouncilPath}/${title}.docx`
+
+  //   await fs.writeFile(tempDocxPath, mergedDocument)
+  // }
   async mergeDocuments(
     title: string,
-    documents: Buffer[],
+    documentPaths: string[],
     generatedCouncilPath: string,
   ) {
     const merger = new DocxMerger()
+
+    // Lee los archivos en Buffers
+    const documents = await Promise.all(
+      documentPaths.map((path) => fs.readFile(path)),
+    )
+
     await merger.merge(documents)
 
     const mergedDocument = await merger.save()
+    console.log('documents', mergedDocument)
 
     if (!mergedDocument) {
       throw new HttpException(
@@ -37,7 +71,7 @@ export class FilesService {
     await fs.writeFile(tempDocxPath, mergedDocument)
   }
 
-  async getFilesFromDirectory(tempDocxPath: string): Promise<Buffer[]> {
+  async getFilesFromDirectory(tempDocxPath: string): Promise<string[]> {
     const files = await this.fileSystemService.getFilesFromDirectory(
       tempDocxPath,
     )

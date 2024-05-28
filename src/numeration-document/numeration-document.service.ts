@@ -826,7 +826,7 @@ export class NumerationDocumentService {
             )
 
           if (
-            createNumerationDocumentDto.number <=
+            createNumerationDocumentDto.number <
             availableCouncilNumeration[0].number
           ) {
             throw new NumerationConflict(
@@ -858,6 +858,7 @@ export class NumerationDocumentService {
       }
     } catch (error) {
       await queryRunner.rollbackTransaction()
+      console.error(error)
 
       if (error.status) throw new HttpException(error.message, error.status)
 

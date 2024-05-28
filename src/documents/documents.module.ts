@@ -6,7 +6,7 @@ import { DocumentEntity } from './entities/document.entity'
 import { DocumentFunctionaryEntity } from './entities/document-functionary.entity'
 import { NumerationDocumentModule } from '../numeration-document/numeration-document.module'
 import { VariablesModule } from '../variables/variables.module'
-import { FilesModule } from '../files/files.module'
+import { FilesModule } from '../files/modules/files.module'
 import { DocumentRecopilationService } from './services/document-recopilation.service'
 
 @Module({

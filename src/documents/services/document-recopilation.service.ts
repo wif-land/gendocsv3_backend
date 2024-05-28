@@ -35,6 +35,9 @@ export class DocumentRecopilationService {
             functionary: true,
           },
           module: true,
+          submoduleYearModule: {
+            yearModule: true,
+          },
         },
       })
 
