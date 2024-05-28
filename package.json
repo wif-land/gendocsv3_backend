@@ -48,6 +48,7 @@
     "class-validator": "^0.14.0",
     "date-fns": "^3.2.0",
     "date-fns-tz": "^2.0.0",
+    "docx-builder": "^1.0.7",
     "google-auth-library": "^9.4.1",
     "moment-timezone": "^0.5.45",
     "passport": "^0.7.0",

@@ -6,7 +6,8 @@ import { DocxService } from './docx.service'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 // eslint-disable-next-line import/no-unresolved
 import * as fs from 'fs/promises'
-import * as DocxMerger from '@scholarcy/docx-merger'
+// import * as DocxMerger from '@scholarcy/docx-merger'
+import * as builder from 'docx-builder'
 // eslint-disable-next-line import/no-unresolved
 
 @Injectable()
@@ -45,15 +46,15 @@ export class FilesService {
     documentPaths: string[],
     generatedCouncilPath: string,
   ) {
-    // Lee los archivos en Buffers
-    const documents = await Promise.all(
-      documentPaths.map((path) => fs.readFile(path, 'binary')),
-    )
-    const merger = new DocxMerger()
-    await merger.initialize({}, documents)
+    // // Lee los archivos en Buffers
+    // const documents = await Promise.all(
+    //   documentPaths.map((path) => fs.readFile(path, 'binary')),
+    // )
+    // const merger = new DocxMerger()
+    // await merger.initialize({}, documents)
 
     const tempDocxPath = `${generatedCouncilPath}/${title}.docx`
-    const tempZipPath = `${generatedCouncilPath}/${title}.zip`
+    // const tempZipPath = `${generatedCouncilPath}/${title}.zip`
 
     console.log('data')
 
@@ -69,10 +70,21 @@ export class FilesService {
     //   }
     // })
 
-    const data = await merger.save('nodebuffer')
-    console.log('data', data)
-    await fs.writeFile(`${tempZipPath}`, data)
-    await fs.writeFile(tempDocxPath, data)
+    // const data = await merger.save('nodebuffer')
+
+    this.docxService.mergeDocuments(documentPaths, tempDocxPath)
+
+    // You can also do this asynchronously using the insertDocx method.
+
+    // await Promise.all(
+    //   documentPaths.map(async (path) => {
+    //     await docx.insertDocxSync(path)
+    //   }),
+    // )
+    // SAVING THE DOCX FILE
+
+    // await fs.writeFile(`${tempZipPath}`, data)
+    // await fs.writeFile(tempDocxPath, data)
     return tempDocxPath
   }
 
@@ -244,6 +256,21 @@ export class FilesService {
     }
 
     return filteredDocumentPath
+  }
+
+  async removePageBreaks(filteredDocumentPath: string) {
+    const removedPageBreaks = await this.docxService.removePageBreaks(
+      filteredDocumentPath,
+    )
+
+    if (!removedPageBreaks) {
+      throw new HttpException(
+        'Error eliminando saltos de página',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    return removedPageBreaks
   }
 
   async resolveDirectory(councilPath: string) {

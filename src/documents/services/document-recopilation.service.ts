@@ -123,6 +123,8 @@ export class DocumentRecopilationService {
       DEFAULT_VARIABLE.TO,
     )
 
+    await this.filesService.removePageBreaks(filteredDocumentPath)
+
     return filteredDocumentPath
   }
 
