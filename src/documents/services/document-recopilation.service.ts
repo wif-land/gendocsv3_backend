@@ -11,14 +11,18 @@ import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { getCouncilPath } from '../helpers/path-helper'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
+import { FilesService } from '../../files/services/files.service'
+import { formatDate } from '../../shared/utils/date'
+import { VariablesService } from '../../variables/variables.service'
 
 @Injectable()
 export class DocumentRecopilationService {
-  [x: string]: any
-  filesService: any
   constructor(
     @InjectDataSource()
     private readonly dataSource: DataSource,
+
+    private readonly filesService: FilesService,
+    private readonly variableService: VariablesService,
   ) {}
 
   async getCouncilAndValidate(councilId: number) {
@@ -64,30 +68,28 @@ export class DocumentRecopilationService {
       throw new NotFoundException('Documentos no encontrados')
     }
 
-    // const councilPath = getCouncilPath(council)
-    // const tempDocxPath = `${councilPath}/temp/`
-    // const prepareDirectory = await this.filesService.resolveDirectory(
-    //   councilPath,
-    // )
-    // const prepareDocxDirectory = await this.filesService.resolveDirectory(
-    //   tempDocxPath,
-    // )
+    const councilPath = getCouncilPath(council)
+    const tempDocxPath = `${councilPath}/temp/`
+
+    await this.filesService.resolveDirectory(councilPath)
+
+    await this.filesService.resolveDirectory(tempDocxPath)
 
     const preparedDocuments = documents.map(
       async (document) => await this.prepareDocument(document, council),
     )
 
-    const resolvedDocuments = Promise.all(preparedDocuments)
+    const resolvedDocuments = await Promise.all(preparedDocuments)
 
     return new ApiResponseDto('Recopilación de documentos creada', {
-      documentsRecopilated: (await resolvedDocuments).length,
+      documentsRecopilated: resolvedDocuments,
     })
   }
 
   async prepareDocument(
     document: DocumentEntity,
     council: CouncilEntity,
-  ): Promise<any> {
+  ): Promise<string> {
     const blob = await this.filesService.exportAsset(
       document.driveId,
       MIMETYPES.DOCX,
@@ -100,24 +102,44 @@ export class DocumentRecopilationService {
     const councilPath = getCouncilPath(council)
     const tempDocxPath = `${councilPath}/temp/`
 
-    const savedDownloadedDocument =
+    const savedDownloadedDocumentPath =
       await this.filesService.saveDownloadedDocument(
         document.id.toString(),
         tempDocxPath,
         blob,
       )
 
-    const xmlDocument = await this.filesService.unzipDocument(
-      savedDownloadedDocument,
-    )
-
-    const filteredDocument = await this.filesService.filterDocument(
-      xmlDocument,
+    const filteredDocumentPath = await this.filesService.filterDocument(
+      savedDownloadedDocumentPath,
       DEFAULT_VARIABLE.FROM,
       DEFAULT_VARIABLE.TO,
     )
 
-    return filteredDocument
+    return filteredDocumentPath
+  }
+
+  async mergeDocuments(councilId: number) {
+    const council = await this.getCouncilAndValidate(councilId)
+
+    const councilPath = getCouncilPath(council)
+    const tempDocxPath = `${councilPath}/temp/`
+    const generatedCouncilPath = `${councilPath}/generated/`
+
+    await this.filesService.resolveDirectory(generatedCouncilPath)
+
+    const documents = await this.filesService.getFilesFromDirectory(
+      tempDocxPath,
+    )
+
+    const mergedDocumentPath = await this.filesService.mergeDocuments(
+      `${council.name}-Recopilación-${formatDate(council.date)}`,
+      documents,
+      generatedCouncilPath,
+    )
+
+    return new ApiResponseDto('Documentos fusionados', {
+      mergedDocumentPath,
+    })
   }
 
   async generateRecopilationDocument(councilId: number) {

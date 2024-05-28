@@ -41,6 +41,7 @@
     "@nestjs/terminus": "^10.2.0",
     "@nestjs/typeorm": "^10.0.1",
     "@scholarcy/docx-merger": "^0.3.0",
+    "@spfxappdev/docxmerger": "^1.0.2",
     "adm-zip": "^0.5.12",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
@@ -54,7 +55,8 @@
     "pg": "8.11.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
-    "typeorm": "^0.3.17"
+    "typeorm": "^0.3.17",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "@nestjs/schematics": "^10.0.1",

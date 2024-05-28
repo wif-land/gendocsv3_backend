@@ -7,6 +7,7 @@ import { DocumentFunctionaryEntity } from './entities/document-functionary.entit
 import { NumerationDocumentModule } from '../numeration-document/numeration-document.module'
 import { VariablesModule } from '../variables/variables.module'
 import { FilesModule } from '../files/files.module'
+import { DocumentRecopilationService } from './services/document-recopilation.service'
 
 @Module({
   controllers: [DocumentsController],
@@ -16,6 +17,6 @@ import { FilesModule } from '../files/files.module'
     VariablesModule,
     FilesModule,
   ],
-  providers: [DocumentsService],
+  providers: [DocumentsService, DocumentRecopilationService],
 })
 export class DocumentsModule {}

@@ -12,43 +12,66 @@ import { DocumentsService } from './services/documents.service'
 import { CreateDocumentDto } from './dto/create-document.dto'
 import { ApiTags } from '@nestjs/swagger'
 import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
+import { DocumentRecopilationService } from './services/document-recopilation.service'
 
 @ApiTags('Documents')
 @Controller('documents')
 export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) {}
+  constructor(
+    private readonly documentsService: DocumentsService,
+    private readonly documentRecopilationService: DocumentRecopilationService,
+  ) {}
 
   @Post()
-  create(@Body() createDocumentDto: CreateDocumentDto) {
-    return this.documentsService.create(createDocumentDto)
+  async create(@Body() createDocumentDto: CreateDocumentDto) {
+    return await this.documentsService.create(createDocumentDto)
   }
 
   @Get()
-  findAll(@Query() paginationDto: PaginationV2Dto) {
-    return this.documentsService.findAll(paginationDto)
+  async findAll(@Query() paginationDto: PaginationV2Dto) {
+    return await this.documentsService.findAll(paginationDto)
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.documentsService.findOne(+id)
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.documentsService.findOne(+id)
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.documentsService.remove(+id)
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    return await this.documentsService.remove(+id)
   }
 
   @Post('create-recopilation/:id')
-  createRecopilation(@Param('id', ParseIntPipe) id: number) {
+  async createRecopilation(@Param('id', ParseIntPipe) id: number) {
     try {
-      return this.documentsService.generateRecopilationDocument(id)
+      return await this.documentRecopilationService.generateRecopilationDocument(
+        id,
+      )
     } catch (error) {
       console.error(error)
     }
   }
 
   @Post('create-recopilation/content/:id')
-  createRecopilationByTemplate(@Param('id', ParseIntPipe) id: number) {
-    return this.documentsService.generateRecopilationContent(id)
+  async createRecopilationByTemplate(@Param('id', ParseIntPipe) id: number) {
+    try {
+      return await this.documentRecopilationService.generateRecopilationDocuments(
+        id,
+      )
+    } catch (error) {
+      console.error(error)
+      return error
+    }
+  }
+
+  @Post('create-recopilation/merge/:id')
+  async mergeRecopilation(@Param('id', ParseIntPipe) id: number) {
+    try {
+      return await this.documentRecopilationService.mergeDocuments(id)
+    } catch (error) {
+      console.error(error)
+      return error
+    }
   }
 }
