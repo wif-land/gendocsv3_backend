@@ -5,15 +5,15 @@ import {
 } from '@nestjs/common'
 import { InjectDataSource } from '@nestjs/typeorm'
 import { CouncilEntity } from '../../councils/entities/council.entity'
-import { DataSource } from 'typeorm'
 import { DocumentEntity } from '../entities/document.entity'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { getCouncilPath } from '../helpers/path-helper'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 import { FilesService } from '../../files/services/files.service'
-import { formatDate } from '../../shared/utils/date'
+import { formatDateText } from '../../shared/utils/date'
 import { VariablesService } from '../../variables/variables.service'
+import { DataSource } from 'typeorm'
 
 @Injectable()
 export class DocumentRecopilationService {
@@ -63,8 +63,11 @@ export class DocumentRecopilationService {
             council: {
               id: councilId,
             },
+            // eslint-disable-next-line no-magic-numbers
+            // number: 1 || 2,
           },
         },
+        // take: 1,
       })
 
     if (!documents) {
@@ -107,10 +110,12 @@ export class DocumentRecopilationService {
 
     const savedDownloadedDocumentPath =
       await this.filesService.saveDownloadedDocument(
-        document.id.toString(),
+        document.numerationDocument.number.toString(),
         tempDocxPath,
         blob,
       )
+
+    // return savedDownloadedDocumentPath
 
     const filteredDocumentPath = await this.filesService.filterDocument(
       savedDownloadedDocumentPath,
@@ -126,7 +131,7 @@ export class DocumentRecopilationService {
 
     const councilPath = getCouncilPath(council)
     const tempDocxPath = `${councilPath}/temp/`
-    const generatedCouncilPath = `${councilPath}/generated/`
+    const generatedCouncilPath = `${councilPath}/generated`
 
     await this.filesService.resolveDirectory(generatedCouncilPath)
 
@@ -135,7 +140,7 @@ export class DocumentRecopilationService {
     )
 
     const mergedDocumentPath = await this.filesService.mergeDocuments(
-      `${council.name}-Recopilación-${formatDate(council.date)}`,
+      `${council.name}-Recopilación-${formatDateText(council.date)}`,
       documents,
       generatedCouncilPath,
     )

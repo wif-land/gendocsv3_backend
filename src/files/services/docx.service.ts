@@ -26,82 +26,109 @@ export class DocxService {
       parseStringPromise(relationshipsXml),
     ])
 
+    const body = parsedXml['w:document']['w:body'][0]
+
     // Función para buscar índices
-    const findIndices = async (
+    const findIndices = (
       paragraphs: any[],
-    ): Promise<{ fromIndex: number; toIndex: number }> => {
+    ): { fromIndex: number; toIndex: number } => {
       let fromIndex = -1
       let toIndex = -1
 
       // Buscar {{FROM}} desde el inicio
       for (let i = 0; i < paragraphs.length; i++) {
-        const textElements = paragraphs[i]['w:r']?.map((r) => r['w:t']).flat()
-        if (textElements && textElements.includes(start)) {
-          fromIndex = i
-          break // Terminar la búsqueda una vez encontrado
+        const textContent = paragraphs[i]?.['w:r']
+
+        if (textContent && Array.isArray(textContent)) {
+          for (const element of textContent) {
+            console.log('element', element)
+            if (element['w:t'] === undefined) {
+              continue
+            }
+            //  'w:t', [ { _: '{{FROM}}', '$': { 'xml:space': 'preserve'}, {...}]
+            // should be values = [ '{{FROM}}', { 'xml:space': 'preserve' } ]
+
+            const values = element['w:t'].map((value) => value._)
+            console.log('values', values)
+            if (values.includes(start)) {
+              console.log('found start')
+              fromIndex = i
+              break
+            }
+
+            if (values.includes(end)) {
+              break
+            }
+          }
+        }
+        if (fromIndex !== -1) {
+          break
         }
       }
 
       // Buscar {{TO}} desde el final
       for (let i = paragraphs.length - 1; i >= 0; i--) {
-        const textElements = paragraphs[i]['w:r']?.map((r) => r['w:t']).flat()
-        if (textElements && textElements.includes(end)) {
-          toIndex = i
-          break // Terminar la búsqueda una vez encontrado
+        const textContent = paragraphs[i]?.['w:r']
+
+        if (textContent && Array.isArray(textContent)) {
+          for (const element of textContent) {
+            if (element['w:t'] === undefined) {
+              continue
+            }
+
+            const values = element['w:t'].map((value) => value._)
+
+            if (values.includes(end)) {
+              console.log('found end')
+              toIndex = i
+              break
+            }
+
+            if (values.includes(start)) {
+              break
+            }
+          }
+        }
+        if (toIndex !== -1) {
+          break
         }
       }
 
       return { fromIndex, toIndex }
     }
 
-    // Función para eliminar headers y footers
-    const removeHeadersAndFooters = async (): Promise<void> => {
-      console.log(
-        'Removing headers and footers',
-        relationships,
-        relationships.Relationships.Relationship,
-      )
-      const headersAndFooters = relationships.Relationships.Relationship.filter(
-        (rel) =>
-          [
-            'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
-            'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',
-          ].includes(rel.$.Type),
-      )
-
-      console.log('Removing headers and footers2')
-
-      headersAndFooters.forEach((headerFooter) => {
-        zip.deleteFile(`word/${headerFooter.$.Target}`)
-      })
-
-      const filteredRelationships =
-        relationships.Relationships.Relationship.filter(
-          (rel) =>
-            ![
-              'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
-              'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',
-            ].includes(rel.$.Type),
-        )
-      relationships.Relationships.Relationship = filteredRelationships
-    }
-
-    // Ejecutar la búsqueda de índices y la eliminación de headers y footers en paralelo
-    const body = parsedXml['w:document']['w:body'][0]
+    // Ejecutar la búsqueda de índices
     const paragraphs = body['w:p']
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [indices, _] = await Promise.all([
-      findIndices(paragraphs),
-      removeHeadersAndFooters(),
-    ])
-
-    const { fromIndex, toIndex } = indices
+    const { fromIndex, toIndex } = findIndices(paragraphs)
 
     if (fromIndex !== -1 && toIndex !== -1 && fromIndex < toIndex) {
       // Preservar solo el contenido entre {{FROM}} y {{TO}}
       const preservedContent = paragraphs.slice(fromIndex + 1, toIndex)
       parsedXml['w:document']['w:body'][0]['w:p'] = preservedContent
     }
+
+    // Eliminar headers y footers
+    const headersAndFooters = relationships.Relationships.Relationship.filter(
+      (rel) =>
+        [
+          'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
+          'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',
+        ].includes(rel.$.Type),
+    )
+
+    headersAndFooters.forEach((headerFooter) => {
+      zip.deleteFile(`word/${headerFooter.$.Target}`)
+    })
+
+    const filteredRelationships =
+      relationships.Relationships.Relationship.filter(
+        (rel) =>
+          ![
+            'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
+            'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',
+          ].includes(rel.$.Type),
+      )
+    relationships.Relationships.Relationship = filteredRelationships
 
     // Convertir el objeto XML de nuevo a una cadena
     const builder = new Builder()

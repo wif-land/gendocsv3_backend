@@ -5,11 +5,9 @@ import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 import { DocxService } from './docx.service'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 // eslint-disable-next-line import/no-unresolved
-import { DocxMerger } from '@spfxappdev/docxmerger'
 import * as fs from 'fs/promises'
-import { XMLSerializer } from 'xmldom'
-
-global.XMLSerializer = XMLSerializer
+import * as DocxMerger from '@scholarcy/docx-merger'
+// eslint-disable-next-line import/no-unresolved
 
 @Injectable()
 export class FilesService {
@@ -47,28 +45,35 @@ export class FilesService {
     documentPaths: string[],
     generatedCouncilPath: string,
   ) {
-    const merger = new DocxMerger()
-
     // Lee los archivos en Buffers
     const documents = await Promise.all(
-      documentPaths.map((path) => fs.readFile(path)),
+      documentPaths.map((path) => fs.readFile(path, 'binary')),
     )
-
-    await merger.merge(documents)
-
-    const mergedDocument = await merger.save()
-    console.log('documents', mergedDocument)
-
-    if (!mergedDocument) {
-      throw new HttpException(
-        'No se pudo generar los documentos recopilados',
-        HttpStatus.CONFLICT,
-      )
-    }
+    const merger = new DocxMerger()
+    await merger.initialize({}, documents)
 
     const tempDocxPath = `${generatedCouncilPath}/${title}.docx`
+    const tempZipPath = `${generatedCouncilPath}/${title}.zip`
 
-    await fs.writeFile(tempDocxPath, mergedDocument)
+    console.log('data')
+
+    // await merger.save('nodebuffer', async (data: Buffer) => {
+    //   console.log('data', data)
+    //   try {
+    //     await fs.writeFile(tempDocxPath, data)
+    //   } catch (err) {
+    //     throw new HttpException(
+    //       'No se pudo generar los documentos recopilados',
+    //       HttpStatus.CONFLICT,
+    //     )
+    //   }
+    // })
+
+    const data = await merger.save('nodebuffer')
+    console.log('data', data)
+    await fs.writeFile(`${tempZipPath}`, data)
+    await fs.writeFile(tempDocxPath, data)
+    return tempDocxPath
   }
 
   async getFilesFromDirectory(tempDocxPath: string): Promise<string[]> {
