@@ -6,22 +6,20 @@ import * as admZip from 'adm-zip'
 export class FileSystemService {
   async saveDownloadedDocument(
     title: string,
-    tempDocxPath: string,
+    pathToSave: string,
     blob: Blob,
   ): Promise<string> {
     // Suponiendo que el path tiene este formato `${council.module.name}/${council.submoduleYearModule.yearModule.year}/councils/${council.id}-${council.name}`
 
-    const filepath = path.resolve(tempDocxPath, `${title}.docx`)
+    const filepath = path.resolve(`${pathToSave}/${title}`)
 
     const writer = fs.createWriteStream(filepath)
 
     return new Promise<string>(async (resolve, reject) => {
       writer.on('finish', () => {
-        console.log('File downloaded', filepath)
         resolve(filepath)
       })
       writer.on('error', (error) => {
-        console.error('Error downloading file:', error)
         reject(error)
         throw new HttpException(
           `Error al guardar el archivo ${title}`,
@@ -32,6 +30,17 @@ export class FileSystemService {
       writer.write(Buffer.from(await blob.arrayBuffer()))
       writer.end()
     })
+  }
+
+  async copyFile(title: string, sourcePath: string, destinationPath: string) {
+    const source = fs.createReadStream(sourcePath)
+    const destination = fs.createWriteStream(
+      path.resolve(destinationPath, title),
+    )
+
+    source.pipe(destination)
+
+    return destinationPath + title
   }
 
   async unzipAndTakeFile(zipFilePath: string, relativeTakeFilePath: string) {

@@ -858,7 +858,6 @@ export class NumerationDocumentService {
       }
     } catch (error) {
       await queryRunner.rollbackTransaction()
-      console.error(error)
 
       if (error.status) throw new HttpException(error.message, error.status)
 

@@ -92,6 +92,11 @@ export enum DEFAULT_VARIABLE {
    */
   PREFIX_CUSTOM = 'custom',
   PREFIX_CARGOS = 'position',
+
+  // eslint-disable-next-line no-template-curly-in-string
+  SEPARATOR_NUMDOC = '${NUMDOC}',
+  // eslint-disable-next-line no-template-curly-in-string
+  SEPARATOR_YEAR = '${Y}',
 }
 
 // TODO: Add variables for DegreeCertificate

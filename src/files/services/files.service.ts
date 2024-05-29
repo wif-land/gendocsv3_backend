@@ -4,6 +4,7 @@ import { FileSystemService } from './file-system.service'
 import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 import { DocxService } from './docx.service'
 import { MIMETYPES } from '../../shared/constants/mime-types'
+import { IReplaceText } from '../../shared/interfaces/replace-text'
 // eslint-disable-next-line import/no-unresolved
 // import * as fs from 'fs/promises'
 // // import * as DocxMerger from '@scholarcy/docx-merger'
@@ -18,73 +19,14 @@ export class FilesService {
     private readonly docxService: DocxService,
   ) {}
 
-  // async mergeDocuments(
-  //   title: string,
-  //   documents: Buffer[],
-  //   generatedCouncilPath: string,
-  // ) {
-  //   const merger = new DocxMerger()
-  //   console.log('documents', documents)
-  //   await merger.merge(documents)
-
-  //   const mergedDocument = await merger.save()
-  //   console.log('documents', mergedDocument)
-
-  //   if (!mergedDocument) {
-  //     throw new HttpException(
-  //       'No se pudo generar los documentos recopilados',
-  //       HttpStatus.CONFLICT,
-  //     )
-  //   }
-
-  //   const tempDocxPath = `${generatedCouncilPath}/${title}.docx`
-
-  //   await fs.writeFile(tempDocxPath, mergedDocument)
-  // }
   async mergeDocuments(
     title: string,
     documentPaths: string[],
     generatedCouncilPath: string,
   ) {
-    // // Lee los archivos en Buffers
-    // const documents = await Promise.all(
-    //   documentPaths.map((path) => fs.readFile(path, 'binary')),
-    // )
-    // const merger = new DocxMerger()
-    // await merger.initialize({}, documents)
-
     const tempDocxPath = `${generatedCouncilPath}/${title}.docx`
-    // const tempZipPath = `${generatedCouncilPath}/${title}.zip`
-
-    console.log('data')
-
-    // await merger.save('nodebuffer', async (data: Buffer) => {
-    //   console.log('data', data)
-    //   try {
-    //     await fs.writeFile(tempDocxPath, data)
-    //   } catch (err) {
-    //     throw new HttpException(
-    //       'No se pudo generar los documentos recopilados',
-    //       HttpStatus.CONFLICT,
-    //     )
-    //   }
-    // })
-
-    // const data = await merger.save('nodebuffer')
 
     this.docxService.mergeDocuments(documentPaths, tempDocxPath)
-
-    // You can also do this asynchronously using the insertDocx method.
-
-    // await Promise.all(
-    //   documentPaths.map(async (path) => {
-    //     await docx.insertDocxSync(path)
-    //   }),
-    // )
-    // SAVING THE DOCX FILE
-
-    // await fs.writeFile(`${tempZipPath}`, data)
-    // await fs.writeFile(tempDocxPath, data)
     return tempDocxPath
   }
 
@@ -187,6 +129,33 @@ export class FilesService {
     return result
   }
 
+  async copyAndReplaceTextOnLocalDocument(
+    title: string,
+    replaceEntries: IReplaceText,
+    filePath: string,
+    pathToSave: string,
+  ) {
+    const savedDocumentPath = await this.fileSystemService.copyFile(
+      title,
+      filePath,
+      pathToSave,
+    )
+
+    const replacedSeparatorPath = await this.docxService.replaceTextOnDocument(
+      replaceEntries,
+      savedDocumentPath,
+    )
+
+    if (!replacedSeparatorPath) {
+      throw new HttpException(
+        'Error replacing text on local document',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    return replacedSeparatorPath
+  }
+
   async remove(assetId: string) {
     const result = await this.gcpService.remove(assetId)
 
@@ -256,21 +225,6 @@ export class FilesService {
     }
 
     return filteredDocumentPath
-  }
-
-  async removePageBreaks(filteredDocumentPath: string) {
-    const removedPageBreaks = await this.docxService.removePageBreaks(
-      filteredDocumentPath,
-    )
-
-    if (!removedPageBreaks) {
-      throw new HttpException(
-        'Error eliminando saltos de página',
-        HttpStatus.CONFLICT,
-      )
-    }
-
-    return removedPageBreaks
   }
 
   async resolveDirectory(councilPath: string) {

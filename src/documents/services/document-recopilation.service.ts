@@ -7,13 +7,15 @@ import { InjectDataSource } from '@nestjs/typeorm'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { DocumentEntity } from '../entities/document.entity'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
-import { getCouncilPath } from '../helpers/path-helper'
+import { getCouncilPath, getYearModulePath } from '../helpers/path-helper'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 import { FilesService } from '../../files/services/files.service'
 import { formatDateText } from '../../shared/utils/date'
 import { VariablesService } from '../../variables/variables.service'
 import { DataSource } from 'typeorm'
+import { IReplaceText } from '../../shared/interfaces/replace-text'
+import { formatNumeration } from '../../shared/utils/string'
 
 @Injectable()
 export class DocumentRecopilationService {
@@ -55,20 +57,7 @@ export class DocumentRecopilationService {
   async generateRecopilationDocuments(councilId: number) {
     const council = await this.getCouncilAndValidate(councilId)
 
-    const documents = await this.dataSource.manager
-      .getRepository(DocumentEntity)
-      .find({
-        where: {
-          numerationDocument: {
-            council: {
-              id: councilId,
-            },
-            // eslint-disable-next-line no-magic-numbers
-            // number: 1 || 2,
-          },
-        },
-        // take: 1,
-      })
+    const documents = await this.getDocumentsByCouncilId(councilId)
 
     if (!documents) {
       throw new NotFoundException('Documentos no encontrados')
@@ -76,13 +65,36 @@ export class DocumentRecopilationService {
 
     const councilPath = getCouncilPath(council)
     const tempDocxPath = `${councilPath}/temp/`
+    const yearModulePath = getYearModulePath(
+      council.submoduleYearModule.yearModule,
+    )
 
     await this.filesService.resolveDirectory(councilPath)
 
     await this.filesService.resolveDirectory(tempDocxPath)
 
+    const separator = await this.filesService.exportAsset(
+      council.module.separatorTemplateDriveId,
+      MIMETYPES.DOCX,
+    )
+
+    if (!separator) {
+      throw new NotFoundException('Separador no encontrado')
+    }
+
+    await this.filesService.saveDownloadedDocument(
+      'separator.docx',
+      yearModulePath,
+      separator,
+    )
+
     const preparedDocuments = documents.map(
-      async (document) => await this.prepareDocument(document, council),
+      async (document) =>
+        await this.prepareDocument(
+          document,
+          council,
+          `${yearModulePath}/separator.docx`,
+        ),
     )
 
     const resolvedDocuments = await Promise.all(preparedDocuments)
@@ -95,6 +107,7 @@ export class DocumentRecopilationService {
   async prepareDocument(
     document: DocumentEntity,
     council: CouncilEntity,
+    separatorPath: string,
   ): Promise<string> {
     const blob = await this.filesService.exportAsset(
       document.driveId,
@@ -110,12 +123,10 @@ export class DocumentRecopilationService {
 
     const savedDownloadedDocumentPath =
       await this.filesService.saveDownloadedDocument(
-        document.numerationDocument.number.toString(),
+        `${document.numerationDocument.number.toString()}.docx`,
         tempDocxPath,
         blob,
       )
-
-    // return savedDownloadedDocumentPath
 
     const filteredDocumentPath = await this.filesService.filterDocument(
       savedDownloadedDocumentPath,
@@ -123,7 +134,29 @@ export class DocumentRecopilationService {
       DEFAULT_VARIABLE.TO,
     )
 
-    await this.filesService.removePageBreaks(filteredDocumentPath)
+    if (!filteredDocumentPath) {
+      throw new ConflictException('Error al filtrar el documento')
+    }
+
+    const replaceEntries: IReplaceText = {
+      [DEFAULT_VARIABLE.SEPARATOR_NUMDOC]: formatNumeration(
+        document.numerationDocument.number,
+      ),
+      [DEFAULT_VARIABLE.SEPARATOR_YEAR]:
+        document.numerationDocument.council.submoduleYearModule.yearModule.year.toString(),
+    }
+
+    const replacedSeparator =
+      await this.filesService.copyAndReplaceTextOnLocalDocument(
+        `${document.numerationDocument.number.toString()}-separator.docx`,
+        replaceEntries,
+        separatorPath,
+        tempDocxPath,
+      )
+
+    if (!replacedSeparator) {
+      throw new ConflictException('Error al reemplazar el separador')
+    }
 
     return filteredDocumentPath
   }
@@ -218,5 +251,42 @@ export class DocumentRecopilationService {
     return new ApiResponseDto('Documento de recopilación creado', {
       council: updatedCouncil,
     })
+  }
+
+  async getDocumentsByCouncilId(councilId: number) {
+    const documents = await this.dataSource
+      .getRepository(DocumentEntity)
+      .createQueryBuilder('document')
+      .select([
+        'document.id',
+        'document.createdAt',
+        'document.driveId',
+        'document.description',
+      ])
+      .leftJoinAndSelect('document.numerationDocument', 'numerationDocument')
+      .leftJoinAndSelect('numerationDocument.council', 'council')
+      .leftJoinAndSelect('council.module', 'module')
+      .leftJoinAndSelect('council.submoduleYearModule', 'submoduleYearModule')
+      .leftJoinAndSelect('submoduleYearModule.yearModule', 'yearModule')
+      .leftJoinAndSelect('council.attendance', 'attendance')
+      .leftJoinAndSelect('attendance.functionary', 'functionary')
+      .leftJoinAndSelect('document.user', 'user')
+      .leftJoinAndSelect('document.student', 'student')
+      .leftJoinAndSelect('student.career', 'career')
+      .leftJoinAndSelect('student.canton', 'canton')
+      .leftJoinAndSelect('document.templateProcess', 'templateProcess')
+      .leftJoinAndSelect(
+        'document.documentFunctionaries',
+        'documentFunctionaries',
+      )
+      .leftJoinAndSelect('documentFunctionaries.functionary', 'functionarys')
+      .where('council.id = :councilId', { councilId })
+      .getMany()
+
+    if (!documents) {
+      throw new NotFoundException('Documentos no encontrados')
+    }
+
+    return documents
   }
 }
