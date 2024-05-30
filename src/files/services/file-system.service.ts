@@ -77,4 +77,12 @@ export class FileSystemService {
 
     return files
   }
+
+  async exportFile(pathFile: string): Promise<Blob> {
+    const fileResolved = path.resolve(pathFile)
+
+    const buffer = fs.readFileSync(fileResolved)
+
+    return new Blob([buffer])
+  }
 }

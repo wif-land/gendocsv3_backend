@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
@@ -16,6 +18,8 @@ import { VariablesService } from '../../variables/variables.service'
 import { DataSource } from 'typeorm'
 import { IReplaceText } from '../../shared/interfaces/replace-text'
 import { formatNumeration } from '../../shared/utils/string'
+import { createReadStream } from 'fs'
+import { ReadStream } from 'typeorm/platform/PlatformTools'
 
 @Injectable()
 export class DocumentRecopilationService {
@@ -99,8 +103,11 @@ export class DocumentRecopilationService {
 
     const resolvedDocuments = await Promise.all(preparedDocuments)
 
+    const mergedDocument = await this.mergeDocuments(council.id, council)
+
     return new ApiResponseDto('Recopilación de documentos creada', {
-      documentsRecopilated: resolvedDocuments,
+      documentsRecopilated: resolvedDocuments.length,
+      mergedDocument: !!mergedDocument.data.mergedDocumentPath,
     })
   }
 
@@ -141,6 +148,8 @@ export class DocumentRecopilationService {
     const replaceEntries: IReplaceText = {
       [DEFAULT_VARIABLE.SEPARATOR_NUMDOC]: formatNumeration(
         document.numerationDocument.number,
+        // eslint-disable-next-line no-magic-numbers
+        3,
       ),
       [DEFAULT_VARIABLE.SEPARATOR_YEAR]:
         document.numerationDocument.council.submoduleYearModule.yearModule.year.toString(),
@@ -161,8 +170,10 @@ export class DocumentRecopilationService {
     return filteredDocumentPath
   }
 
-  async mergeDocuments(councilId: number) {
-    const council = await this.getCouncilAndValidate(councilId)
+  async mergeDocuments(councilId: number, councilEntity?: CouncilEntity) {
+    const council =
+      // eslint-disable-next-line no-extra-parens
+      councilEntity ?? (await this.getCouncilAndValidate(councilId))
 
     const councilPath = getCouncilPath(council)
     const tempDocxPath = `${councilPath}/temp/`
@@ -180,7 +191,20 @@ export class DocumentRecopilationService {
       generatedCouncilPath,
     )
 
-    return new ApiResponseDto('Documentos fusionados', {
+    const councilUpdated = await this.dataSource.manager
+      .getRepository(CouncilEntity)
+      .update(councilId, {
+        hasProcessedDocuments: true,
+      })
+
+    if (!councilUpdated) {
+      throw new HttpException(
+        'Error al actualizar los documentos procesados del consejo',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    return new ApiResponseDto('Documentos del consejo procesados', {
       mergedDocumentPath,
     })
   }
@@ -188,33 +212,39 @@ export class DocumentRecopilationService {
   async generateRecopilationDocument(councilId: number) {
     const council = await this.dataSource.manager
       .getRepository(CouncilEntity)
-      .findOne({
-        where: { id: councilId },
-        relations: {
-          attendance: {
-            functionary: true,
-          },
-          module: true,
-          submoduleYearModule: {
-            yearModule: true,
-          },
-        },
-      })
+      .createQueryBuilder('council')
+      .leftJoinAndSelect('council.module', 'module')
+      .leftJoinAndSelect('council.submoduleYearModule', 'submoduleYearModule')
+      .leftJoinAndSelect('submoduleYearModule.yearModule', 'yearModule')
+      .leftJoinAndSelect('council.attendance', 'attendance')
+      .leftJoinAndSelect('attendance.functionary', 'functionary')
+      .where('council.id = :councilId', { councilId })
+      .getOne()
+
+    if (!council) {
+      throw new NotFoundException('Consejo no encontrado')
+    }
 
     const councilWithRecopilation = await this.dataSource.manager
       .getRepository(CouncilEntity)
       .findAndCount({
         where: {
           recopilationDriveId: null,
+          submoduleYearModule: {
+            id: council.submoduleYearModule.id,
+          },
         },
       })
 
-    if (!council) {
-      throw new NotFoundException('Consejo no encontrado')
-    }
+    const recopilationNumber = councilWithRecopilation[1]
+      ? councilWithRecopilation[1] + 1
+      : 1
 
     const docCouncil = await this.filesService.createDocumentByParentIdAndCopy(
-      'ACTA-',
+      // eslint-disable-next-line no-magic-numbers
+      `ACTA ${formatNumeration(recopilationNumber, 3)}/${
+        council.submoduleYearModule.yearModule.year
+      } ${formatDateText(council.date).toUpperCase()}`,
       council.driveId,
       council.module.compilationTemplateDriveId,
     )
@@ -225,7 +255,7 @@ export class DocumentRecopilationService {
 
     const { data: recopilationVariblesData } =
       await this.variableService.getRecopilationVariables(
-        councilWithRecopilation[1] ?? 1,
+        recopilationNumber,
         council,
       )
     const { data: replacedVariables } =
@@ -251,6 +281,41 @@ export class DocumentRecopilationService {
     return new ApiResponseDto('Documento de recopilación creado', {
       council: updatedCouncil,
     })
+  }
+
+  async downloadMergedDocument(councilId: number): Promise<ReadStream> {
+    const council = await this.dataSource.manager
+      .getRepository(CouncilEntity)
+      .findOne({
+        where: { id: councilId },
+        relations: {
+          submoduleYearModule: {
+            yearModule: true,
+          },
+        },
+      })
+
+    if (!council) {
+      throw new NotFoundException('Consejo no encontrado')
+    }
+
+    const councilPath = getCouncilPath(council)
+    const mergedDocumentPath = `${councilPath}/generated/${
+      council.name
+    }-Recopilación-${formatDateText(council.date)}.docx`
+
+    return createReadStream(mergedDocumentPath)
+
+    // const blob = await this.filesService.exportLocalAsset(mergedDocumentPath)
+
+    // if (!blob) {
+    //   throw new NotFoundException('Documento no encontrado')
+    // }
+
+    // const stream = new Stream.PassThrough()
+    // stream.end(blob)
+
+    // return stream
   }
 
   async getDocumentsByCouncilId(councilId: number) {
