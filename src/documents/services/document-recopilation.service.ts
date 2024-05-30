@@ -108,6 +108,7 @@ export class DocumentRecopilationService {
     return new ApiResponseDto('Recopilación de documentos creada', {
       documentsRecopilated: resolvedDocuments.length,
       mergedDocument: !!mergedDocument.data.mergedDocumentPath,
+      council: mergedDocument.data.council,
     })
   }
 
@@ -204,8 +205,17 @@ export class DocumentRecopilationService {
       )
     }
 
+    const councilWithRecopilation = await this.dataSource.manager
+      .getRepository(CouncilEntity)
+      .findOne({
+        where: {
+          id: councilId,
+        },
+      })
+
     return new ApiResponseDto('Documentos del consejo procesados', {
       mergedDocumentPath,
+      council: councilWithRecopilation,
     })
   }
 
