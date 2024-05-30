@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { CreateStudentDto } from './dto/create-student.dto'
 import { UpdateStudentDto } from './dto/update-student.dto'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import { StudentEntity } from './entities/student.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { StudentBadRequestError } from './errors/student-bad-request'
@@ -18,6 +18,8 @@ export class StudentsService {
   constructor(
     @InjectRepository(StudentEntity)
     private readonly studentRepository: Repository<StudentEntity>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createStudentDto: CreateStudentDto) {
@@ -52,13 +54,75 @@ export class StudentsService {
     try {
       await queryRunner.startTransaction()
 
-      await this.studentRepository.upsert(
-        createStudentsBulkDto as unknown as Partial<StudentEntity>[],
-        {
-          conflictPaths: ['dni'],
-          skipUpdateIfNoValuesChanged: true,
-        },
-      )
+      // do upsert, never will come with id, so we need to do the update with finding dni
+
+      const promises = createStudentsBulkDto.map(async (student) => {
+        const studentEntity = await this.dataSource
+          .getRepository(StudentEntity)
+          .createQueryBuilder('student')
+          .leftJoinAndSelect('student.career', 'career')
+          .leftJoinAndSelect('student.canton', 'canton')
+          .leftJoinAndSelect('canton.province', 'province')
+          .where('student.dni = :dni', { dni: student.dni })
+          .getOne()
+
+        if (studentEntity) {
+          let studentDataToUpdate: object = {
+            ...student,
+          }
+
+          if (student.career) {
+            studentDataToUpdate = {
+              ...studentDataToUpdate,
+              career: { id: student.career },
+            }
+          }
+
+          if (student.canton) {
+            studentDataToUpdate = {
+              ...studentDataToUpdate,
+              canton: { id: student.canton },
+            }
+          }
+          const updated = await this.studentRepository.update(
+            studentEntity.id,
+            studentDataToUpdate as unknown as Partial<StudentEntity>,
+          )
+
+          if (!updated) {
+            throw new StudentError({
+              detail: 'Error al actualizar los datos del estudiante',
+              instance: 'students.errors.StudentsService.createBulk',
+            })
+          }
+        } else {
+          const saved = await this.studentRepository.save({
+            ...student,
+            career: { id: student.career ?? undefined },
+            canton: { id: student.canton ?? undefined },
+          })
+
+          if (!saved) {
+            throw new StudentError({
+              detail: 'Error al guardar los datos del estudiante',
+              instance: 'students.errors.StudentsService.createBulk',
+            })
+          }
+        }
+      })
+
+      await Promise.all(promises)
+
+      // await this.studentRepository.upsert(
+      //   createStudentsBulkDto as unknown as Partial<StudentEntity>[],
+      //   {
+      //     conflictPaths: ['dni'],
+      //     skipUpdateIfNoValuesChanged: true,
+      //     indexPredicate: {
+
+      //     }
+      //   },
+      // )
 
       await queryRunner.commitTransaction()
 
