@@ -7,6 +7,8 @@ import {
   Delete,
   ParseIntPipe,
   Query,
+  HttpException,
+  StreamableFile,
 } from '@nestjs/common'
 import { DocumentsService } from './services/documents.service'
 import { CreateDocumentDto } from './dto/create-document.dto'
@@ -65,6 +67,7 @@ export class DocumentsController {
     }
   }
 
+  // Este ya no hace falta llamar, se hizo con objeto de test solo llamar al @Post('create-recopilation/content/:id')
   @Post('create-recopilation/merge/:id')
   async mergeRecopilation(@Param('id', ParseIntPipe) id: number) {
     try {
@@ -72,6 +75,23 @@ export class DocumentsController {
     } catch (error) {
       console.error(error)
       return error
+    }
+  }
+
+  @Get('create-recopilation/:id')
+  async downloadRecopilation(@Param('id', ParseIntPipe) councilId: number) {
+    try {
+      const fileStream =
+        await this.documentRecopilationService.downloadMergedDocument(councilId)
+
+      return new StreamableFile(fileStream, {
+        type: 'application/msword', // Ajusta según el tipo de archivo
+        disposition: `attachment; filename="${councilId}.docx"`, // Asegúrate de definir un nombre de archivo adecuado
+      })
+    } catch (error) {
+      console.error(error)
+      // eslint-disable-next-line no-magic-numbers
+      return new HttpException('Error al descargar el archivo', 500)
     }
   }
 }

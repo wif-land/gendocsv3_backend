@@ -26,7 +26,17 @@ export class FilesService {
   ) {
     const tempDocxPath = `${generatedCouncilPath}/${title}.docx`
 
-    this.docxService.mergeDocuments(documentPaths, tempDocxPath)
+    const isMerged = await this.docxService.mergeDocuments(
+      documentPaths,
+      tempDocxPath,
+    )
+
+    if (isMerged !== 0) {
+      throw new HttpException(
+        'Error al fusionar los documentos',
+        HttpStatus.CONFLICT,
+      )
+    }
     return tempDocxPath
   }
 
@@ -172,6 +182,19 @@ export class FilesService {
     if (!blob) {
       throw new HttpException(
         'No se recibieron datos del servicio de GCP',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    return blob
+  }
+
+  async exportLocalAsset(pathFile: string) {
+    const blob = await this.fileSystemService.exportFile(pathFile)
+
+    if (!blob) {
+      throw new HttpException(
+        'No se pudo obtener el archivo especificado',
         HttpStatus.CONFLICT,
       )
     }

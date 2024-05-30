@@ -858,8 +858,19 @@ export class VariablesService {
     })
   }
 
+  // TODO: Cambiar la condicion de asistencia una vez implementada la asistencia de consejos
+
   async getRecopilationVariables(numdoc: number, council: CouncilEntity) {
     try {
+      const hasAttended = council.attendance.filter(
+        (attendance) => attendance,
+        // (attendance) => attendance.hasAttended,
+      )
+      const hasNotAttended = council.attendance.filter(
+        // (attendance) => !attendance.hasAttended,
+        (attendance) => attendance,
+      )
+
       const variables = {
         [DEFAULT_VARIABLE.FECHA]: formatDate(council.date),
         [DEFAULT_VARIABLE.RESPONSABLE]: getFullName(
@@ -867,12 +878,16 @@ export class VariablesService {
             (attendance) => attendance.positionOrder === 1,
           ).functionary,
         ),
-        [DEFAULT_VARIABLE.NUMACT]: formatNumeration(numdoc),
+        // eslint-disable-next-line no-magic-numbers
+        [DEFAULT_VARIABLE.NUMACT]: formatNumeration(numdoc, 3),
         [DEFAULT_VARIABLE.FECHAUP]: formatDateText(council.date),
         [DEFAULT_VARIABLE.SESIONUP]: council.type.toUpperCase(),
         [DEFAULT_VARIABLE.SESION]: council.type.toLowerCase(),
+        [DEFAULT_VARIABLE.SESION_L]: council.type.toLowerCase(),
         [DEFAULT_VARIABLE.Y]: council.date.getFullYear().toString(),
-        [DEFAULT_VARIABLE.DIASEM_T]: formatWeekDayName(council.date),
+        [DEFAULT_VARIABLE.DIASEM_T]: formatWeekDayName(
+          council.date,
+        ).toUpperCase(),
         [DEFAULT_VARIABLE.NUMMES_T_U]: formatMonthName(
           council.date,
         ).toUpperCase(),
@@ -888,19 +903,20 @@ export class VariablesService {
         ).toLowerCase(),
         [DEFAULT_VARIABLE.DIAS_T]: `${transformNumberToWords(
           council.date.getDate(),
-        )} días`,
+        ).toLowerCase()} días`,
         [DEFAULT_VARIABLE.HORA_T_L]: transformNumberToWords(
           council.date.getHours(),
-        ),
+        ).toLowerCase(),
         [DEFAULT_VARIABLE.MINUTOS_T_L]: transformNumberToWords(
           council.date.getMinutes(),
         ).toLowerCase(),
-        [DEFAULT_VARIABLE.ASISTIERON]: this.formatMembersNames(
-          council.attendance.filter((attendance) => attendance.hasAttended),
-        ),
-        [DEFAULT_VARIABLE.NO_ASISTIERON]: this.formatMembersNames(
-          council.attendance.filter((attendance) => !attendance.hasAttended),
-        ),
+        [DEFAULT_VARIABLE.ASISTIERON]:
+          hasAttended?.length > 0
+            ? this.formatMembersNames(hasAttended)
+            : 'NO ASISTIÓ NINGUN MIEMBRO',
+        [DEFAULT_VARIABLE.NO_ASISTIERON]: hasNotAttended
+          ? this.formatMembersNames(hasNotAttended)
+          : 'ASISTIERON TODOS LOS MIEMBROS',
       }
       const { data: positionsVariables } = await this.getPositionVariables()
 
@@ -912,6 +928,7 @@ export class VariablesService {
         },
       )
     } catch (error) {
+      console.log(error)
       throw new InternalServerErrorException(error.message)
     }
   }
