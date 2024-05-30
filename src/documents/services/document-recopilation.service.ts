@@ -299,23 +299,16 @@ export class DocumentRecopilationService {
       throw new NotFoundException('Consejo no encontrado')
     }
 
+    if (!council.hasProcessedDocuments) {
+      throw new ConflictException('El consejo no tiene documentos procesados')
+    }
+
     const councilPath = getCouncilPath(council)
     const mergedDocumentPath = `${councilPath}/generated/${
       council.name
     }-Recopilación-${formatDateText(council.date)}.docx`
 
     return createReadStream(mergedDocumentPath)
-
-    // const blob = await this.filesService.exportLocalAsset(mergedDocumentPath)
-
-    // if (!blob) {
-    //   throw new NotFoundException('Documento no encontrado')
-    // }
-
-    // const stream = new Stream.PassThrough()
-    // stream.end(blob)
-
-    // return stream
   }
 
   async getDocumentsByCouncilId(councilId: number) {
