@@ -44,7 +44,7 @@ export class StudentsService {
     return new ApiResponseDto('Estudiante creado correctamente', newStudent)
   }
 
-  async createBulk(createStudentsBulkDto: UpdateStudentsBulkItemDto[]) {
+  async createUpdateBulk(createStudentsBulkDto: UpdateStudentsBulkItemDto[]) {
     const queryRunner =
       this.studentRepository.manager.connection.createQueryRunner()
     await queryRunner.connect()

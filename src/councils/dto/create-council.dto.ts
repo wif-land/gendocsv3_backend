@@ -20,7 +20,7 @@ export class CreateCouncilDto implements ICouncil {
   })
   @IsNotEmpty({ message: 'Council type is required' })
   @IsEnum(COUNCIL_TYPES, {
-    message: 'Council type must be EXTRAORDINARY or ORDINARY',
+    message: 'El tipo de consejo debe ser Extraordinaria o Ordinaria',
   })
   type: COUNCIL_TYPES
 

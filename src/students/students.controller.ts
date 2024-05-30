@@ -30,7 +30,7 @@ export class StudentsController {
 
   @Patch('bulk')
   async createBulk(@Body() createStudentsBulkDto: UpdateStudentsBulkItemDto[]) {
-    return await this.studentsService.createBulk(createStudentsBulkDto)
+    return await this.studentsService.createUpdateBulk(createStudentsBulkDto)
   }
 
   @ApiResponse({ isArray: true, type: StudentEntity })
