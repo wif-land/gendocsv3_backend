@@ -826,7 +826,7 @@ export class NumerationDocumentService {
             )
 
           if (
-            createNumerationDocumentDto.number <=
+            createNumerationDocumentDto.number <
             availableCouncilNumeration[0].number
           ) {
             throw new NumerationConflict(

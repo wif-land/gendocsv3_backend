@@ -12,8 +12,8 @@ import { HttpModule } from '@nestjs/axios'
 import { AuthModule } from './auth/auth.module'
 import { UsersModule } from './users/users.module'
 import { FilesController } from './files/files.controller'
-import { FilesService } from './files/files.service'
-import { FilesModule } from './files/files.module'
+import { FilesService } from './files/services/files.service'
+import { FilesModule } from './files/modules/files.module'
 import { GcpModule } from './gcp/gcp.module'
 import { ModulesModule } from './modules/modules.module'
 import { CareersModule } from './careers/careers.module'
@@ -37,6 +37,8 @@ import { CitiesModule } from './cities/cities.module'
 import { DegreeCertificatesModule } from './degree-certificates/degree-certificates.module'
 import { CouncilsAttendanceModule } from './council-attendance/module'
 import { DegreeCertificateAttendanceModule } from './degree-certificate-attendance/degree-certificate-attendance.module'
+import { FileSystemModule } from './files/modules/file-system.module'
+import { DocxModule } from './files/modules/docx.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -74,6 +76,8 @@ export default connectionSource
     AuthModule,
     UsersModule,
     FilesModule,
+    FileSystemModule,
+    DocxModule,
     GcpModule,
     ModulesModule,
     CareersModule,

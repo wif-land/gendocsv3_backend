@@ -25,7 +25,7 @@ import {
   DEGREE_CERTIFICATE_GRADES,
 } from '../shared/enums/degree-certificates'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
-import { FilesService } from '../files/files.service'
+import { FilesService } from '../files/services/files.service'
 import { StudentsService } from '../students/students.service'
 import { StudentEntity } from '../students/entities/student.entity'
 import { CertificateTypeCareerEntity } from './entities/certicate-type-career.entity'
