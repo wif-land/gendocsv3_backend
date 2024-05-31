@@ -128,7 +128,7 @@ export class CreateStudentDto {
     description: 'Cantón de nacimiento',
     type: Number,
   })
-  @IsString({
+  @IsNotEmpty({
     message: 'canton is required',
   })
   canton: number
@@ -197,7 +197,7 @@ export class CreateStudentDto {
     message: 'there is a problem with intershipHours',
   })
   @IsOptional()
-  intershipHours?: number
+  internshipHours?: number
 
   @ApiProperty({
     description: 'Id de la carrera a la que pertenece el estudiante',

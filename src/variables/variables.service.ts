@@ -39,6 +39,8 @@ import { transformNumberToWords } from '../shared/utils/number'
 import { StudentEntity } from '../students/entities/student.entity'
 import { DegreeCertificateAttendanceEntity } from '../degree-certificate-attendance/entities/degree-certificate-attendance.entity'
 import { ADJECTIVES } from '../shared/enums/adjectives'
+import { CouncilEntity } from '../councils/entities/council.entity'
+import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
 
 @Injectable()
 export class VariablesService {
@@ -47,6 +49,320 @@ export class VariablesService {
     private readonly variableRepository: Repository<VariableEntity>,
     private dataSource: DataSource,
   ) {}
+
+  async showVariables() {
+    const positions = await this.dataSource.manager
+      .getRepository(PositionEntity)
+      .find({
+        relationLoadStrategy: 'join',
+        relations: {
+          functionary: true,
+        },
+      })
+
+    const positionsVariables = positions.map((position) => ({
+      variable: position.variable,
+      example: getFullName(position.functionary),
+    }))
+
+    const studentVariables = [
+      {
+        variable: DefaultVariable.ESTUDIANTE,
+        example: 'Juan Pérez',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTEUP,
+        example: 'JUAN PÉREZ',
+      },
+      {
+        variable: DefaultVariable.CEDULA,
+        example: '1234567890',
+      },
+      {
+        variable: DefaultVariable.MATRICULA,
+        example: '0001',
+      },
+      {
+        variable: DefaultVariable.FOLIO,
+        example: '0001',
+      },
+      {
+        variable: DefaultVariable.TELEFONO,
+        example: '032382323',
+      },
+      {
+        variable: DefaultVariable.CELULAR,
+        example: '0999988888',
+      },
+      {
+        variable: DefaultVariable.CORREO,
+        example: 'estudiante@gmail.com',
+      },
+      {
+        variable: DefaultVariable.CORREOUTA,
+        example: 'estudiante@uta.edu.ec',
+      },
+      {
+        variable: DefaultVariable.NOMBRECARRERA,
+        example: 'Ingeniería en Sistemas',
+      },
+      {
+        variable: DefaultVariable.NOMBRECARRERAUP,
+        example: 'INGENIERÍA EN SISTEMAS',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_TITULO,
+        example: 'Ingeniero en Sistemas',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_FECHA_NACIMIENTO,
+        example: '16 de julio de 1990',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_TITULO_UPPER,
+        example: 'INGENIERO EN SISTEMAS',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_TEMA,
+        example: 'Tesis de analisis',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_TITULO_BACHILLER,
+        example: 'Bachiller en Ciencias',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP,
+        example: '16 de julio de 2010',
+      },
+      {
+        variable: DefaultVariable.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP,
+        example: '16 de julio de 2015',
+      },
+      {
+        variable: DefaultVariable.COORDINADOR,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DefaultVariable.CANTON,
+        example: 'Ambato',
+      },
+      {
+        variable: DefaultVariable.PROVINCE,
+        example: 'Tungurahua',
+      },
+    ]
+
+    const functionariesVariables = [
+      {
+        variable: DefaultVariable.DOCENTE_N.replace('$i', '1'),
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DefaultVariable.DOCENTE_N.replace('$i', '2'),
+        example: 'Ing. Juan Pérez',
+      },
+    ]
+    const councilVariables = [
+      {
+        variable: DefaultVariable.FECHA,
+        example: '16 de julio de 2021',
+      },
+      {
+        variable: DefaultVariable.RESPONSABLE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DefaultVariable.NUMACT,
+        example: '001',
+      },
+      {
+        variable: DefaultVariable.FECHAUP,
+        example: '16 DE JULIO DE 2021',
+      },
+      {
+        variable: DefaultVariable.SESIONUP,
+        example: 'ORDINARIA',
+      },
+      {
+        variable: DefaultVariable.SESION,
+        example: 'ordinaria',
+      },
+      {
+        variable: DefaultVariable.Y,
+        example: '2022',
+      },
+      {
+        variable: DefaultVariable.DIASEM_T,
+        example: 'viernes',
+      },
+      {
+        variable: DefaultVariable.NUMMES_T_U,
+        example: 'JULIO',
+      },
+      {
+        variable: DefaultVariable.MES_T_L,
+        example: 'julio',
+      },
+      {
+        variable: DefaultVariable.NUMDIA_T,
+        example: 'dieciséis',
+      },
+      {
+        variable: DefaultVariable.NUMANIO_T,
+        example: 'dos mil veintiuno',
+      },
+      {
+        variable: DefaultVariable.NUMANIO_T_L,
+        example: 'dos mil veintiuno',
+      },
+      {
+        variable: DefaultVariable.DIAS_T,
+        example: 'dieciséis días',
+      },
+      {
+        variable: DefaultVariable.HORA_T_L,
+        example: 'dieciséis',
+      },
+      {
+        variable: DefaultVariable.MINUTOS_T_L,
+        example: 'dieciséis',
+      },
+      {
+        variable: DefaultVariable.ASISTIERON,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DefaultVariable.NO_ASISTIERON,
+        example: 'Ing. Juan Pérez',
+      },
+    ]
+    const documentVariables = [
+      {
+        variable: DefaultVariable.CREADOPOR,
+        example: 'Usuario admin',
+      },
+      {
+        variable: DefaultVariable.NUMDOC,
+        example: '001',
+      },
+      {
+        variable: DefaultVariable.YEAR,
+        example: '2022',
+      },
+    ]
+    const degreeCertificateVariables = [
+      {
+        variable: GENDER_DESIGNATION_VARIABLE(1),
+        example: 'el señor',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.PRINCIPAL][
+            ADJECTIVES.PLURAL
+          ],
+        example: 'designados mediante',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.PRINCIPAL][
+            ADJECTIVES.SINGULAR
+          ],
+        example: 'designado mediante',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.SUBSTITUTE][
+            ADJECTIVES.PLURAL
+          ],
+        example: 'principalizados mediante',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.SUBSTITUTE][
+            ADJECTIVES.SINGULAR
+          ],
+        example: 'principalizado mediante',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable:
+          DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT_DOC_ASSIGNED,
+        example: 'Presidente',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.MEMBERS_DEGREE_CERTIFICATE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_DEGREE_CERTIFICATE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_DEGREE_CERTIFICATE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.CREATED_BY,
+        example: 'Usuario admin',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DECANA,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.IC_UNIT_PRESIDENT,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_TYPE,
+        example: 'ACTA DE GRADO',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_TOPIC,
+        example: 'Tesis de analisis',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.CREDITS_TEXT,
+        example: 'cien',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.CREDITS_NUMBER,
+        example: '100',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.INTERNSHIP_HOURS,
+        example: '100',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.VINCULATION_HOURS,
+        example: '100',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.VINCULATION_HOURS_TEXT,
+        example: 'cien',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.INTERNSHIP_HOURS_TEXT,
+        example: 'cien',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.DEGREE_CERTIFICATE_STATUS,
+        example: 'GRADUADO',
+      },
+    ]
+
+    return new ApiResponseDto('Variables encontradas con éxito', {
+      Posiciones: positionsVariables,
+      Estudiantes: studentVariables,
+      Funcionarios: functionariesVariables,
+      Consejos: councilVariables,
+      Documentos: documentVariables,
+      Actas_de_grado: degreeCertificateVariables,
+    })
+  }
 
   async create(createVariableDto: CreateVariableDto) {
     try {
@@ -338,7 +654,9 @@ export class VariablesService {
     }
   }
 
-  formatMembersNames(members: DegreeCertificateAttendanceEntity[]) {
+  formatMembersNames(
+    members: DegreeCertificateAttendanceEntity[] | CouncilAttendanceEntity[],
+  ) {
     if (members.length === 1) {
       return getFullName(members[0].functionary)
     }
@@ -537,6 +855,66 @@ export class VariablesService {
       ...titulationData,
       ...positionsVariables,
     })
+  }
+
+  async getRecopilationVariables(numdoc: number, council: CouncilEntity) {
+    try {
+      console.log(council.attendance)
+      const variables = {
+        [DefaultVariable.FECHA]: formatDate(council.date),
+        [DefaultVariable.RESPONSABLE]: getFullName(
+          council.attendance.find(
+            (attendance) => attendance.positionOrder === 1,
+          ).functionary,
+        ),
+        [DefaultVariable.NUMACT]: formatNumeration(numdoc),
+        [DefaultVariable.FECHAUP]: formatDateText(council.date),
+        [DefaultVariable.SESIONUP]: council.type.toUpperCase(),
+        [DefaultVariable.SESION]: council.type.toLowerCase(),
+        [DefaultVariable.Y]: council.date.getFullYear().toString(),
+        [DefaultVariable.DIASEM_T]: formatWeekDayName(council.date),
+        [DefaultVariable.NUMMES_T_U]: formatMonthName(
+          council.date,
+        ).toUpperCase(),
+        [DefaultVariable.MES_T_L]: formatMonthName(council.date).toLowerCase(),
+        [DefaultVariable.NUMDIA_T]: transformNumberToWords(
+          council.date.getDate(),
+        ),
+        [DefaultVariable.NUMANIO_T]: transformNumberToWords(
+          council.date.getFullYear(),
+        ),
+        [DefaultVariable.NUMANIO_T_L]: transformNumberToWords(
+          council.date.getFullYear(),
+        ).toLowerCase(),
+        [DefaultVariable.DIAS_T]: `${transformNumberToWords(
+          council.date.getDate(),
+        )} días`,
+        [DefaultVariable.HORA_T_L]: transformNumberToWords(
+          council.date.getHours(),
+        ),
+        [DefaultVariable.MINUTOS_T_L]: transformNumberToWords(
+          council.date.getMinutes(),
+        ).toLowerCase(),
+        [DefaultVariable.ASISTIERON]: this.formatMembersNames(
+          council.attendance.filter((attendance) => attendance.hasAttended),
+        ),
+        [DefaultVariable.NO_ASISTIERON]: this.formatMembersNames(
+          council.attendance.filter((attendance) => !attendance.hasAttended),
+        ),
+      }
+      console.log(variables)
+      const { data: positionsVariables } = await this.getPositionVariables()
+
+      return new ApiResponseDto(
+        'Variables de recopilación encontradas con éxito',
+        {
+          ...variables,
+          ...positionsVariables,
+        },
+      )
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
   }
 
   async getPositionVariables() {

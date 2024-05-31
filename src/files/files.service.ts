@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { GcpService } from '../gcp/gcp.service'
+import { CreateRecopilationDto } from '../gcp/gcp.controller'
 
 @Injectable()
 export class FilesService {
@@ -104,5 +105,18 @@ export class FilesService {
 
     const values = data
     return values
+  }
+
+  async compileSections(dto: CreateRecopilationDto) {
+    const result = await this.gcpService.compileSections(
+      dto.documentsInfo,
+      dto.templateId,
+    )
+
+    if (!result) {
+      throw new HttpException('Error compiling sections', HttpStatus.CONFLICT)
+    }
+
+    return result
   }
 }

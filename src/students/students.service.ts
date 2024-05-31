@@ -21,7 +21,7 @@ export class StudentsService {
   ) {}
 
   async create(createStudentDto: CreateStudentDto) {
-    if (this.studentRepository.findOneBy({ dni: createStudentDto.dni })) {
+    if (await this.studentRepository.findOneBy({ dni: createStudentDto.dni })) {
       throw new StudentAlreadyExists(
         `El estudiante con cédula ${createStudentDto.dni} ya existe`,
       )
