@@ -19,6 +19,7 @@ export class DocxService {
     const tempDir = await fs.mkdir(path.join(path.resolve(tempPath), 'docx-'), {
       recursive: true,
     })
+    console.log(tempDir)
     try {
       const zip = new AdmZip(await fs.readFile(filePath))
       zip.extractAllTo(tempDir, true)
