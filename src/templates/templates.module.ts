@@ -3,7 +3,7 @@ import { TemplatesService } from './templates.service'
 import { TemplatesController } from './templates.controller'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { TemplateProcess } from './entities/template-processes.entity'
-import { FilesModule } from '../files/files.module'
+import { FilesModule } from '../files/modules/files.module'
 
 @Module({
   controllers: [TemplatesController],
