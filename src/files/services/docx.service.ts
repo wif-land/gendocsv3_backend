@@ -15,7 +15,10 @@ export class DocxService {
     start: string,
     end: string,
   ): Promise<string> {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'docx-'))
+    const tempPath = '/storage/temp/'
+    const tempDir = await fs.mkdir(path.join(path.resolve(tempPath), 'docx-'), {
+      recursive: true,
+    })
     try {
       const zip = new AdmZip(await fs.readFile(filePath))
       zip.extractAllTo(tempDir, true)
@@ -69,6 +72,8 @@ export class DocxService {
     const zip = new AdmZip()
     zip.addLocalFolder(tempDir)
     await fs.writeFile(filePath, zip.toBuffer())
+
+    await fs.rm(tempDir, { recursive: true, force: true }) // Clean up the temporary directory
   }
 
   async mergeDocuments(
