@@ -39,6 +39,8 @@ import { CouncilsAttendanceModule } from './council-attendance/module'
 import { DegreeCertificateAttendanceModule } from './degree-certificate-attendance/degree-certificate-attendance.module'
 import { FileSystemModule } from './files/modules/file-system.module'
 import { DocxModule } from './files/modules/docx.module'
+import { EmailService } from './email/email.service'
+import { EmailModule } from './email/email.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -99,13 +101,17 @@ export default connectionSource
     DegreeCertificatesModule,
     CouncilsAttendanceModule,
     DegreeCertificateAttendanceModule,
+    EmailModule,
   ],
   controllers: [AppController, FilesController],
-  providers: [AppService, LoggerMiddleware, FilesService],
+  providers: [AppService, LoggerMiddleware, FilesService, EmailService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer): void {
-    if (process.env.NODE_ENV === 'production') {
+    if (
+      process.env.NODE_ENV === 'production' ||
+      process.env.NODE_ENV === 'staging'
+    ) {
       consumer.apply(LoggerMiddleware).forRoutes('users/*')
       consumer.apply(LoggerMiddleware).forRoutes('auth/*')
       consumer.apply(LoggerMiddleware).forRoutes('careers/*')
