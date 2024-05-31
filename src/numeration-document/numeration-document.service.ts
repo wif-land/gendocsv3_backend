@@ -451,14 +451,14 @@ export class NumerationDocumentService {
         )
       }
 
-      if (start <= numerations[-1].number) {
+      if (start <= numerations[numerations.length - 1].number) {
         const prevCouncilNumerations = await this.dataSource.manager.findOne(
           NumerationDocumentEntity,
           {
             where: {
               council: { id: Not(councilId), isActive: true },
               state: NumerationState.RESERVED,
-              number: numerations[-1].number - 1,
+              number: numerations[numerations.length - 1].number - 1,
             },
           },
         )
@@ -477,14 +477,17 @@ export class NumerationDocumentService {
                 isActive: true,
               },
               state: NumerationState.RESERVED,
-              number: Between(start, numerations[-1].number - 1),
+              number: Between(
+                start,
+                numerations[numerations.length - 1].number - 1,
+              ),
             },
             order: { number: 'DESC' },
           })
 
         if (
           numbersToReserveBetweenCouncils.length !==
-          numerations[-1].number - start
+          numerations[numerations.length - 1].number - start
         ) {
           throw new NumerationBadRequest(
             'El rango de numeración solicitado para ampliarse ya está en uso',
