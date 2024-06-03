@@ -3,6 +3,7 @@ import {
   IsBoolean,
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator'
@@ -83,17 +84,13 @@ export class CreateFunctionaryDto {
   @ApiProperty({
     description: 'Tercer nivel de educación',
   })
-  @IsString({
-    message: 'thirdLevelDegree is required',
-  })
+  @IsNumber()
   thirdLevelDegree: number
 
   @ApiProperty({
     description: 'Cuarto nivel de educación',
   })
-  @IsString({
-    message: 'fourthLevelDegree is required',
-  })
+  @IsNumber()
   fourthLevelDegree: number
 
   @ApiProperty({

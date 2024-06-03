@@ -18,14 +18,14 @@ export class CareersService {
       if (data.isActive) {
         const existingCareer = await this.careerRepository.findOne({
           where: {
-            coordinator: { id: data.coordinator },
+            name: data.name,
             isActive: true,
           },
         })
 
         if (existingCareer) {
           throw new HttpException(
-            'El coordinador ya se encuentra asignado a una carrera activa',
+            'Ya existe una carrera activa con ese nombre',
             HttpStatus.BAD_REQUEST,
           )
         }
@@ -67,24 +67,18 @@ export class CareersService {
 
   async update(id: number, data: UpdateCareerDto) {
     try {
-      let coordinatorId: number
-      if (data.coordinator == null) {
-        coordinatorId = (await this.careerRepository.findOneBy({ id }))
-          .coordinator.id
-      }
-
-      if (data.isActive) {
+      if (data.name) {
         const existingCareer = await this.careerRepository.findOne({
           where: {
-            coordinator: { id: data.coordinator || coordinatorId },
-            isActive: true,
             id: Not(id),
+            isActive: true,
+            name: data.name,
           },
         })
 
         if (existingCareer) {
           throw new HttpException(
-            'El coordinador ya se encuentra asignado a una carrera activa',
+            'Ya existe una carrera activa con ese nombre',
             HttpStatus.BAD_REQUEST,
           )
         }
@@ -93,7 +87,7 @@ export class CareersService {
       const career = await this.careerRepository.preload({
         id,
         ...data,
-        coordinator: { id: data.coordinator || coordinatorId },
+        coordinator: { id: data.coordinator },
       })
 
       const careerUpdated = await this.careerRepository.save(career)

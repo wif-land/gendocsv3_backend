@@ -6,7 +6,7 @@ import {
 import { CreateVariableDto } from './dto/create-variable.dto'
 import { UpdateVariableDto } from './dto/update-variable.dto'
 import { DocumentEntity } from '../documents/entities/document.entity'
-import { DefaultVariable } from '../shared/enums/default-variable'
+import { DEFAULT_VARIABLE } from '../shared/enums/default-variable'
 import {
   formatDate,
   formatDateText,
@@ -39,6 +39,8 @@ import { transformNumberToWords } from '../shared/utils/number'
 import { StudentEntity } from '../students/entities/student.entity'
 import { DegreeCertificateAttendanceEntity } from '../degree-certificate-attendance/entities/degree-certificate-attendance.entity'
 import { ADJECTIVES } from '../shared/enums/adjectives'
+import { CouncilEntity } from '../councils/entities/council.entity'
+import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
 
 @Injectable()
 export class VariablesService {
@@ -47,6 +49,320 @@ export class VariablesService {
     private readonly variableRepository: Repository<VariableEntity>,
     private dataSource: DataSource,
   ) {}
+
+  async showVariables() {
+    const positions = await this.dataSource.manager
+      .getRepository(PositionEntity)
+      .find({
+        relationLoadStrategy: 'join',
+        relations: {
+          functionary: true,
+        },
+      })
+
+    const positionsVariables = positions.map((position) => ({
+      variable: position.variable,
+      example: getFullName(position.functionary),
+    }))
+
+    const studentVariables = [
+      {
+        variable: DEFAULT_VARIABLE.ESTUDIANTE,
+        example: 'Juan Pérez',
+      },
+      {
+        variable: DEFAULT_VARIABLE.ESTUDIANTEUP,
+        example: 'JUAN PÉREZ',
+      },
+      {
+        variable: DEFAULT_VARIABLE.CEDULA,
+        example: '1234567890',
+      },
+      {
+        variable: DEFAULT_VARIABLE.MATRICULA,
+        example: '0001',
+      },
+      {
+        variable: DEFAULT_VARIABLE.FOLIO,
+        example: '0001',
+      },
+      {
+        variable: DEFAULT_VARIABLE.TELEFONO,
+        example: '032382323',
+      },
+      {
+        variable: DEFAULT_VARIABLE.CELULAR,
+        example: '0999988888',
+      },
+      {
+        variable: DEFAULT_VARIABLE.CORREO,
+        example: 'estudiante@gmail.com',
+      },
+      {
+        variable: DEFAULT_VARIABLE.CORREOUTA,
+        example: 'estudiante@uta.edu.ec',
+      },
+      {
+        variable: DEFAULT_VARIABLE.NOMBRECARRERA,
+        example: 'Ingeniería en Sistemas',
+      },
+      {
+        variable: DEFAULT_VARIABLE.NOMBRECARRERAUP,
+        example: 'INGENIERÍA EN SISTEMAS',
+      },
+      {
+        variable: DEFAULT_VARIABLE.ESTUDIANTE_TITULO,
+        example: 'Ingeniero en Sistemas',
+      },
+      {
+        variable: DEFAULT_VARIABLE.ESTUDIANTE_FECHA_NACIMIENTO,
+        example: '16 de julio de 1990',
+      },
+      {
+        variable: DEFAULT_VARIABLE.ESTUDIANTE_TITULO_UPPER,
+        example: 'INGENIERO EN SISTEMAS',
+      },
+      {
+        variable: DEFAULT_VARIABLE.ESTUDIANTE_TEMA,
+        example: 'Tesis de analisis',
+      },
+      {
+        variable: DEFAULT_VARIABLE.ESTUDIANTE_TITULO_BACHILLER,
+        example: 'Bachiller en Ciencias',
+      },
+      {
+        variable: DEFAULT_VARIABLE.ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP,
+        example: '16 de julio de 2010',
+      },
+      {
+        variable: DEFAULT_VARIABLE.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP,
+        example: '16 de julio de 2015',
+      },
+      {
+        variable: DEFAULT_VARIABLE.COORDINADOR,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEFAULT_VARIABLE.CANTON,
+        example: 'Ambato',
+      },
+      {
+        variable: DEFAULT_VARIABLE.PROVINCE,
+        example: 'Tungurahua',
+      },
+    ]
+
+    const functionariesVariables = [
+      {
+        variable: DEFAULT_VARIABLE.DOCENTE_N.replace('$i', '1'),
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEFAULT_VARIABLE.DOCENTE_N.replace('$i', '2'),
+        example: 'Ing. Juan Pérez',
+      },
+    ]
+    const councilVariables = [
+      {
+        variable: DEFAULT_VARIABLE.FECHA,
+        example: '16 de julio de 2021',
+      },
+      {
+        variable: DEFAULT_VARIABLE.RESPONSABLE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEFAULT_VARIABLE.NUMACT,
+        example: '001',
+      },
+      {
+        variable: DEFAULT_VARIABLE.FECHAUP,
+        example: '16 DE JULIO DE 2021',
+      },
+      {
+        variable: DEFAULT_VARIABLE.SESIONUP,
+        example: 'ORDINARIA',
+      },
+      {
+        variable: DEFAULT_VARIABLE.SESION,
+        example: 'ordinaria',
+      },
+      {
+        variable: DEFAULT_VARIABLE.Y,
+        example: '2022',
+      },
+      {
+        variable: DEFAULT_VARIABLE.DIASEM_T,
+        example: 'viernes',
+      },
+      {
+        variable: DEFAULT_VARIABLE.NUMMES_T_U,
+        example: 'JULIO',
+      },
+      {
+        variable: DEFAULT_VARIABLE.MES_T_L,
+        example: 'julio',
+      },
+      {
+        variable: DEFAULT_VARIABLE.NUMDIA_T,
+        example: 'dieciséis',
+      },
+      {
+        variable: DEFAULT_VARIABLE.NUMANIO_T,
+        example: 'dos mil veintiuno',
+      },
+      {
+        variable: DEFAULT_VARIABLE.NUMANIO_T_L,
+        example: 'dos mil veintiuno',
+      },
+      {
+        variable: DEFAULT_VARIABLE.DIAS_T,
+        example: 'dieciséis días',
+      },
+      {
+        variable: DEFAULT_VARIABLE.HORA_T_L,
+        example: 'dieciséis',
+      },
+      {
+        variable: DEFAULT_VARIABLE.MINUTOS_T_L,
+        example: 'dieciséis',
+      },
+      {
+        variable: DEFAULT_VARIABLE.ASISTIERON,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEFAULT_VARIABLE.NO_ASISTIERON,
+        example: 'Ing. Juan Pérez',
+      },
+    ]
+    const documentVariables = [
+      {
+        variable: DEFAULT_VARIABLE.CREADOPOR,
+        example: 'Usuario admin',
+      },
+      {
+        variable: DEFAULT_VARIABLE.NUMDOC,
+        example: '001',
+      },
+      {
+        variable: DEFAULT_VARIABLE.YEAR,
+        example: '2022',
+      },
+    ]
+    const degreeCertificateVariables = [
+      {
+        variable: GENDER_DESIGNATION_VARIABLE(1),
+        example: 'el señor',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.PRINCIPAL][
+            ADJECTIVES.PLURAL
+          ],
+        example: 'designados mediante',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.PRINCIPAL][
+            ADJECTIVES.SINGULAR
+          ],
+        example: 'designado mediante',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.SUBSTITUTE][
+            ADJECTIVES.PLURAL
+          ],
+        example: 'principalizados mediante',
+      },
+      {
+        variable:
+          MEMBERS_DESIGNATION[DEGREE_ATTENDANCE_ROLES.SUBSTITUTE][
+            ADJECTIVES.SINGULAR
+          ],
+        example: 'principalizado mediante',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable:
+          DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT_DOC_ASSIGNED,
+        example: 'Presidente',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.MEMBERS_DEGREE_CERTIFICATE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_DEGREE_CERTIFICATE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_DEGREE_CERTIFICATE,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.CREATED_BY,
+        example: 'Usuario admin',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DECANA,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.IC_UNIT_PRESIDENT,
+        example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_TYPE,
+        example: 'ACTA DE GRADO',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_TOPIC,
+        example: 'Tesis de analisis',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.CREDITS_TEXT,
+        example: 'cien',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.CREDITS_NUMBER,
+        example: '100',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.INTERNSHIP_HOURS,
+        example: '100',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.VINCULATION_HOURS,
+        example: '100',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.VINCULATION_HOURS_TEXT,
+        example: 'cien',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.INTERNSHIP_HOURS_TEXT,
+        example: 'cien',
+      },
+      {
+        variable: STUDENT_DEGREE_CERTIFICATE.DEGREE_CERTIFICATE_STATUS,
+        example: 'GRADUADO',
+      },
+    ]
+
+    return new ApiResponseDto('Variables encontradas con éxito', {
+      Posiciones: positionsVariables,
+      Estudiantes: studentVariables,
+      Funcionarios: functionariesVariables,
+      Consejos: councilVariables,
+      Documentos: documentVariables,
+      Actas_de_grado: degreeCertificateVariables,
+    })
+  }
 
   async create(createVariableDto: CreateVariableDto) {
     try {
@@ -134,13 +450,13 @@ export class VariablesService {
   ) {
     try {
       const variables = {
-        [DefaultVariable.CREADOPOR]: `${document.user.firstName} ${document.user.firstLastName}`,
-        [DefaultVariable.NUMDOC]: formatNumeration(
+        [DEFAULT_VARIABLE.CREADOPOR]: `${document.user.firstName} ${document.user.firstLastName}`,
+        [DEFAULT_VARIABLE.NUMDOC]: formatNumeration(
           document instanceof DocumentEntity
             ? document.numerationDocument.number
             : (document as DegreeCertificateEntity).number,
         ),
-        [DefaultVariable.YEAR]: document.createdAt.getFullYear().toString(),
+        [DEFAULT_VARIABLE.YEAR]: document.createdAt.getFullYear().toString(),
       }
 
       return new ApiResponseDto(
@@ -163,17 +479,17 @@ export class VariablesService {
       }
 
       const variables = {
-        [DefaultVariable.FECHA]: formatDate(
+        [DEFAULT_VARIABLE.FECHA]: formatDate(
           document.numerationDocument.council.date,
         ),
-        [DefaultVariable.FECHAUP]: formatDateText(
+        [DEFAULT_VARIABLE.FECHAUP]: formatDateText(
           document.numerationDocument.council.date,
         ),
-        [DefaultVariable.SESION]:
+        [DEFAULT_VARIABLE.SESION]:
           document.numerationDocument.council.type.toLowerCase(),
-        [DefaultVariable.SESIONUP]:
+        [DEFAULT_VARIABLE.SESIONUP]:
           document.numerationDocument.council.type.toUpperCase(),
-        [DefaultVariable.RESPONSABLE]: `${getFullName(functionary)}`,
+        [DEFAULT_VARIABLE.RESPONSABLE]: `${getFullName(functionary)}`,
       }
 
       return new ApiResponseDto(
@@ -214,38 +530,38 @@ export class VariablesService {
 
     const variables = {
       ...genderVariations,
-      [DefaultVariable.ESTUDIANTE]: fullName,
-      [DefaultVariable.ESTUDIANTEUP]: fullName.toUpperCase(),
-      [DefaultVariable.CEDULA]: document.student.dni,
-      [DefaultVariable.MATRICULA]: document.student.registration,
-      [DefaultVariable.FOLIO]: document.student.folio,
-      [DefaultVariable.TELEFONO]: document.student.regularPhoneNumber,
-      [DefaultVariable.CELULAR]: document.student.phoneNumber,
-      [DefaultVariable.CORREO]: document.student.personalEmail,
-      [DefaultVariable.CORREOUTA]: document.student.outlookEmail,
-      [DefaultVariable.NOMBRECARRERA]: career,
-      [DefaultVariable.NOMBRECARRERAUP]: career.toUpperCase(),
-      [DefaultVariable.ESTUDIANTE_TITULO]: degree,
-      [DefaultVariable.ESTUDIANTE_FECHA_NACIMIENTO]: formatDateText(
+      [DEFAULT_VARIABLE.ESTUDIANTE]: fullName,
+      [DEFAULT_VARIABLE.ESTUDIANTEUP]: fullName.toUpperCase(),
+      [DEFAULT_VARIABLE.CEDULA]: document.student.dni,
+      [DEFAULT_VARIABLE.MATRICULA]: document.student.registration,
+      [DEFAULT_VARIABLE.FOLIO]: document.student.folio,
+      [DEFAULT_VARIABLE.TELEFONO]: document.student.regularPhoneNumber,
+      [DEFAULT_VARIABLE.CELULAR]: document.student.phoneNumber,
+      [DEFAULT_VARIABLE.CORREO]: document.student.personalEmail,
+      [DEFAULT_VARIABLE.CORREOUTA]: document.student.outlookEmail,
+      [DEFAULT_VARIABLE.NOMBRECARRERA]: career,
+      [DEFAULT_VARIABLE.NOMBRECARRERAUP]: career.toUpperCase(),
+      [DEFAULT_VARIABLE.ESTUDIANTE_TITULO]: degree,
+      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_NACIMIENTO]: formatDateText(
         document.student.birthdate,
       ),
-      [DefaultVariable.ESTUDIANTE_TITULO_UPPER]: degree.toUpperCase(),
-      [DefaultVariable.ESTUDIANTE_TEMA]:
+      [DEFAULT_VARIABLE.ESTUDIANTE_TITULO_UPPER]: degree.toUpperCase(),
+      [DEFAULT_VARIABLE.ESTUDIANTE_TEMA]:
         (document as DegreeCertificateEntity).topic ?? '*NO POSEE TEMA',
-      [DefaultVariable.ESTUDIANTE_TITULO_BACHILLER]:
+      [DEFAULT_VARIABLE.ESTUDIANTE_TITULO_BACHILLER]:
         document.student.bachelorDegree ?? '*NO POSEE TÍTULO BACHILLER',
-      [DefaultVariable.ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP]: document
+      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP]: document
         .student.startStudiesDate
         ? formatDateText(document.student.startStudiesDate)
         : '*NO POSEE FECHA DE INICIO DE ESTUDIOS',
-      [DefaultVariable.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP]: document.student
+      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP]: document.student
         .startStudiesDate
         ? formatDateText(document.student.endStudiesDate)
         : '*NO POSEE FECHA DE FIN DE ESTUDIOS',
 
-      [DefaultVariable.COORDINADOR]: getFullName(document.career.coordinator),
-      [DefaultVariable.CANTON]: document.student.canton.name,
-      [DefaultVariable.PROVINCE]: document.student.canton.province.name,
+      [DEFAULT_VARIABLE.COORDINADOR]: getFullName(document.career.coordinator),
+      [DEFAULT_VARIABLE.CANTON]: document.student.canton.name,
+      [DEFAULT_VARIABLE.PROVINCE]: document.student.canton.province.name,
       [STUDENT_DEGREE_CERTIFICATE.CREDITS_TEXT]: transformNumberToWords(
         document.student.approvedCredits,
       ).toLowerCase(),
@@ -277,37 +593,37 @@ export class VariablesService {
 
   getStudentVariables(document: DocumentEntity) {
     const variables = {
-      [DefaultVariable.ESTUDIANTE]: getFullName(document.student),
-      [DefaultVariable.ESTUDIANTEUP]: getFullName(
+      [DEFAULT_VARIABLE.ESTUDIANTE]: getFullName(document.student),
+      [DEFAULT_VARIABLE.ESTUDIANTEUP]: getFullName(
         document.student,
       ).toUpperCase(),
-      [DefaultVariable.CEDULA]: document.student.dni,
-      [DefaultVariable.MATRICULA]: document.student.registration,
-      [DefaultVariable.FOLIO]: document.student.folio,
-      [DefaultVariable.TELEFONO]: document.student.regularPhoneNumber,
-      [DefaultVariable.CELULAR]: document.student.phoneNumber,
-      [DefaultVariable.CORREO]: document.student.personalEmail,
-      [DefaultVariable.CORREOUTA]: document.student.outlookEmail,
-      [DefaultVariable.NOMBRECARRERA]: document.student.career.name,
-      [DefaultVariable.NOMBRECARRERAUP]:
+      [DEFAULT_VARIABLE.CEDULA]: document.student.dni,
+      [DEFAULT_VARIABLE.MATRICULA]: document.student.registration,
+      [DEFAULT_VARIABLE.FOLIO]: document.student.folio,
+      [DEFAULT_VARIABLE.TELEFONO]: document.student.regularPhoneNumber,
+      [DEFAULT_VARIABLE.CELULAR]: document.student.phoneNumber,
+      [DEFAULT_VARIABLE.CORREO]: document.student.personalEmail,
+      [DEFAULT_VARIABLE.CORREOUTA]: document.student.outlookEmail,
+      [DEFAULT_VARIABLE.NOMBRECARRERA]: document.student.career.name,
+      [DEFAULT_VARIABLE.NOMBRECARRERAUP]:
         document.student.career.name.toUpperCase(),
-      [DefaultVariable.ESTUDIANTE_TITULO]:
+      [DEFAULT_VARIABLE.ESTUDIANTE_TITULO]:
         document.student.gender === GENDER.FEMALE
           ? document.student.career.womenDegree
           : document.student.career.menDegree,
-      [DefaultVariable.ESTUDIANTE_FECHA_NACIMIENTO]: formatDateText(
+      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_NACIMIENTO]: formatDateText(
         document.student.birthdate,
       ),
-      [DefaultVariable.ESTUDIANTE_TITULO_UPPER]: (document.student.gender ===
+      [DEFAULT_VARIABLE.ESTUDIANTE_TITULO_UPPER]: (document.student.gender ===
       GENDER.FEMALE
         ? document.student.career.womenDegree
         : document.student.career.menDegree
       ).toUpperCase(),
-      [DefaultVariable.COORDINADOR]: getFullName(
+      [DEFAULT_VARIABLE.COORDINADOR]: getFullName(
         document.student.career.coordinator,
       ),
-      [DefaultVariable.CANTON]: document.student.canton.name,
-      [DefaultVariable.PROVINCE]: document.student.canton.province.name,
+      [DEFAULT_VARIABLE.CANTON]: document.student.canton.name,
+      [DEFAULT_VARIABLE.PROVINCE]: document.student.canton.province.name,
     }
 
     return new ApiResponseDto(
@@ -325,7 +641,7 @@ export class VariablesService {
         (documentFunctionary, index) =>
           // eslint-disable-next-line no-extra-parens
           (variables[
-            DefaultVariable.DOCENTE_N.replace('$i', (index + 1).toString())
+            DEFAULT_VARIABLE.DOCENTE_N.replace('$i', (index + 1).toString())
           ] = getFullName(documentFunctionary.functionary)),
       )
 
@@ -338,7 +654,9 @@ export class VariablesService {
     }
   }
 
-  formatMembersNames(members: DegreeCertificateAttendanceEntity[]) {
+  formatMembersNames(
+    members: DegreeCertificateAttendanceEntity[] | CouncilAttendanceEntity[],
+  ) {
     if (members.length === 1) {
       return getFullName(members[0].functionary)
     }
@@ -422,9 +740,9 @@ export class VariablesService {
       membersData[
         DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_DEGREE_CERTIFICATE
       ] = getFullName(tribunalMembers[-1].functionary)
-      membersData[DefaultVariable.ASISTIERON] =
+      membersData[DEFAULT_VARIABLE.ASISTIERON] =
         this.formatMembersNames(membersAttended)
-      membersData[DefaultVariable.NO_ASISTIERON] =
+      membersData[DEFAULT_VARIABLE.NO_ASISTIERON] =
         this.formatMembersNames(membersHasntAttended)
     }
 
@@ -478,29 +796,30 @@ export class VariablesService {
       [DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_TOPIC]:
         degreeCertificate.topic.toUpperCase(),
       // eslint-disable-next-line no-magic-numbers
-      [DefaultVariable.NUMDOC]: formatNumeration(degreeCertificate.number, 3),
-      [DefaultVariable.Y]: year,
-      [DefaultVariable.YEAR]: year,
-      [DefaultVariable.FECHA]: formatDateText(presentationDate),
-      [DefaultVariable.FECHAUP]: formatDateText(presentationDate).toUpperCase(),
-      [DefaultVariable.DIASEM_T]: formatWeekDayName(presentationDate),
-      [DefaultVariable.NUMMES_T_U]: monthText.toUpperCase(),
-      [DefaultVariable.MES_T_L]: monthText.toLowerCase(),
-      [DefaultVariable.DIAS_T]: `${dayText} días`,
-      [DefaultVariable.NUMDIA_T]: dayText.toUpperCase(),
-      [DefaultVariable.NUMANIO_T]: transformNumberToWords(
+      [DEFAULT_VARIABLE.NUMDOC]: formatNumeration(degreeCertificate.number, 3),
+      [DEFAULT_VARIABLE.Y]: year,
+      [DEFAULT_VARIABLE.YEAR]: year,
+      [DEFAULT_VARIABLE.FECHA]: formatDateText(presentationDate),
+      [DEFAULT_VARIABLE.FECHAUP]:
+        formatDateText(presentationDate).toUpperCase(),
+      [DEFAULT_VARIABLE.DIASEM_T]: formatWeekDayName(presentationDate),
+      [DEFAULT_VARIABLE.NUMMES_T_U]: monthText.toUpperCase(),
+      [DEFAULT_VARIABLE.MES_T_L]: monthText.toLowerCase(),
+      [DEFAULT_VARIABLE.DIAS_T]: `${dayText} días`,
+      [DEFAULT_VARIABLE.NUMDIA_T]: dayText.toUpperCase(),
+      [DEFAULT_VARIABLE.NUMANIO_T]: transformNumberToWords(
         presentationDate.getFullYear(),
       ).toUpperCase(),
-      [DefaultVariable.NUMANIO_T_L]: transformNumberToWords(
+      [DEFAULT_VARIABLE.NUMANIO_T_L]: transformNumberToWords(
         presentationDate.getFullYear(),
       ).toLowerCase(),
-      [DefaultVariable.HORA_T_L]: transformNumberToWords(
+      [DEFAULT_VARIABLE.HORA_T_L]: transformNumberToWords(
         presentationDate.getHours(),
       ).toLowerCase(),
-      [DefaultVariable.MINUTOS_T_L]: transformNumberToWords(
+      [DEFAULT_VARIABLE.MINUTOS_T_L]: transformNumberToWords(
         presentationDate.getMinutes(),
       ).toLowerCase(),
-      [DefaultVariable.HORA_MINUTOS_TEXTO_L]:
+      [DEFAULT_VARIABLE.HORA_MINUTOS_TEXTO_L]:
         formatHourMinutesText(presentationDate),
     }
   }
@@ -537,6 +856,81 @@ export class VariablesService {
       ...titulationData,
       ...positionsVariables,
     })
+  }
+
+  // TODO: Cambiar la condicion de asistencia una vez implementada la asistencia de consejos
+
+  async getRecopilationVariables(numdoc: number, council: CouncilEntity) {
+    try {
+      const hasAttended = council.attendance.filter(
+        (attendance) => attendance,
+        // (attendance) => attendance.hasAttended,
+      )
+      const hasNotAttended = council.attendance.filter(
+        // (attendance) => !attendance.hasAttended,
+        (attendance) => attendance,
+      )
+
+      const variables = {
+        [DEFAULT_VARIABLE.FECHA]: formatDate(council.date),
+        [DEFAULT_VARIABLE.RESPONSABLE]: getFullName(
+          council.attendance.find(
+            (attendance) => attendance.positionOrder === 1,
+          ).functionary,
+        ),
+        // eslint-disable-next-line no-magic-numbers
+        [DEFAULT_VARIABLE.NUMACT]: formatNumeration(numdoc, 3),
+        [DEFAULT_VARIABLE.FECHAUP]: formatDateText(council.date),
+        [DEFAULT_VARIABLE.SESIONUP]: council.type.toUpperCase(),
+        [DEFAULT_VARIABLE.SESION]: council.type.toLowerCase(),
+        [DEFAULT_VARIABLE.SESION_L]: council.type.toLowerCase(),
+        [DEFAULT_VARIABLE.Y]: council.date.getFullYear().toString(),
+        [DEFAULT_VARIABLE.DIASEM_T]: formatWeekDayName(
+          council.date,
+        ).toUpperCase(),
+        [DEFAULT_VARIABLE.NUMMES_T_U]: formatMonthName(
+          council.date,
+        ).toUpperCase(),
+        [DEFAULT_VARIABLE.MES_T_L]: formatMonthName(council.date).toLowerCase(),
+        [DEFAULT_VARIABLE.NUMDIA_T]: transformNumberToWords(
+          council.date.getDate(),
+        ),
+        [DEFAULT_VARIABLE.NUMANIO_T]: transformNumberToWords(
+          council.date.getFullYear(),
+        ),
+        [DEFAULT_VARIABLE.NUMANIO_T_L]: transformNumberToWords(
+          council.date.getFullYear(),
+        ).toLowerCase(),
+        [DEFAULT_VARIABLE.DIAS_T]: `${transformNumberToWords(
+          council.date.getDate(),
+        ).toLowerCase()} días`,
+        [DEFAULT_VARIABLE.HORA_T_L]: transformNumberToWords(
+          council.date.getHours(),
+        ).toLowerCase(),
+        [DEFAULT_VARIABLE.MINUTOS_T_L]: transformNumberToWords(
+          council.date.getMinutes(),
+        ).toLowerCase(),
+        [DEFAULT_VARIABLE.ASISTIERON]:
+          hasAttended?.length > 0
+            ? this.formatMembersNames(hasAttended)
+            : 'NO ASISTIÓ NINGUN MIEMBRO',
+        [DEFAULT_VARIABLE.NO_ASISTIERON]: hasNotAttended
+          ? this.formatMembersNames(hasNotAttended)
+          : 'ASISTIERON TODOS LOS MIEMBROS',
+      }
+      const { data: positionsVariables } = await this.getPositionVariables()
+
+      return new ApiResponseDto(
+        'Variables de recopilación encontradas con éxito',
+        {
+          ...variables,
+          ...positionsVariables,
+        },
+      )
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException(error.message)
+    }
   }
 
   async getPositionVariables() {

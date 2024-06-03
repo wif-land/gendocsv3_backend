@@ -1,6 +1,6 @@
 import { Controller, Post } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import { FilesService } from './files.service'
+import { FilesService } from './services/files.service'
 import { Auth } from '../auth/decorators/auth-decorator'
 
 @ApiTags('files')

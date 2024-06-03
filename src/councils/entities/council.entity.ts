@@ -57,6 +57,30 @@ export class CouncilEntity extends BaseAppEntity implements ICouncil {
   driveId: string
 
   @ApiProperty({
+    example: 'sdlkjfjalsdkfj;akjklj',
+    description: 'Identetificador único de la acta de consejo en drive',
+  })
+  @Column({
+    name: 'recopilation_drive_id',
+    type: 'varchar',
+    nullable: true,
+  })
+  recopilationDriveId: string
+
+  @ApiProperty({
+    example: 'true',
+    description:
+      'Indicador si el consejos tiene documentos de acta descargados y procesados',
+  })
+  @Column({
+    name: 'has_processed_documents',
+    type: 'boolean',
+    nullable: true,
+    default: false,
+  })
+  hasProcessedDocuments: boolean
+
+  @ApiProperty({
     example: '1',
     description: 'Módulo asociado al consejo',
     type: () => ModuleEntity,

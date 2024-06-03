@@ -25,7 +25,7 @@ import {
   DEGREE_CERTIFICATE_GRADES,
 } from '../shared/enums/degree-certificates'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
-import { FilesService } from '../files/files.service'
+import { FilesService } from '../files/services/files.service'
 import { StudentsService } from '../students/students.service'
 import { StudentEntity } from '../students/entities/student.entity'
 import { CertificateTypeCareerEntity } from './entities/certicate-type-career.entity'
@@ -251,6 +251,18 @@ export class DegreeCertificatesService {
     const student: StudentEntity = (
       await this.studentService.findOne(dto.studentId)
     ).data
+
+    if (
+      student.gender == null ||
+      student.endStudiesDate == null ||
+      student.startStudiesDate == null ||
+      student.internshipHours == null ||
+      student.vinculationHours == null
+    ) {
+      throw new DegreeCertificateBadRequestError(
+        'El estudiante no cuenta con la información necesaria para generar la acta de grado',
+      )
+    }
 
     const certificateStatusType = await this.findCertificateStatusType(
       dto.certificateTypeId,
@@ -659,10 +671,6 @@ export class DegreeCertificatesService {
       degreeCertificate.gradesSheetDriveId,
     )
 
-    // TODO: Make the method getDegreeCertificateVariables
-    // TODO: Make the gradesSheet logic to variables
-    // TODO: Generate and insert the templates on migrations and seeders
-    // TODO: Test the generation of the documents
     const { data: dregreeCertificateData } =
       await this.variablesService.getDegreeCertificateVariables(
         degreeCertificate,

@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 import {
-  IsNotEmpty,
   IsEmail,
   IsOptional,
   IsString,
@@ -9,6 +8,7 @@ import {
   IsDate,
   IsPositive,
   IsEnum,
+  IsNumber,
 } from 'class-validator'
 import { DtoUtils } from '../../shared/utils/dtos'
 import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
@@ -18,25 +18,25 @@ export class CreateStudentDto {
   @ApiProperty({
     description: 'Primer nombre del estudiante',
   })
-  @IsNotEmpty()
+  @IsString()
   firstName: string
 
   @ApiProperty({
     description: 'Segundo nombre del estudiante',
   })
-  @IsNotEmpty()
+  @IsString()
   secondName: string
 
   @ApiProperty({
     description: 'Primer apellido del estudiante',
   })
-  @IsNotEmpty()
+  @IsString()
   firstLastName: string
 
   @ApiProperty({
     description: 'Segundo apellido del estudiante',
   })
-  @IsNotEmpty()
+  @IsString()
   secondLastName: string
 
   @ApiProperty({
@@ -52,14 +52,14 @@ export class CreateStudentDto {
       }),
     },
   )
-  @IsNotEmpty()
+  @IsString()
   outlookEmail: string
 
   @ApiProperty({
     description: 'Correo personal del estudiante',
   })
   @IsEmail()
-  @IsNotEmpty({
+  @IsString({
     message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
       '{field}': 'personalEmail',
     }),
@@ -69,7 +69,7 @@ export class CreateStudentDto {
   @ApiProperty({
     description: 'Número de teléfono del estudiante',
   })
-  @IsNotEmpty({
+  @IsString({
     message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
       '{field}': 'phoneNumber',
     }),
@@ -128,17 +128,13 @@ export class CreateStudentDto {
     description: 'Cantón de nacimiento',
     type: Number,
   })
-  @IsString({
-    message: 'canton is required',
-  })
+  @IsNumber()
   canton: number
 
   @ApiProperty({
     description: 'Creditos aprobados',
   })
-  @IsNotEmpty({
-    message: 'approvedCredits is required',
-  })
+  @IsNumber()
   approvedCredits: number
 
   @ApiProperty({
@@ -197,15 +193,18 @@ export class CreateStudentDto {
     message: 'there is a problem with intershipHours',
   })
   @IsOptional()
-  intershipHours?: number
+  internshipHours?: number
 
   @ApiProperty({
     description: 'Id de la carrera a la que pertenece el estudiante',
   })
-  @IsNotEmpty({
-    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
-      '{field}': 'career',
-    }),
-  })
+  @IsNumber(
+    {},
+    {
+      message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
+        '{field}': 'career',
+      }),
+    },
+  )
   career: number
 }

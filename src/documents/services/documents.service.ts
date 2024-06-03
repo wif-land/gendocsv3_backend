@@ -4,20 +4,20 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common'
-import { CreateDocumentDto } from './dto/create-document.dto'
+import { CreateDocumentDto } from '../dto/create-document.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, Repository } from 'typeorm'
-import { DocumentEntity } from './entities/document.entity'
-import { NumerationDocumentService } from '../numeration-document/numeration-document.service'
-import { VariablesService } from '../variables/variables.service'
-import { DocumentFunctionaryEntity } from './entities/document-functionary.entity'
-import { DefaultVariable } from '../shared/enums/default-variable'
-import { StudentEntity } from '../students/entities/student.entity'
-import { FilesService } from '../files/files.service'
-import { formatNumeration } from '../shared/utils/string'
-import { ResponseDocumentDto } from './dto/response-document'
-import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
-import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { DocumentEntity } from '../entities/document.entity'
+import { NumerationDocumentService } from '../../numeration-document/numeration-document.service'
+import { VariablesService } from '../../variables/variables.service'
+import { DocumentFunctionaryEntity } from '../entities/document-functionary.entity'
+import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
+import { StudentEntity } from '../../students/entities/student.entity'
+import { FilesService } from '../../files/services/files.service'
+import { formatNumeration } from '../../shared/utils/string'
+import { ResponseDocumentDto } from '../dto/response-document'
+import { PaginationV2Dto } from '../../shared/dtos/paginationv2.dto'
+import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 
 @Injectable()
 export class DocumentsService {
@@ -160,16 +160,16 @@ export class DocumentsService {
       }
 
       const variables = {
-        [DefaultVariable.PREFEX_GENERAL]: generalData.data,
-        [DefaultVariable.PREFIX_CONSEJO]: councilData.data,
-        [DefaultVariable.PREFIX_DOCENTES]: functionariesData
+        [DEFAULT_VARIABLE.PREFEX_GENERAL]: generalData.data,
+        [DEFAULT_VARIABLE.PREFIX_CONSEJO]: councilData.data,
+        [DEFAULT_VARIABLE.PREFIX_DOCENTES]: functionariesData
           ? functionariesData.data
           : [],
-        [DefaultVariable.PREFIX_ESTUDIANTE]: studentData
+        [DEFAULT_VARIABLE.PREFIX_ESTUDIANTE]: studentData
           ? studentData.data
           : [],
-        [DefaultVariable.PREFIX_CARGOS]: positionsData.data,
-        [DefaultVariable.PREFIX_CUSTOM]: customVariablesData.data,
+        [DEFAULT_VARIABLE.PREFIX_CARGOS]: positionsData.data,
+        [DEFAULT_VARIABLE.PREFIX_CUSTOM]: customVariablesData.data,
       }
 
       const variablesJson = JSON.stringify(variables)
@@ -231,30 +231,122 @@ export class DocumentsService {
     const {
       // eslint-disable-next-line no-magic-numbers
       rowsPerPage = 10,
-      order = 'asc',
+      order = 'ASC',
       orderBy = 'id',
       page = 1,
       moduleId,
     } = paginationDto
 
     try {
-      const documents = await this.documentsRepository.find({
-        relations: ['numerationDocument', 'user', 'student', 'templateProcess'],
-        order: {
-          [orderBy]: order.toUpperCase(),
-        },
-        take: rowsPerPage,
-        skip: rowsPerPage * (page - 1),
-        where: {
-          numerationDocument: { council: { module: { id: Number(moduleId) } } },
-        },
-      })
+      // Se usa query builder para hacer la consulta por la velocidad de respuesta
+      // const documents = await this.documentsRepository.find({
+      //   select: {
+      //     id: true,
+      //     createdAt: true,
+      //     driveId: true,
+      //     description: true,
+      //     variables: false,
+      //   },
+      //   relations: {
+      //     numerationDocument: {
+      //       council: {
+      //         module: {
+      //           defaultAttendance: false,
+      //           councils: false,
+      //           processes: false,
+      //           submodules: false,
+      //         },
+      //         submoduleYearModule: {
+      //           degreeCertificates: false,
+      //           processes: false,
+      //           yearModule: {
+      //             submoduleYearModules: false,
+      //           },
+      //         },
+      //         attendance: {
+      //           council: false,
+      //           functionary: {
+      //             documentFunctionaries: false,
+      //           },
+      //         },
+      //       },
+      //     },
+      //     user: {
+      //       accessModules: false,
+      //       councils: false,
+      //       degreeCertificates: false,
+      //       documents: false,
+      //       processes: false,
+      //       templateProcesses: false,
+      //     },
+      //     student: {
+      //       career: {
+      //         coordinator: false,
+      //       },
+      //       canton: {
+      //         province: false,
+      //       },
+      //       documents: false,
+      //     },
+      //     templateProcess: {
+      //       documents: false,
+      //       process: false,
+      //       user: false,
+      //     },
+      //     documentFunctionaries: {
+      //       functionary: {
+      //         careers: false,
+      //         documentFunctionaries: false,
+      //         councilAttendance: false,
+      //         positions: false,
+      //       },
+      //     },
+      //   },
+      //   order: {
+      //     [orderBy]: order.toUpperCase(),
+      //   },
+      //   take: rowsPerPage,
+      //   skip: rowsPerPage * (page - 1),
+      //   where: {
+      //     numerationDocument: { council: { module: { id: Number(moduleId) } } },
+      //   },
+      // })
+      const documents = await this.documentsRepository
+        .createQueryBuilder('document')
+        .select([
+          'document.id',
+          'document.createdAt',
+          'document.driveId',
+          'document.description',
+        ])
+        .leftJoinAndSelect('document.numerationDocument', 'numerationDocument')
+        .leftJoinAndSelect('numerationDocument.council', 'council')
+        .leftJoinAndSelect('council.module', 'module')
+        .leftJoinAndSelect('council.submoduleYearModule', 'submoduleYearModule')
+        .leftJoinAndSelect('submoduleYearModule.yearModule', 'yearModule')
+        .leftJoinAndSelect('council.attendance', 'attendance')
+        .leftJoinAndSelect('attendance.functionary', 'functionary')
+        .leftJoinAndSelect('document.user', 'user')
+        .leftJoinAndSelect('document.student', 'student')
+        .leftJoinAndSelect('student.career', 'career')
+        .leftJoinAndSelect('student.canton', 'canton')
+        .leftJoinAndSelect('document.templateProcess', 'templateProcess')
+        .leftJoinAndSelect(
+          'document.documentFunctionaries',
+          'documentFunctionaries',
+        )
+        .leftJoinAndSelect('documentFunctionaries.functionary', 'functionarys')
+        .where('module.id = :moduleId', { moduleId: Number(moduleId) })
+        .orderBy(`document.${orderBy}`, order.toUpperCase() as 'ASC' | 'DESC')
+        .skip(rowsPerPage * (page - 1))
+        .take(rowsPerPage)
+        .getMany()
+
       if (!documents) {
         throw new NotFoundException('Documents not found')
       }
 
       const count = await this.documentsRepository.count({
-        relations: ['numerationDocument', 'user', 'student', 'templateProcess'],
         where: {
           numerationDocument: { council: { module: { id: Number(moduleId) } } },
         },
@@ -273,18 +365,20 @@ export class DocumentsService {
 
   async findOne(id: number) {
     try {
-      const document = await this.documentsRepository.findOne({
-        where: { id },
-        relations: [
-          'numerationDocument',
-          'numerationDocument.council',
-          'user',
-          'student',
-          'templateProcess',
+      const document = await this.documentsRepository
+        .createQueryBuilder('document')
+        .leftJoinAndSelect('document.numerationDocument', 'numerationDocument')
+        .leftJoinAndSelect('numerationDocument.council', 'council')
+        .leftJoinAndSelect('document.user', 'user')
+        .leftJoinAndSelect('document.student', 'student')
+        .leftJoinAndSelect('document.templateProcess', 'templateProcess')
+        .leftJoinAndSelect(
+          'document.documentFunctionaries',
           'documentFunctionaries',
-          'documentFunctionaries.functionary',
-        ],
-      })
+        )
+        .leftJoinAndSelect('documentFunctionaries.functionary', 'functionary')
+        .where('document.id = :id', { id })
+        .getOne()
 
       if (!document) {
         throw new NotFoundException('Document not found')

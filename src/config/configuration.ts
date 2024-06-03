@@ -18,4 +18,7 @@ export default () => ({
     credentialsPath: process.env.GOOGLE_APPLICATION_CREDENTIALS,
     rootDriveFolderId: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
   },
+  mail: {
+    mailTransport: process.env.MAIL_TRANSPORT,
+  },
 })
