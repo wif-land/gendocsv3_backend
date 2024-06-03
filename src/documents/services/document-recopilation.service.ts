@@ -9,7 +9,10 @@ import { InjectDataSource } from '@nestjs/typeorm'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { DocumentEntity } from '../entities/document.entity'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
-import { getCouncilPath, getYearModulePath } from '../helpers/path-helper'
+import {
+  getCouncilPath,
+  getYearModulePath,
+} from '../../shared/helpers/path-helper'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 import { FilesService } from '../../files/services/files.service'

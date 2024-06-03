@@ -5,6 +5,7 @@ import * as path from 'path'
 import * as os from 'os'
 import { DOMParser } from 'xmldom'
 import { IReplaceText } from '../../shared/interfaces/replace-text'
+import { getProjectPath } from '../../shared/helpers/path-helper'
 
 @Injectable()
 export class DocxService {
@@ -15,11 +16,8 @@ export class DocxService {
     start: string,
     end: string,
   ): Promise<string> {
-    const tempPath = '/storage/temp/'
-    const tempDir = await fs.mkdir(path.join(path.resolve(tempPath), 'docx-'), {
-      recursive: true,
-    })
-    console.log(tempDir)
+    const tempPath = `${getProjectPath()}/storage/temp`
+    const tempDir = await this.resolveDirectory(`${tempPath}/docx-/`)
     try {
       const zip = new AdmZip(await fs.readFile(filePath))
       zip.extractAllTo(tempDir, true)
@@ -43,7 +41,7 @@ export class DocxService {
     } catch (error) {
       throw error
     } finally {
-      await fs.rm(tempDir, { recursive: true, force: true }) // Clean up the temporary directory
+      await fs.rm(tempDir, { recursive: true, force: true })
     }
   }
 
@@ -147,6 +145,18 @@ export class DocxService {
     } finally {
       await fs.rm(tempDir, { recursive: true, force: true }) // Clean up the temporary directory
     }
+  }
+
+  async resolveDirectory(directory: string) {
+    const directoryResolved = path.resolve(directory)
+
+    try {
+      await fs.access(directoryResolved)
+    } catch {
+      await fs.mkdir(directoryResolved, { recursive: true })
+    }
+
+    return directoryResolved
   }
 }
 
