@@ -437,6 +437,18 @@ export class NumerationDocumentService {
     end,
     councilId,
   }: ReserveNumerationDocumentDto) {
+    if (start === -1 && end === -1) {
+      throw new NumerationBadRequest(
+        'El consejo no tiene numeración disponible para reservar',
+      )
+    }
+
+    if (start === 0 || end === 0) {
+      throw new NumerationBadRequest(
+        'Se debe reservar un rango de numeración válido, mayor a 0 en alguno de los dos extremos',
+      )
+    }
+
     const council = await this.dataSource.manager.findOne(CouncilEntity, {
       where: { id: councilId },
     })
@@ -466,7 +478,11 @@ export class NumerationDocumentService {
         )
       }
 
-      if (start < numerations[numerations.length - 1].number) {
+      if (
+        start &&
+        start < numerations[numerations.length - 1].number &&
+        start > 0
+      ) {
         const prevCouncilNumerations = await this.dataSource.manager
           .createQueryBuilder(NumerationDocumentEntity, 'numerations')
           .leftJoinAndSelect('numerations.council', 'council')
@@ -530,7 +546,7 @@ export class NumerationDocumentService {
         reservedNumerations.concat(reasignedNumerations)
       }
 
-      if (end > numerations[0].number) {
+      if (end && end > numerations[0].number && end > 0) {
         const postCouncilNumerations = await this.dataSource.manager
           .createQueryBuilder(NumerationDocumentEntity, 'numerations')
           .leftJoinAndSelect('numerations.council', 'council')
@@ -656,8 +672,6 @@ export class NumerationDocumentService {
       councilId,
       yearModule.data.id,
     )
-
-    console.log('hasodjk')
 
     return reservedNumerations
   }
