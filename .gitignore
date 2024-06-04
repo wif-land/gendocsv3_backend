@@ -411,4 +411,5 @@ pnpm-lock.yaml
 temp-assets/
 
 recopilations/
+storage/recopilations/
 storage/temp/

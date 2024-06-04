@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import * as AdmZip from 'adm-zip'
 import * as fs from 'fs/promises'
 import * as path from 'path'
-import * as os from 'os'
 import { DOMParser } from 'xmldom'
 import { IReplaceText } from '../../shared/interfaces/replace-text'
 import { getProjectPath } from '../../shared/helpers/path-helper'
@@ -17,7 +16,7 @@ export class DocxService {
     end: string,
   ): Promise<string> {
     const tempPath = `${getProjectPath()}/storage/temp`
-    const tempDir = await this.resolveDirectory(`${tempPath}/docx-/`)
+    const tempDir = await DocxService.resolveDirectory(`${tempPath}/docx-/`)
     try {
       const zip = new AdmZip(await fs.readFile(filePath))
       zip.extractAllTo(tempDir, true)
@@ -118,7 +117,10 @@ export class DocxService {
     replaceEntries: IReplaceText,
     separatorPath: string,
   ): Promise<string> {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'sep-docx-'))
+    const tempDir = await DocxService.resolveDirectory(
+      // eslint-disable-next-line no-extra-parens
+      `${getProjectPath()}/storage/temp` + `sep-docx-`,
+    )
     try {
       const zip = new AdmZip(await fs.readFile(separatorPath))
       zip.extractAllTo(tempDir, true)
@@ -147,7 +149,7 @@ export class DocxService {
     }
   }
 
-  async resolveDirectory(directory: string) {
+  static async resolveDirectory(directory: string) {
     const directoryResolved = path.resolve(directory)
 
     try {
@@ -242,7 +244,9 @@ class Docx {
       this.writeContent(content, path)
     }
 
-    const tempDir = await fs.mkdtemp(path.join('/tmp', 'dm-'))
+    const tempDir = await DocxService.resolveDirectory(
+      `${getProjectPath()}storage/temp/` + `dm-`,
+    )
     const tempFile = path.join(tempDir, 'merged.docx')
     await fs.writeFile(tempFile, this.docxZip.toBuffer())
 

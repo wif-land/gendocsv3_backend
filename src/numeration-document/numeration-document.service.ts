@@ -5,14 +5,7 @@ import {
 } from '@nestjs/common'
 import { CreateNumerationDocumentDto } from './dto/create-numeration-document.dto'
 import { InjectRepository } from '@nestjs/typeorm'
-import {
-  Between,
-  DataSource,
-  LessThan,
-  MoreThan,
-  Not,
-  Repository,
-} from 'typeorm'
+import { Between, DataSource, Not, Repository } from 'typeorm'
 import { NumerationDocumentEntity } from './entities/numeration-document.entity'
 import { CouncilEntity } from '../councils/entities/council.entity'
 import { YearModuleEntity } from '../year-module/entities/year-module.entity'
@@ -85,13 +78,14 @@ export class NumerationDocumentService {
       throw new NumerationBadRequest('YearModule not found')
     }
 
-    const numeration = await this.dataSource.manager.find(
-      NumerationDocumentEntity,
-      {
-        where: { yearModule: { id: yearModule.id } },
-        order: { number: 'DESC' },
-      },
-    )
+    const numeration = await this.dataSource.manager
+      .createQueryBuilder(NumerationDocumentEntity, 'numerationDocument')
+      .leftJoinAndSelect('numerationDocument.yearModule', 'yearModule')
+      .where('yearModule.id = :yearModuleId', {
+        yearModuleId: yearModule.id,
+      })
+      .orderBy('numerationDocument.number', 'DESC')
+      .getMany()
 
     if (!numeration || numeration.length === 0) {
       return 1
@@ -130,21 +124,27 @@ export class NumerationDocumentService {
   }
 
   async getLastRegisterNumeration(moduleId: number) {
-    const yearModule = await this.dataSource.manager.findOne(YearModuleEntity, {
-      where: { module: { id: moduleId } },
-    })
+    const yearModule = await this.dataSource.manager
+      .getRepository(YearModuleEntity)
+      .createQueryBuilder('yearModule')
+      .leftJoinAndSelect('yearModule.module', 'module')
+      .where('module.id = :moduleId', { moduleId })
+      .getOne()
 
-    if (!yearModule) {
+    if (!yearModule || yearModule === null) {
       throw new NumerationBadRequest('YearModule not found')
     }
 
-    const numeration = await this.dataSource.manager.findOne(
-      NumerationDocumentEntity,
-      {
-        where: { yearModule: { id: yearModule.id } },
-        order: { number: 'DESC' },
-      },
-    )
+    const numeration = await this.dataSource.manager
+      .createQueryBuilder()
+      .select('numerations')
+      .from(NumerationDocumentEntity, 'numerations')
+      .leftJoinAndSelect('numerations.council', 'council')
+      .where('numerations.yearModule = :yearModuleId', {
+        yearModuleId: yearModule.id,
+      })
+      .orderBy('numerations.number', 'DESC')
+      .getOne()
 
     return numeration
   }
@@ -160,10 +160,11 @@ export class NumerationDocumentService {
 
     const councilsCouldReserveNumeration: CouncilEntity[] = []
 
-    const councils = await this.councilRepository.find({
-      where: { module: { id: moduleId }, isActive: true },
-      loadRelationIds: true,
-    })
+    const councils = await this.councilRepository
+      .createQueryBuilder('council')
+      .where('council.module.id = :moduleId', { moduleId })
+      .andWhere('council.isActive = true')
+      .getMany()
 
     if (!councils || councils.length === 0) {
       throw new NumerationNotFound(
@@ -175,16 +176,16 @@ export class NumerationDocumentService {
 
     await Promise.all(
       councils.map(async (council) => {
-        const numerations = await this.dataSource.manager.find(
-          NumerationDocumentEntity,
-          {
-            where: {
-              council: { id: council.id },
-              yearModule: { id: yearModule.id },
-            },
-            order: { number: 'DESC' },
-          },
-        )
+        const numerations = await this.dataSource.manager
+          .createQueryBuilder()
+          .select('numerations')
+          .from(NumerationDocumentEntity, 'numerations')
+          .where('numerations.council = :councilId', { councilId: council.id })
+          .andWhere('numerations.yearModule = :yearModuleId', {
+            yearModuleId: yearModule.id,
+          })
+          .orderBy('numerations.number', 'DESC')
+          .getMany()
 
         if (!numerations || numerations.length === 0) {
           councilsCouldReserveNumeration.push(council)
@@ -209,14 +210,18 @@ export class NumerationDocumentService {
     if (numerations[numerations.length - 1].number === 1) {
       start = 1
     } else {
-      const beforeRangeCouncilNumeration =
-        await this.dataSource.manager.findOne(NumerationDocumentEntity, {
-          where: {
-            council: { id: Not(council.id) },
-            state: NumerationState.RESERVED,
-            number: numerations[numerations.length - 1].number - 1,
-          },
+      const beforeRangeCouncilNumeration = await this.dataSource.manager
+        .createQueryBuilder(NumerationDocumentEntity, 'numerationDocument')
+        .where('numerationDocument.council.id != :councilId', {
+          councilId: council.id,
         })
+        .andWhere('numerationDocument.state = :state', {
+          state: NumerationState.RESERVED,
+        })
+        .andWhere('numerationDocument.number = :number', {
+          number: numerations[numerations.length - 1].number - 1,
+        })
+        .getOne()
 
       if (
         !beforeRangeCouncilNumeration ||
@@ -224,14 +229,16 @@ export class NumerationDocumentService {
       ) {
         start = numerations[numerations.length - 1].number
       } else {
-        const beforeRangeCouncilNumerations =
-          await this.dataSource.manager.find(NumerationDocumentEntity, {
-            where: {
-              council: { id: beforeRangeCouncilNumeration.council.id },
-              number: LessThan(numerations[numerations.length - 1].number),
-            },
-            order: { number: 'DESC' },
+        const beforeRangeCouncilNumerations = await this.dataSource.manager
+          .createQueryBuilder(NumerationDocumentEntity, 'numerationDocument')
+          .where('numerationDocument.council.id = :councilId', {
+            councilId: beforeRangeCouncilNumeration.council.id,
           })
+          .andWhere('numerationDocument.number < :number', {
+            number: numerations[numerations.length - 1].number,
+          })
+          .orderBy('numerationDocument.number', 'DESC')
+          .getMany()
 
         let lastAvailableNumeration = numerations[numerations.length - 1].number
 
@@ -264,16 +271,19 @@ export class NumerationDocumentService {
       return { start, end }
     }
 
-    const afterRangeCouncilNumeration = await this.dataSource.manager.findOne(
-      NumerationDocumentEntity,
-      {
-        where: {
-          council: { id: Not(council.id) },
-          state: NumerationState.RESERVED,
-          number: numerations[0].number + 1,
-        },
-      },
-    )
+    const afterRangeCouncilNumeration = await this.dataSource.manager
+      .createQueryBuilder(NumerationDocumentEntity, 'numerationDocument')
+      .leftJoinAndSelect('numerationDocument.council', 'council')
+      .where('numerationDocument.council.id != :councilId', {
+        councilId: council.id,
+      })
+      .andWhere('numerationDocument.state = :state', {
+        state: NumerationState.RESERVED,
+      })
+      .andWhere('numerationDocument.number = :number', {
+        number: numerations[0].number + 1,
+      })
+      .getOne()
 
     if (!afterRangeCouncilNumeration || afterRangeCouncilNumeration === null) {
       end = numerations[0].number
@@ -282,17 +292,18 @@ export class NumerationDocumentService {
     }
 
     let lastAvailableNumeration = numerations[0].number
+    console.log(lastNumeration)
 
-    const councilAfterNumerations = await this.dataSource.manager.find(
-      NumerationDocumentEntity,
-      {
-        where: {
-          council: { id: afterRangeCouncilNumeration.council.id },
-          number: MoreThan(numerations[0].number),
-        },
-        order: { number: 'ASC' },
-      },
-    )
+    const councilAfterNumerations = await this.dataSource.manager
+      .createQueryBuilder(NumerationDocumentEntity, 'numerationDocument')
+      .where('numerationDocument.council.id = :councilId', {
+        councilId: afterRangeCouncilNumeration.council.id,
+      })
+      .andWhere('numerationDocument.number > :number', {
+        number: numerations[0].number,
+      })
+      .orderBy('numerationDocument.number', 'ASC')
+      .getMany()
 
     for (let index = 0; index < councilAfterNumerations.length; index++) {
       if (councilAfterNumerations[index].state !== NumerationState.RESERVED) {
@@ -315,16 +326,21 @@ export class NumerationDocumentService {
 
     const yearModule = await this.getYearModule(council)
 
-    const numerations = await this.dataSource.manager.find(
-      NumerationDocumentEntity,
-      {
-        where: {
-          council: { id: councilId, isActive: true },
-          yearModule: { id: yearModule.data.id },
-        },
-        order: { number: 'DESC' },
-      },
-    )
+    const numerations = await this.dataSource.manager
+      .createQueryBuilder(NumerationDocumentEntity, 'numerationDocument')
+      .leftJoinAndSelect('numerationDocument.council', 'council')
+      .leftJoinAndSelect('numerationDocument.yearModule', 'yearModule')
+      .where('council.id = :councilId', {
+        councilId,
+      })
+      .andWhere('council.isActive = :isActive', {
+        isActive: true,
+      })
+      .andWhere('yearModule.id = :yearModuleId', {
+        yearModuleId: yearModule.data.id,
+      })
+      .orderBy('numerationDocument.number', 'DESC')
+      .getMany()
 
     if (!numerations || numerations.length === 0) {
       throw new NumerationBadRequest(
@@ -336,6 +352,8 @@ export class NumerationDocumentService {
       council,
       numerations,
     )
+
+    console.log(numeration)
 
     if (!numeration) {
       throw new NumerationBadRequest(
@@ -431,16 +449,15 @@ export class NumerationDocumentService {
 
     const yearModule = await this.getYearModule(council)
 
-    const numerations = await this.dataSource.manager.find(
-      NumerationDocumentEntity,
-      {
-        where: {
-          council: { id: councilId, isActive: true },
-          yearModule: { id: yearModule.data.id },
-        },
-        order: { number: 'DESC' },
-      },
-    )
+    const numerations = await this.dataSource.manager
+      .createQueryBuilder(NumerationDocumentEntity, 'numerations')
+      .leftJoinAndSelect('numerations.council', 'council')
+      .where('numerations.council = :councilId', { councilId })
+      .andWhere('numerations.yearModule = :yearModuleId', {
+        yearModuleId: yearModule.data.id,
+      })
+      .orderBy('numerations.number', 'DESC')
+      .getMany()
 
     if (isExtension) {
       const reservedNumerations: NumerationDocumentEntity[] = []
@@ -452,38 +469,45 @@ export class NumerationDocumentService {
       }
 
       if (start <= numerations[numerations.length - 1].number) {
-        const prevCouncilNumerations = await this.dataSource.manager.findOne(
-          NumerationDocumentEntity,
-          {
-            where: {
-              council: { id: Not(councilId), isActive: true },
-              state: NumerationState.RESERVED,
-              number: numerations[numerations.length - 1].number - 1,
-            },
-          },
-        )
+        const prevCouncilNumerations = await this.dataSource.manager
+          .createQueryBuilder(NumerationDocumentEntity, 'numerations')
+          .leftJoinAndSelect('numerations.council', 'council')
+          .where('council.id <> :councilId', {
+            councilId,
+          })
+          .andWhere('numerations.state = :state', {
+            state: NumerationState.RESERVED,
+          })
+          .andWhere('numerations.number = :number', {
+            number: numerations[numerations.length - 1].number - 1,
+          })
+          .getOne()
 
         if (!prevCouncilNumerations || prevCouncilNumerations === null) {
           throw new NumerationBadRequest(
             'El rango de numeración solicitado para ampliarse ya está en uso',
           )
         }
-
-        const numbersToReserveBetweenCouncils =
-          await this.dataSource.manager.find(NumerationDocumentEntity, {
-            where: {
-              council: {
-                id: prevCouncilNumerations.council.id,
-                isActive: true,
-              },
-              state: NumerationState.RESERVED,
-              number: Between(
-                start,
-                numerations[numerations.length - 1].number - 1,
-              ),
-            },
-            order: { number: 'DESC' },
+        const numbersToReserveBetweenCouncils = await this.dataSource.manager
+          .createQueryBuilder(NumerationDocumentEntity, 'numerations')
+          .leftJoinAndSelect('numerations.council', 'council')
+          .leftJoinAndSelect('numerations.yearModule', 'yearModule')
+          .where('council.id = :councilId', {
+            councilId: prevCouncilNumerations.council.id,
           })
+          .andWhere('council.isActive = true')
+          .andWhere('yearModule.id = :yearModuleId', {
+            yearModuleId: yearModule.data.id,
+          })
+          .andWhere('numerations.state = :state', {
+            state: NumerationState.RESERVED,
+          })
+          .andWhere('numerations.number >= :start', { start })
+          .andWhere('numerations.number <= :end', {
+            end: numerations[numerations.length - 1].number - 1,
+          })
+          .orderBy('numerations.number', 'DESC')
+          .getMany()
 
         if (
           numbersToReserveBetweenCouncils.length !==
@@ -509,16 +533,20 @@ export class NumerationDocumentService {
       }
 
       if (end >= numerations[0].number) {
-        const postCouncilNumerations = await this.dataSource.manager.findOne(
-          NumerationDocumentEntity,
-          {
-            where: {
-              council: { id: Not(councilId), isActive: true },
-              state: NumerationState.RESERVED,
-              number: numerations[0].number + 1,
-            },
-          },
-        )
+        const postCouncilNumerations = await this.dataSource.manager
+          .createQueryBuilder(NumerationDocumentEntity, 'numerations')
+          .leftJoinAndSelect('numerations.council', 'council')
+          .where('council.id <> :councilId', {
+            councilId,
+          })
+          .andWhere('council.isActive = true')
+          .andWhere('numerations.state = :state', {
+            state: NumerationState.RESERVED,
+          })
+          .andWhere('numerations.number = :number', {
+            number: numerations[0].number + 1,
+          })
+          .getOne()
 
         if (!postCouncilNumerations || postCouncilNumerations === null) {
           throw new NumerationBadRequest(
@@ -526,15 +554,26 @@ export class NumerationDocumentService {
           )
         }
 
-        const numbersToReserveBetweenCouncils =
-          await this.dataSource.manager.find(NumerationDocumentEntity, {
-            where: {
-              council: { id: postCouncilNumerations.council.id },
-              state: NumerationState.RESERVED,
-              number: Between(numerations[0].number + 1, end),
-            },
-            order: { number: 'ASC' },
+        const numbersToReserveBetweenCouncils = await this.dataSource.manager
+          .createQueryBuilder(NumerationDocumentEntity, 'numerations')
+          .leftJoinAndSelect('numerations.council', 'council')
+          .leftJoinAndSelect('numerations.yearModule', 'yearModule')
+          .where('council.id = :councilId', {
+            councilId: postCouncilNumerations.council.id,
           })
+          .andWhere('council.isActive = true')
+          .andWhere('yearModule.id = :yearModuleId', {
+            yearModuleId: yearModule.data.id,
+          })
+          .andWhere('numerations.state = :state', {
+            state: NumerationState.RESERVED,
+          })
+          .andWhere('numerations.number >= :start', {
+            start: numerations[0].number + 1,
+          })
+          .andWhere('numerations.number <= :end', { end })
+          .orderBy('numerations.number', 'ASC')
+          .getMany()
 
         if (
           numbersToReserveBetweenCouncils.length !==
@@ -556,7 +595,9 @@ export class NumerationDocumentService {
           )
         }
 
-        reservedNumerations.concat(reasignedNumerations)
+        reasignedNumerations.forEach((numeration) => {
+          reservedNumerations.push(numeration)
+        })
       }
 
       return reservedNumerations
@@ -572,13 +613,13 @@ export class NumerationDocumentService {
       )
     }
 
-    const yearModuleNumerations = await this.dataSource.manager.find(
-      NumerationDocumentEntity,
-      {
-        where: { yearModule: { id: yearModule.data.id } },
-        order: { number: 'DESC' },
-      },
-    )
+    const yearModuleNumerations = await this.dataSource.manager
+      .createQueryBuilder(NumerationDocumentEntity, 'numerations')
+      .where('numerations.yearModule = :yearModuleId', {
+        yearModuleId: yearModule.data.id,
+      })
+      .orderBy('numerations.number', 'DESC')
+      .getMany()
 
     if (!yearModuleNumerations || yearModuleNumerations.length === 0) {
       if (start !== 1) {
@@ -618,6 +659,8 @@ export class NumerationDocumentService {
       yearModule.data.id,
     )
 
+    console.log('hasodjk')
+
     return reservedNumerations
   }
 
@@ -626,10 +669,12 @@ export class NumerationDocumentService {
     councilId: number,
   ) {
     const reasignedNumerations: NumerationDocumentEntity[] = []
+    let promises: Promise<NumerationDocumentEntity>[]
 
     await this.dataSource.manager.transaction(async (manager) => {
-      numerations.forEach(async (numeration) => {
+      promises = numerations.map(async (numeration) => {
         const numerationDocument = manager.create(NumerationDocumentEntity, {
+          id: numeration.id,
           number: numeration.number,
           state: NumerationState.RESERVED,
           council: { id: councilId },
@@ -644,10 +689,10 @@ export class NumerationDocumentService {
         }
 
         reasignedNumerations.push(numerations)
+        return numerations
       })
+      await Promise.all(promises)
     })
-
-    await Promise.all(reasignedNumerations)
 
     return reasignedNumerations
   }

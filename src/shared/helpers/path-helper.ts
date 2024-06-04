@@ -5,9 +5,9 @@ import * as path from 'path'
 const projectPath = path.resolve(__dirname, '../../../')
 
 export const getCouncilPath = (council: CouncilEntity) =>
-  `${projectPath}/recopilations/${council.module.name}/${council.submoduleYearModule.yearModule.year}/councils/${council.id}-${council.name}`
+  `${projectPath}/storage/recopilations/${council.module.name}/${council.submoduleYearModule.yearModule.year}/councils/${council.id}-${council.name}`
 
 export const getYearModulePath = (yearModule: YearModuleEntity) =>
-  `${projectPath}/recopilations/${yearModule.module.name}/${yearModule.year}`
+  `${projectPath}/storage/recopilations/${yearModule.module.name}/${yearModule.year}`
 
 export const getProjectPath = () => projectPath
