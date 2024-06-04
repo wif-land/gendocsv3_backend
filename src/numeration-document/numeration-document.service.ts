@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common'
 import { CreateNumerationDocumentDto } from './dto/create-numeration-document.dto'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Between, DataSource, Not, Repository } from 'typeorm'
+import { DataSource, Not, Repository } from 'typeorm'
 import { NumerationDocumentEntity } from './entities/numeration-document.entity'
 import { CouncilEntity } from '../councils/entities/council.entity'
 import { YearModuleEntity } from '../year-module/entities/year-module.entity'
@@ -352,8 +352,6 @@ export class NumerationDocumentService {
       council,
       numerations,
     )
-
-    console.log(numeration)
 
     if (!numeration) {
       throw new NumerationBadRequest(
