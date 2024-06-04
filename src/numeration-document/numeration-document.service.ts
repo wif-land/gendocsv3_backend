@@ -466,7 +466,7 @@ export class NumerationDocumentService {
         )
       }
 
-      if (start <= numerations[numerations.length - 1].number) {
+      if (start < numerations[numerations.length - 1].number) {
         const prevCouncilNumerations = await this.dataSource.manager
           .createQueryBuilder(NumerationDocumentEntity, 'numerations')
           .leftJoinAndSelect('numerations.council', 'council')
@@ -530,7 +530,7 @@ export class NumerationDocumentService {
         reservedNumerations.concat(reasignedNumerations)
       }
 
-      if (end >= numerations[0].number) {
+      if (end > numerations[0].number) {
         const postCouncilNumerations = await this.dataSource.manager
           .createQueryBuilder(NumerationDocumentEntity, 'numerations')
           .leftJoinAndSelect('numerations.council', 'council')
