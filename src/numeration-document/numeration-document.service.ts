@@ -55,9 +55,12 @@ export class NumerationDocumentService {
   async getYearModule(council: CouncilEntity) {
     const year = await this.yearModuleService.getCurrentSystemYear()
 
-    const yearModule = await this.dataSource.manager.findOne(YearModuleEntity, {
-      where: { year, module: { id: council.module.id } },
-    })
+    const yearModule = await this.dataSource.manager
+      .createQueryBuilder(YearModuleEntity, 'yearModule')
+      .leftJoinAndSelect('yearModule.module', 'module')
+      .where('module.id = :moduleId', { moduleId: council.module.id })
+      .andWhere('yearModule.year = :year', { year })
+      .getOne()
 
     if (!yearModule) {
       throw new NumerationConflict('YearModule not found')
@@ -292,7 +295,6 @@ export class NumerationDocumentService {
     }
 
     let lastAvailableNumeration = numerations[0].number
-    console.log(lastNumeration)
 
     const councilAfterNumerations = await this.dataSource.manager
       .createQueryBuilder(NumerationDocumentEntity, 'numerationDocument')
@@ -469,6 +471,16 @@ export class NumerationDocumentService {
       .orderBy('numerations.number', 'DESC')
       .getMany()
 
+    const yearModuleNumerations = await this.dataSource.manager
+      .createQueryBuilder(NumerationDocumentEntity, 'numerations')
+      .leftJoinAndSelect('numerations.council', 'council')
+      .leftJoinAndSelect('numerations.yearModule', 'yearModule')
+      .where('numerations.yearModule = :yearModuleId', {
+        yearModuleId: yearModule.data.id,
+      })
+      .orderBy('numerations.number', 'DESC')
+      .getMany()
+
     if (isExtension) {
       const reservedNumerations: NumerationDocumentEntity[] = []
 
@@ -547,6 +559,34 @@ export class NumerationDocumentService {
       }
 
       if (end && end > numerations[0].number && end > 0) {
+        if (
+          end > yearModuleNumerations[0].number &&
+          yearModuleNumerations[0].council.id === councilId
+        ) {
+          const createdReservedNumerations = await this.reserveNumerationRange(
+            numerations[0].number + 1,
+            end,
+            councilId,
+            yearModule.data.id,
+          )
+
+          if (!createdReservedNumerations) {
+            throw new NumerationBadRequest(
+              'Error al reservar numeraciones del consejo actual',
+            )
+          }
+
+          if (Array.isArray(createdReservedNumerations)) {
+            createdReservedNumerations.forEach((numeration) => {
+              reservedNumerations.push(numeration)
+            })
+          } else {
+            reservedNumerations.push(createdReservedNumerations)
+          }
+
+          return reservedNumerations
+        }
+
         const postCouncilNumerations = await this.dataSource.manager
           .createQueryBuilder(NumerationDocumentEntity, 'numerations')
           .leftJoinAndSelect('numerations.council', 'council')
@@ -626,14 +666,6 @@ export class NumerationDocumentService {
         'El consejo no puede reservar numeración si no es el último en poseer numeración registrada',
       )
     }
-
-    const yearModuleNumerations = await this.dataSource.manager
-      .createQueryBuilder(NumerationDocumentEntity, 'numerations')
-      .where('numerations.yearModule = :yearModuleId', {
-        yearModuleId: yearModule.data.id,
-      })
-      .orderBy('numerations.number', 'DESC')
-      .getMany()
 
     if (!yearModuleNumerations || yearModuleNumerations.length === 0) {
       if (start !== 1) {
