@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common'
-import { DegreeCertificatesService } from './DegreeCertificatesService'
 import { DegreeCertificatesController } from './degree-certificates.controller'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { CertificateStatusEntity } from './entities/certificate-status.entity'
@@ -20,6 +19,7 @@ import { CertificateTypeService } from './services/certificate-type.service'
 import { GradesSheetService } from './services/grades-sheet.service'
 import { DegreeModalitiesService } from './services/degree-modalities.service'
 import { RoomsService } from './services/rooms.service'
+import { DegreeCertificatesService } from './degree-certificates.service'
 
 @Module({
   controllers: [DegreeCertificatesController],

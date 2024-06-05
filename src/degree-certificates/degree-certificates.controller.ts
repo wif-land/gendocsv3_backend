@@ -9,7 +9,6 @@ import {
   Post,
   Query,
 } from '@nestjs/common'
-import { DegreeCertificatesService } from './DegreeCertificatesService'
 import { CreateCertificateStatusDto } from './dto/create-certificate-status.dto'
 import { UpdateCertificateStatusDto } from './dto/update-certificate-status.dto'
 import { CreateCertificateTypeDto } from './dto/create-certificate-type.dto'
@@ -31,6 +30,7 @@ import { CertificateTypeService } from './services/certificate-type.service'
 import { GradesSheetService } from './services/grades-sheet.service'
 import { RoomsService } from './services/rooms.service'
 import { DegreeModalitiesService } from './services/degree-modalities.service'
+import { DegreeCertificatesService } from './degree-certificates.service'
 
 @Controller('degree-certificates')
 export class DegreeCertificatesController {
@@ -98,7 +98,7 @@ export class DegreeCertificatesController {
     @Param('certificateTypeId', ParseIntPipe) certificateTypeId: number,
   ) {
     const gradeCells =
-      await this.degreeCertificatesService.getGradeCellsByCertificateType(
+      await this.gradesSheetService.getGradeCellsByCertificateType(
         certificateTypeId,
       )
 
@@ -113,7 +113,7 @@ export class DegreeCertificatesController {
     @Body()
     createCellGradeDegreeCertificateTypeDto: CreateCellGradeDegreeCertificateTypeDto,
   ) {
-    return await this.degreeCertificatesService.createCellGradeByCertificateType(
+    return await this.gradesSheetService.createCellGradeByCertificateType(
       createCellGradeDegreeCertificateTypeDto,
     )
   }
@@ -123,7 +123,7 @@ export class DegreeCertificatesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCellGradeDegreeCertificateTypeDto,
   ) {
-    return await this.degreeCertificatesService.updateCellGradeByCertificateType(
+    return await this.gradesSheetService.updateCellGradeByCertificateType(
       id,
       dto,
     )
@@ -131,9 +131,7 @@ export class DegreeCertificatesController {
 
   @Delete('grade-cells/:id')
   async deleteGradeCell(@Param('id', ParseIntPipe) id: number) {
-    return await this.degreeCertificatesService.deleteCellGradeByCertificateType(
-      id,
-    )
+    return await this.gradesSheetService.deleteCellGradeByCertificateType(id)
   }
   // #endregion
 
@@ -196,7 +194,7 @@ export class DegreeCertificatesController {
     @Param('careerId', ParseIntPipe) careerId: number,
   ) {
     const certificateTypes =
-      await this.degreeCertificatesService.getCertificateTypesCarrerByCarrer(
+      await this.certificateTypeService.getCertificateTypesCarrerByCarrer(
         careerId,
       )
 
@@ -211,7 +209,7 @@ export class DegreeCertificatesController {
     @Param('certificateTypeId', ParseIntPipe) certificateTypeId: number,
   ) {
     const certificateStatus =
-      await this.degreeCertificatesService.getCertificateStatusByType(
+      await this.certificateStatusService.getCertificateStatusByType(
         certificateTypeId,
       )
 
@@ -227,7 +225,7 @@ export class DegreeCertificatesController {
     @Param('statusId', ParseIntPipe) statusId: number,
   ) {
     const certificateStatus =
-      await this.degreeCertificatesService.findCertificateStatusType(
+      await this.certificateStatusService.findCertificateStatusType(
         certificateTypeId,
         statusId,
       )

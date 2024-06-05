@@ -6,11 +6,8 @@ export class SendGridClient {
   private logger: Logger
 
   constructor() {
-    console.log(process.env.SENDGRID_API_KEY)
     this.logger = new Logger(SendGridClient.name)
-    SendGrid.setApiKey(
-      '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',
-    )
+    SendGrid.setApiKey(process.env.SENDGRID_API_KEY)
   }
 
   async send(mail: MailDataRequired): Promise<void> {
