@@ -21,7 +21,7 @@ export class CertificateStatusService {
 
   async findCertificateStatusByName(name: string) {
     const certificateStatus = this.certificateStatusRepository.findOneBy({
-      name,
+      femaleName: name,
     })
 
     if (!certificateStatus) {
