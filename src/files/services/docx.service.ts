@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common'
 import * as AdmZip from 'adm-zip'
 import * as fs from 'fs/promises'
 import * as path from 'path'
-import * as os from 'os'
 import { DOMParser } from 'xmldom'
 import { IReplaceText } from '../../shared/interfaces/replace-text'
+import { getProjectPath } from '../../shared/helpers/path-helper'
 
 @Injectable()
 export class DocxService {
@@ -15,7 +15,8 @@ export class DocxService {
     start: string,
     end: string,
   ): Promise<string> {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'docx-'))
+    const tempPath = `${getProjectPath()}/storage/temp`
+    const tempDir = await DocxService.resolveDirectory(`${tempPath}/docx-/`)
     try {
       const zip = new AdmZip(await fs.readFile(filePath))
       zip.extractAllTo(tempDir, true)
@@ -39,7 +40,7 @@ export class DocxService {
     } catch (error) {
       throw error
     } finally {
-      await fs.rm(tempDir, { recursive: true, force: true }) // Clean up the temporary directory
+      await fs.rm(tempDir, { recursive: true, force: true })
     }
   }
 
@@ -69,6 +70,8 @@ export class DocxService {
     const zip = new AdmZip()
     zip.addLocalFolder(tempDir)
     await fs.writeFile(filePath, zip.toBuffer())
+
+    await fs.rm(tempDir, { recursive: true, force: true }) // Clean up the temporary directory
   }
 
   async mergeDocuments(
@@ -114,7 +117,10 @@ export class DocxService {
     replaceEntries: IReplaceText,
     separatorPath: string,
   ): Promise<string> {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'sep-docx-'))
+    const tempDir = await DocxService.resolveDirectory(
+      // eslint-disable-next-line no-extra-parens
+      `${getProjectPath()}/storage/temp` + `sep-docx-`,
+    )
     try {
       const zip = new AdmZip(await fs.readFile(separatorPath))
       zip.extractAllTo(tempDir, true)
@@ -141,6 +147,18 @@ export class DocxService {
     } finally {
       await fs.rm(tempDir, { recursive: true, force: true }) // Clean up the temporary directory
     }
+  }
+
+  static async resolveDirectory(directory: string) {
+    const directoryResolved = path.resolve(directory)
+
+    try {
+      await fs.access(directoryResolved)
+    } catch {
+      await fs.mkdir(directoryResolved, { recursive: true })
+    }
+
+    return directoryResolved
   }
 }
 
@@ -226,7 +244,9 @@ class Docx {
       this.writeContent(content, path)
     }
 
-    const tempDir = await fs.mkdtemp(path.join('/tmp', 'dm-'))
+    const tempDir = await DocxService.resolveDirectory(
+      `${getProjectPath()}storage/temp/` + `dm-`,
+    )
     const tempFile = path.join(tempDir, 'merged.docx')
     await fs.writeFile(tempFile, this.docxZip.toBuffer())
 

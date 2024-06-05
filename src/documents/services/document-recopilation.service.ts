@@ -9,7 +9,10 @@ import { InjectDataSource } from '@nestjs/typeorm'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { DocumentEntity } from '../entities/document.entity'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
-import { getCouncilPath, getYearModulePath } from '../helpers/path-helper'
+import {
+  getCouncilPath,
+  getYearModulePath,
+} from '../../shared/helpers/path-helper'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 import { FilesService } from '../../files/services/files.service'
@@ -108,6 +111,7 @@ export class DocumentRecopilationService {
     return new ApiResponseDto('Recopilación de documentos creada', {
       documentsRecopilated: resolvedDocuments.length,
       mergedDocument: !!mergedDocument.data.mergedDocumentPath,
+      council: mergedDocument.data.council,
     })
   }
 
@@ -204,8 +208,17 @@ export class DocumentRecopilationService {
       )
     }
 
+    const councilWithRecopilation = await this.dataSource.manager
+      .getRepository(CouncilEntity)
+      .findOne({
+        where: {
+          id: councilId,
+        },
+      })
+
     return new ApiResponseDto('Documentos del consejo procesados', {
       mergedDocumentPath,
+      council: councilWithRecopilation,
     })
   }
 
