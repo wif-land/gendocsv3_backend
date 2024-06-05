@@ -53,13 +53,16 @@ export class CertificateBulkService {
       )
     }
 
-    // validate certificate type
-    const certificateType =
-      await this.certiticateTypeService.findCertificateTypeByName(
-        createCertificateDto.certificateType,
-      )
+    // // validate certificate type
+    // const certificateType =
+    //   await this.certiticateTypeService.findCertificateTypeByName(
+    //     createCertificateDto.certificateType,
+    //   )
 
-    // validate first main qualifier
-    const certificateStatus = await this.certificateStatusService.findCertificateStatusByName(
+    // // validate first main qualifier
+    // const certificateStatus =
+    //   await this.certificateStatusService.findCertificateStatusByName(
+    //     createCertificateDto.certificateStatus,
+    //   )
   }
 }
