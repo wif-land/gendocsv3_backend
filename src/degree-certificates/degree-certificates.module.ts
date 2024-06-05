@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { DegreeCertificatesService } from './degree-certificates.service'
+import { DegreeCertificatesService } from './DegreeCertificatesService'
 import { DegreeCertificatesController } from './degree-certificates.controller'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { CertificateStatusEntity } from './entities/certificate-status.entity'
@@ -15,10 +15,22 @@ import { CertificateTypeStatusEntity } from './entities/certificate-type-status.
 import { CertificateTypeCareerEntity } from './entities/certicate-type-career.entity'
 import { CellsGradeDegreeCertificateTypeEntity } from './entities/cells-grade-degree-certificate-type.entity'
 import { DegreeCertificateAttendanceModule } from '../degree-certificate-attendance/degree-certificate-attendance.module'
+import { CertificateStatusService } from './services/certificate-status.service'
+import { CertificateTypeService } from './services/certificate-type.service'
+import { GradesSheetService } from './services/grades-sheet.service'
+import { DegreeModalitiesService } from './services/degree-modalities.service'
+import { RoomsService } from './services/rooms.service'
 
 @Module({
   controllers: [DegreeCertificatesController],
-  providers: [DegreeCertificatesService],
+  providers: [
+    DegreeCertificatesService,
+    CertificateStatusService,
+    CertificateTypeService,
+    GradesSheetService,
+    DegreeModalitiesService,
+    RoomsService,
+  ],
   imports: [
     TypeOrmModule.forFeature([
       CertificateStatusEntity,

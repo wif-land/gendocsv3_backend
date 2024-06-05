@@ -9,7 +9,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common'
-import { DegreeCertificatesService } from './degree-certificates.service'
+import { DegreeCertificatesService } from './DegreeCertificatesService'
 import { CreateCertificateStatusDto } from './dto/create-certificate-status.dto'
 import { UpdateCertificateStatusDto } from './dto/update-certificate-status.dto'
 import { CreateCertificateTypeDto } from './dto/create-certificate-type.dto'
@@ -26,11 +26,21 @@ import { UpdateCellGradeDegreeCertificateTypeDto } from './dto/update-cells-grad
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { Auth } from '../auth/decorators/auth-decorator'
 import { RolesType } from '../auth/decorators/roles-decorator'
+import { CertificateStatusService } from './services/certificate-status.service'
+import { CertificateTypeService } from './services/certificate-type.service'
+import { GradesSheetService } from './services/grades-sheet.service'
+import { RoomsService } from './services/rooms.service'
+import { DegreeModalitiesService } from './services/degree-modalities.service'
 
 @Controller('degree-certificates')
 export class DegreeCertificatesController {
   constructor(
     private readonly degreeCertificatesService: DegreeCertificatesService,
+    private readonly certificateStatusService: CertificateStatusService,
+    private readonly certificateTypeService: CertificateTypeService,
+    private readonly gradesSheetService: GradesSheetService,
+    private readonly roomsService: RoomsService,
+    private readonly degreeModalitiesService: DegreeModalitiesService,
   ) {}
 
   // #region DegreeCertificates
@@ -135,12 +145,12 @@ export class DegreeCertificatesController {
   // #region CertificateStatus
   @Get('certificate-status')
   async getCertificateStatus() {
-    return await this.degreeCertificatesService.findAllCertificateStatus()
+    return await this.certificateStatusService.findAllCertificateStatus()
   }
 
   @Post('certificate-status')
   async createCertificateStatus(@Body() dto: CreateCertificateStatusDto) {
-    return await this.degreeCertificatesService.createCertificateStatus(dto)
+    return await this.certificateStatusService.createCertificateStatus(dto)
   }
 
   @Patch('certificate-status/:id')
@@ -148,24 +158,24 @@ export class DegreeCertificatesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCertificateStatusDto,
   ) {
-    return await this.degreeCertificatesService.updateCertificateStatus(id, dto)
+    return await this.certificateStatusService.updateCertificateStatus(id, dto)
   }
 
   @Delete('certificate-status/:id')
   async deleteCertificateStatus(@Param('id', ParseIntPipe) id: number) {
-    return await this.degreeCertificatesService.deleteCertificateStatus(id)
+    return await this.certificateStatusService.deleteCertificateStatus(id)
   }
   // #endregion
 
   // #region CertificateTypes
   @Get('certificate-types')
   async getCertificateTypes() {
-    return await this.degreeCertificatesService.findAllCertificateTypes()
+    return await this.certificateTypeService.findAllCertificateTypes()
   }
 
   @Post('certificate-types')
   async createCertificateType(@Body() dto: CreateCertificateTypeDto) {
-    return await this.degreeCertificatesService.createCertificateType(dto)
+    return await this.certificateTypeService.createCertificateType(dto)
   }
 
   @Patch('certificate-types/:id')
@@ -173,12 +183,12 @@ export class DegreeCertificatesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCertificateTypeDto,
   ) {
-    return await this.degreeCertificatesService.updateCertificateType(id, dto)
+    return await this.certificateTypeService.updateCertificateType(id, dto)
   }
 
   @Delete('certificate-types/:id')
   async deleteCertificateType(@Param('id', ParseIntPipe) id: number) {
-    return await this.degreeCertificatesService.deleteCertificateType(id)
+    return await this.certificateTypeService.deleteCertificateType(id)
   }
 
   @Get('certifitace-types-career/:careerId')
@@ -231,7 +241,7 @@ export class DegreeCertificatesController {
   @Get('certificate-type-status-career')
   async showCertificateTypeStatusCareer() {
     const certificateTypeStatusCareer =
-      await this.degreeCertificatesService.getCertificateTypeStatusCareer()
+      await this.certificateTypeService.getCertificateTypeStatusCareer()
 
     return new ApiResponseDto(
       'Listado de modalidades de grado, estados de certificado y carreras obtenido exitosamente',
@@ -243,12 +253,12 @@ export class DegreeCertificatesController {
   // #region DegreeModalities
   @Get('degree-modalities')
   async getDegreeModalities() {
-    return await this.degreeCertificatesService.findAllDegreeModalities()
+    return await this.degreeModalitiesService.findAllDegreeModalities()
   }
 
   @Post('degree-modalities')
   async createDegreeModality(@Body() dto: CreateDegreeModalityDto) {
-    return await this.degreeCertificatesService.createDegreeModality(dto)
+    return await this.degreeModalitiesService.createDegreeModality(dto)
   }
 
   @Patch('degree-modalities/:id')
@@ -256,24 +266,24 @@ export class DegreeCertificatesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDegreeModalityDto,
   ) {
-    return await this.degreeCertificatesService.updateDegreeModality(id, dto)
+    return await this.degreeModalitiesService.updateDegreeModality(id, dto)
   }
 
   @Delete('degree-modalities/:id')
   async deleteDegreeModality(@Param('id', ParseIntPipe) id: number) {
-    return await this.degreeCertificatesService.deleteDegreeModality(id)
+    return await this.degreeModalitiesService.deleteDegreeModality(id)
   }
   // #endregion
 
   // #region Rooms
   @Get('rooms')
   async getRooms() {
-    return await this.degreeCertificatesService.findAllRooms()
+    return await this.roomsService.findAllRooms()
   }
 
   @Post('rooms')
   async createRoom(@Body() dto: CreateRoomDto) {
-    return await this.degreeCertificatesService.createRoom(dto)
+    return await this.roomsService.createRoom(dto)
   }
 
   @Patch('rooms/:id')
@@ -281,12 +291,12 @@ export class DegreeCertificatesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateRoomDto,
   ) {
-    return await this.degreeCertificatesService.updateRoom(id, dto)
+    return await this.roomsService.updateRoom(id, dto)
   }
 
   @Delete('rooms/:id')
   async deleteRoom(@Param('id', ParseIntPipe) id: number) {
-    return await this.degreeCertificatesService.deleteRoom(id)
+    return await this.roomsService.deleteRoom(id)
   }
 
   // #endregion
