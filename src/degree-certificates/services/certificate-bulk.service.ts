@@ -3,6 +3,10 @@ import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-cretificate
 import { DegreeCertificatesService } from '../degree-certificates.service'
 import { StudentsService } from '../../students/students.service'
 import { DegreeCertificateBadRequestError } from '../errors/degree-certificate-bad-request'
+import { CertificateTypeService } from './certificate-type.service'
+import { FunctionariesService } from '../../functionaries/functionaries.service'
+import { CertificateStatusService } from './certificate-status.service'
+import { DegreeModalitiesService } from './degree-modalities.service'
 
 @Injectable()
 export class CertificateBulkService {
@@ -10,7 +14,16 @@ export class CertificateBulkService {
     private readonly degreeCertificateService: DegreeCertificatesService,
 
     private readonly studentsService: StudentsService,
+
+    private readonly certiticateTypeService: CertificateTypeService,
+
+    private readonly functionariesService: FunctionariesService,
+
+    private readonly certificateStatusService: CertificateStatusService,
+
+    private readonly degreeModalitiesService: DegreeModalitiesService,
   ) {}
+
   async createBulkCertificates(
     createCertificatesDtos: CreateDegreeCertificateBulkDto[],
   ) {
@@ -28,9 +41,9 @@ export class CertificateBulkService {
   async validateCertificate(
     createCertificateDto: CreateDegreeCertificateBulkDto,
   ) {
-    // validate certificate
+    // validate certificate student
     const { data: students } = await this.studentsService.findByFilters({
-      field: 'dni',
+      field: createCertificateDto.studentDni,
       state: true,
     })
 
@@ -39,5 +52,14 @@ export class CertificateBulkService {
         `No existe el estudiante con cédula${createCertificateDto.studentDni}`,
       )
     }
+
+    // validate certificate type
+    const certificateType =
+      await this.certiticateTypeService.findCertificateTypeByName(
+        createCertificateDto.certificateType,
+      )
+
+    // validate first main qualifier
+    const certificateStatus = await this.certificateStatusService.findCertificateStatusByName(
   }
 }

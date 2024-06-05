@@ -29,6 +29,20 @@ export class CertificateTypeService {
     )
   }
 
+  async findCertificateTypeByName(name: string) {
+    const certificateType = this.certificateTypeRepository.findOneBy({
+      name,
+    })
+
+    if (!certificateType) {
+      throw new DegreeCertificateNotFoundError(
+        `El tipo de certificado con nombre ${name} no existe`,
+      )
+    }
+
+    return certificateType
+  }
+
   async createCertificateType(dto: CreateCertificateTypeDto) {
     if (
       this.certificateTypeRepository.findOneBy({

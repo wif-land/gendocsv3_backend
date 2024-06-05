@@ -19,6 +19,20 @@ export class CertificateStatusService {
     private readonly certificateTypeStatusRepository: Repository<CertificateTypeStatusEntity>,
   ) {}
 
+  async findCertificateStatusByName(name: string) {
+    const certificateStatus = this.certificateStatusRepository.findOneBy({
+      name,
+    })
+
+    if (!certificateStatus) {
+      throw new DegreeCertificateNotFoundError(
+        `El estado de certificado con nombre ${name} no existe`,
+      )
+    }
+
+    return certificateStatus
+  }
+
   async findAllCertificateStatus() {
     const certificateStatus = await this.certificateStatusRepository.find()
 
