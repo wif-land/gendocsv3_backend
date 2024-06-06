@@ -190,4 +190,20 @@ export class GradesSheetService {
 
     return cellsVariables
   }
+
+  async replaceCellsVariables(cellsVariables, gradesSheetDriveId) {
+    const { data: replaced } = await this.filesService.replaceValuesOnCells(
+      gradesSheetDriveId,
+      DEGREE_CERTIFICATE_GRADES.DEFAULT_SHEET,
+      cellsVariables,
+    )
+
+    if (!replaced) {
+      throw new DegreeCertificateBadRequestError(
+        'Error reemplazando valores en celdas de la hoja de calificaciones',
+      )
+    }
+
+    return replaced
+  }
 }

@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common'
-import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-cretificate-bulk.dto'
+import { Injectable, Logger } from '@nestjs/common'
+import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
 import { DegreeCertificatesService } from '../degree-certificates.service'
 import { StudentsService } from '../../students/students.service'
 import { DegreeCertificateBadRequestError } from '../errors/degree-certificate-bad-request'
@@ -20,6 +20,7 @@ import { DEGREE_ATTENDANCE_ROLES } from '../../shared/enums/degree-certificates'
 import { CertificateStatusEntity } from '../entities/certificate-status.entity'
 import { DegreeModalityEntity } from '../entities/degree-modality.entity'
 import { StudentEntity } from '../../students/entities/student.entity'
+import { GradesSheetService } from './grades-sheet.service'
 
 @Injectable()
 export class CertificateBulkService {
@@ -37,6 +38,8 @@ export class CertificateBulkService {
     private readonly degreeModalitiesService: DegreeModalitiesService,
 
     private readonly degreeCertificateAttendanceService: DegreeCertificateAttendanceService,
+
+    private readonly gradesSheetService: GradesSheetService,
 
     @InjectRepository(DegreeCertificateEntity)
     private readonly degreeCertificateRepository: DegreeCertificateRepository,
@@ -524,5 +527,106 @@ export class CertificateBulkService {
     attendance.push(tutorAttendance)
 
     return attendance
+  }
+
+  async generateGradesSheet(
+    degreeCertificate: DegreeCertificateEntity,
+    gradesDetails: string,
+    errors: DegreeCertificateBadRequestError[],
+  ): Promise<boolean> {
+    if (
+      degreeCertificate.gradesSheetDriveId !== null ||
+      degreeCertificate.gradesSheetDriveId !== undefined
+    ) {
+      const revoked = await this.gradesSheetService.revokeGradeSheet(
+        degreeCertificate,
+      )
+      if (!revoked) {
+        errors.push(
+          new DegreeCertificateBadRequestError(
+            'No se pudo anular la hoja de calificaciones',
+          ),
+        )
+      }
+    }
+
+    const { data: driveId } = await this.gradesSheetService.generateGradeSheet(
+      degreeCertificate,
+    )
+
+    if (!driveId) {
+      errors.push(
+        new DegreeCertificateBadRequestError(
+          'No se pudo generar la hoja de calificaciones',
+        ),
+      )
+    }
+    try {
+      const gradesVariables =
+        await this.gradesSheetService.getGradeCellsByCertificateType(
+          degreeCertificate.certificateType.id,
+        )
+
+      const processedGradesDetails = this.processGradesDetails(gradesDetails)
+
+      const matchedGradesVariables = gradesVariables.filter((cell) =>
+        processedGradesDetails.find(
+          (grade) => grade.variable === cell.gradeVariable,
+        ),
+      )
+
+      if (matchedGradesVariables.length !== processedGradesDetails.length) {
+        errors.push(
+          new DegreeCertificateBadRequestError(
+            `No se encontraron todas las variables de notas en la hoja de calificaciones: variables encontradas: ${matchedGradesVariables.length}, variables esperadas: ${processedGradesDetails.length}, revise las variables de notas en el tipo de acta seleccionado: ${degreeCertificate.certificateType.name}`,
+          ),
+        )
+      }
+
+      const valuesToReplace = matchedGradesVariables.map((cell) => {
+        const grade = processedGradesDetails.find(
+          (grade) => grade.variable === cell.gradeVariable,
+        )
+        return {
+          cell,
+          value: grade.value,
+        }
+      })
+
+      try {
+        const replacedSheetsId =
+          await this.gradesSheetService.replaceCellsVariables(
+            valuesToReplace,
+            driveId,
+          )
+
+        Logger.log(replacedSheetsId, 'replacedSheetsId')
+
+        return true
+      } catch (error) {
+        errors.push(
+          new DegreeCertificateBadRequestError(
+            'No se pudo reemplazar las variables de notas',
+          ),
+        )
+      }
+    } catch (error) {
+      errors.push(
+        new DegreeCertificateBadRequestError(
+          'No se pudo obtener las variables de notas',
+        ),
+      )
+    }
+  }
+
+  processGradesDetails(gradesDetails: string) {
+    // NOTA_1=3.45;NOTA_2=5.65;NOTA_3=10
+    const grades = gradesDetails.split(';')
+    const gradesData = grades.map((grade) => {
+      const [variable, value] = grade.split('=')
+      return { variable, value }
+    })
+
+    return gradesData
   }
 }
