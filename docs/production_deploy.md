@@ -42,3 +42,13 @@ Este comando ejecutará los siguientes pasos:
 3. Ejecuta comandos de docker para parar el servidor de backend, eliminar el contenedor y la imagen, y volver a crear la imagen y el contenedor.
    1. El contenedor de la base de datos no se elimina, por lo que los datos de la base de datos no se pierden.
    2. El contenedor de la base de datos continua corriendo.
+
+## Backups
+
+Se desarrolló un script que permite hacer backups de la base de datos de producción. Adicionalmente, se creó un makefile que permite ejecutar el script de backups.
+
+Para instalar el cronjob que ejecuta el script de backups, ejecuta el siguiente comando:
+
+```bash
+make install_cron
+```
