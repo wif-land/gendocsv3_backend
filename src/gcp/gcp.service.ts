@@ -499,7 +499,7 @@ export class GcpService {
       await this.sheets.spreadsheets.values.update({
         spreadsheetId,
         range,
-        valueInputOption: 'RAW',
+        valueInputOption: 'USER_ENTERED',
         requestBody: {
           values,
         },

@@ -583,15 +583,14 @@ export class CertificateBulkService {
         )
       }
 
-      const valuesToReplace = matchedGradesVariables.map((cell) => {
-        const grade = processedGradesDetails.find(
-          (grade) => grade.variable === cell.gradeVariable,
-        )
-        return {
-          cell,
-          value: grade.value,
-        }
-      })
+      const valuesToReplace: [string, string][] = matchedGradesVariables.map(
+        (cell) => {
+          const grade = processedGradesDetails.find(
+            (grade) => grade.variable === cell.gradeVariable,
+          )
+          return [cell.cell, grade.value]
+        },
+      )
 
       try {
         const replacedSheetsId =
