@@ -15,11 +15,14 @@ import { PaginationDto } from '../../shared/dtos/pagination.dto'
 import { Auth } from '../../auth/decorators/auth-decorator'
 import { RolesType } from '../../auth/decorators/roles-decorator'
 import { DegreeCertificatesService } from '../degree-certificates.service'
+import { CertificateBulkService } from '../services/certificate-bulk.service'
+import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
 
 @Controller('degree-certificates')
 export class DegreeCertificatesController {
   constructor(
     private readonly degreeCertificatesService: DegreeCertificatesService,
+    private readonly certificateBulkService: CertificateBulkService,
   ) {}
 
   // #region DegreeCertificates
@@ -67,5 +70,20 @@ export class DegreeCertificatesController {
   @Patch('generate-document/:id')
   async generateDocument(@Param('id', ParseIntPipe) id: number) {
     return await this.degreeCertificatesService.generateDocument(id)
+  }
+
+  @Patch('bulk/load')
+  async loadBulk(
+    @Body() createCertificatesDtos: CreateDegreeCertificateBulkDto[],
+  ) {
+    const certificates =
+      await this.certificateBulkService.createBulkCertificates(
+        createCertificatesDtos,
+      )
+
+    return new ApiResponseDto(
+      'Certificados cargados exitosamente',
+      certificates,
+    )
   }
 }

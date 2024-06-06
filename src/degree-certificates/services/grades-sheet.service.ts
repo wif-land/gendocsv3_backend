@@ -191,19 +191,42 @@ export class GradesSheetService {
     return cellsVariables
   }
 
-  async replaceCellsVariables(cellsVariables, gradesSheetDriveId) {
-    const { data: replaced } = await this.filesService.replaceValuesOnCells(
-      gradesSheetDriveId,
-      DEGREE_CERTIFICATE_GRADES.DEFAULT_SHEET,
-      cellsVariables,
-    )
+  async replaceCellsVariables({
+    cellsVariables,
+    gradesSheetDriveId,
+  }: {
+    cellsVariables: [string, string][]
+    gradesSheetDriveId: string
+  }) {
+    const responses: {
+      message: string
+      error: DegreeCertificateBadRequestError
+    }[] = []
 
-    if (!replaced) {
-      throw new DegreeCertificateBadRequestError(
-        'Error reemplazando valores en celdas de la hoja de calificaciones',
+    const promises = cellsVariables.map(async ([variable, value]) => {
+      const { data: replaced } = await this.filesService.replaceValuesOnCells(
+        gradesSheetDriveId,
+        DEGREE_CERTIFICATE_GRADES.DEFAULT_SHEET + variable,
+        value,
       )
-    }
 
-    return replaced
+      if (!replaced) {
+        responses.push({
+          message: `Error reemplazando valores en celdas de la hoja de calificaciones`,
+          error: new DegreeCertificateBadRequestError(
+            `Error reemplazando valores en celdas de la hoja de calificaciones ${variable} - ${value}`,
+          ),
+        })
+      }
+
+      return {
+        message: `Valores reemplazados correctamente en celdas de la hoja de calificaciones`,
+        error: null,
+      }
+    })
+
+    const succesArray = await Promise.all(promises)
+
+    return succesArray
   }
 }

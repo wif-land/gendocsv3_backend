@@ -188,6 +188,29 @@ export class GcpService {
     }
   }
 
+  async replaceValuesOnCells(
+    spreadsheetId: string,
+    range: string,
+    value: string,
+  ) {
+    try {
+      await this.sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: [[value]],
+        },
+      })
+
+      return new ApiResponseDto('Datos actualizados con éxito', {
+        success: true,
+      })
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  }
+
   async getDocumentContent(documentId: string) {
     try {
       const { data } = await this.docs.documents.get({
@@ -488,28 +511,5 @@ export class GcpService {
     })
 
     return documentId
-  }
-
-  async replaceValuesOnCells(
-    spreadsheetId: string,
-    range: string,
-    values: string[][],
-  ) {
-    try {
-      await this.sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range,
-        valueInputOption: 'USER_ENTERED',
-        requestBody: {
-          values,
-        },
-      })
-
-      return new ApiResponseDto('Datos actualizados con éxito', {
-        success: true,
-      })
-    } catch (error) {
-      throw new Error(error.message)
-    }
   }
 }

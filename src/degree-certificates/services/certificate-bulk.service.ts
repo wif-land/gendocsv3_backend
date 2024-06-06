@@ -550,11 +550,10 @@ export class CertificateBulkService {
       }
     }
 
-    const { data: driveId } = await this.gradesSheetService.generateGradeSheet(
-      degreeCertificate,
-    )
+    const { data: degreeUpdated } =
+      await this.gradesSheetService.generateGradeSheet(degreeCertificate)
 
-    if (!driveId) {
+    if (!degreeUpdated) {
       errors.push(
         new DegreeCertificateBadRequestError(
           'No se pudo generar la hoja de calificaciones',
@@ -594,10 +593,10 @@ export class CertificateBulkService {
 
       try {
         const replacedSheetsId =
-          await this.gradesSheetService.replaceCellsVariables(
-            valuesToReplace,
-            driveId,
-          )
+          await this.gradesSheetService.replaceCellsVariables({
+            cellsVariables: valuesToReplace,
+            gradesSheetDriveId: degreeUpdated.gradesSheetDriveId,
+          })
 
         Logger.log(replacedSheetsId, 'replacedSheetsId')
 

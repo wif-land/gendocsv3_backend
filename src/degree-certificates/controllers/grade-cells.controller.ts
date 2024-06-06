@@ -12,6 +12,7 @@ import { GradesSheetService } from '../services/grades-sheet.service'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { CreateCellGradeDegreeCertificateTypeDto } from '../dto/create-cells-grade-degree-certificate-type.dto'
 import { UpdateCellGradeDegreeCertificateTypeDto } from '../dto/update-cells-grade-degree-certificate-type.dto'
+import { GradeCellsVariablesDto } from '../dto/grade-cells-variables.dto'
 
 @Controller('degree-certificates/grade-cells')
 export class GradeCellsController {
@@ -56,5 +57,14 @@ export class GradeCellsController {
   @Delete('/:id')
   async deleteGradeCell(@Param('id', ParseIntPipe) id: number) {
     return await this.gradesSheetService.deleteCellGradeByCertificateType(id)
+  }
+
+  // For test purposes
+  @Patch('/replace/variables')
+  async replaceVariables(
+    @Body()
+    dto: GradeCellsVariablesDto,
+  ) {
+    return await this.gradesSheetService.replaceCellsVariables(dto)
   }
 }
