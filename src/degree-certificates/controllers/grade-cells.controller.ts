@@ -13,7 +13,9 @@ import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { CreateCellGradeDegreeCertificateTypeDto } from '../dto/create-cells-grade-degree-certificate-type.dto'
 import { UpdateCellGradeDegreeCertificateTypeDto } from '../dto/update-cells-grade-degree-certificate-type.dto'
 import { GradeCellsVariablesDto } from '../dto/grade-cells-variables.dto'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('degree-certificates/grade-cells')
 @Controller('degree-certificates/grade-cells')
 export class GradeCellsController {
   constructor(private readonly gradesSheetService: GradesSheetService) {}

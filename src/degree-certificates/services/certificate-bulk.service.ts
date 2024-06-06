@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
 import { DegreeCertificatesService } from '../degree-certificates.service'
 import { StudentsService } from '../../students/students.service'
@@ -12,7 +12,7 @@ import { DegreeCertificateRepository } from '../repositories/degree-certificate-
 import { DEGREE_MODALITY } from '../constants'
 import { CertificateTypeEntity } from '../entities/certificate-type.entity'
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 import { DegreeCertificateAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
 import { DegreeCertificateAttendanceEntity } from '../../degree-certificate-attendance/entities/degree-certificate-attendance.entity'
 import { DataSource } from 'typeorm'
@@ -41,7 +41,7 @@ export class CertificateBulkService {
 
     private readonly gradesSheetService: GradesSheetService,
 
-    @InjectRepository(DegreeCertificateEntity)
+    @Inject('DegreeCertificateRepository')
     private readonly degreeCertificateRepository: DegreeCertificateRepository,
 
     @InjectDataSource()
@@ -58,33 +58,36 @@ export class CertificateBulkService {
       errors?: DegreeCertificateBadRequestError[]
     }[] = []
     // create bulk certificates
-    createCertificatesDtos.forEach(async (createCertificateDto) => {
-      const { degreeCertificate, errors } = await this.createDegreeCertificate(
-        createCertificateDto,
-      )
+    const promises = createCertificatesDtos.map(
+      async (createCertificateDto) => {
+        const { degreeCertificate, errors } =
+          await this.createDegreeCertificate(createCertificateDto)
 
-      if (!degreeCertificate) {
+        if (!degreeCertificate) {
+          responses.push({
+            message: `No se pudo crear el certificado de grado con el tema ${createCertificateDto.topic}`,
+            errors,
+          })
+
+          return
+        }
+
+        if (degreeCertificate && errors.length > 0) {
+          responses.push({
+            message: `Se creó el certificado de grado con el tema ${createCertificateDto.topic} pero con conflictos`,
+            errors,
+          })
+
+          return
+        }
+
         responses.push({
-          message: `No se pudo crear el certificado de grado con el tema ${createCertificateDto.topic}`,
-          errors,
+          message: `Certificado de grado con el tema ${createCertificateDto.topic} creado exitosamente`,
         })
+      },
+    )
 
-        return
-      }
-
-      if (degreeCertificate && errors.length > 0) {
-        responses.push({
-          message: `Se creó el certificado de grado con el tema ${createCertificateDto.topic} pero con conflictos`,
-          errors,
-        })
-
-        return
-      }
-
-      responses.push({
-        message: `Certificado de grado con el tema ${createCertificateDto.topic} creado exitosamente`,
-      })
-    })
+    await Promise.all(promises)
 
     return responses
   }
@@ -167,6 +170,7 @@ export class CertificateBulkService {
       // TODO: Al notificar a los docentes de la asistencia a actas de grado, realizar el control de asistencia mencionado en el punto anterior
       // INFO: Existen 3 etapas de inicio, 1. Inicio de proyecto en producción(Corre migraciones y ejecuta endpoint para crear las carpetas en el drive de cada módulo y submódulo), 2. Reinicio Anual (Cambia el año del sistema en la tabla de la bd, y ejecuta endpoint para crear los modulos y submódulos por año y las carpetas en el drive de cada módulo y submódulo de ese año), 3. Creación de una carrera y por ende un módulo ( Ejecuta endpoint para crear los submódulos y años y módulos y las carpetas en el drive de cada módulo y submódulo de ese año para la carrera creada y copia las plantillas generales para tipos de acta de grado y consejos y plantillas en base al últimos módulo creado)
     } catch (error) {
+      console.log(error)
       errors.push(
         new DegreeCertificateBadRequestError(
           'No se pudo crear el certificado de grado',

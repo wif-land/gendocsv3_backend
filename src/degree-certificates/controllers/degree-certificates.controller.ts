@@ -17,7 +17,9 @@ import { RolesType } from '../../auth/decorators/roles-decorator'
 import { DegreeCertificatesService } from '../degree-certificates.service'
 import { CertificateBulkService } from '../services/certificate-bulk.service'
 import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('degree-certificates')
 @Controller('degree-certificates')
 export class DegreeCertificatesController {
   constructor(

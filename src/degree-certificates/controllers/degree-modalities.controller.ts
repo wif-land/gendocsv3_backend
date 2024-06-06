@@ -11,7 +11,9 @@ import {
 import { DegreeModalitiesService } from '../services/degree-modalities.service'
 import { CreateDegreeModalityDto } from '../dto/create-degree-modality.dto'
 import { UpdateDegreeModalityDto } from '../dto/update-degree-modality.dto'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('degree-certificates/degre-modalities')
 @Controller('degree-certificates/degre-modalities')
 export class DegreeModalitiesController {
   constructor(

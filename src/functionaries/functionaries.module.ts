@@ -8,5 +8,6 @@ import { FunctionaryEntity } from './entities/functionary.entity'
   controllers: [FunctionariesController],
   providers: [FunctionariesService],
   imports: [TypeOrmModule.forFeature([FunctionaryEntity])],
+  exports: [FunctionariesService],
 })
 export class FunctionariesModule {}

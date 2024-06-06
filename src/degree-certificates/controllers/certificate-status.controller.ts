@@ -12,7 +12,9 @@ import { CertificateStatusService } from '../services/certificate-status.service
 import { CreateCertificateStatusDto } from '../dto/create-certificate-status.dto'
 import { UpdateCertificateStatusDto } from '../dto/update-certificate-status.dto'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('degree-certificates/certificate-status')
 @Controller('degree-certificates/certificate-status')
 export class CertificateStatusController {
   constructor(

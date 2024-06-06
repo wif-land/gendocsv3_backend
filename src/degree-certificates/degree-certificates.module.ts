@@ -25,6 +25,9 @@ import { DegreeModalitiesController } from './controllers/degree-modalities.cont
 import { RoomsController } from './controllers/rooms.controller'
 import { CertificateTypesController } from './controllers/certificate-types.controller'
 import { CertificateStatusController } from './controllers/certificate-status.controller'
+import { CertificateBulkService } from './services/certificate-bulk.service'
+import { FunctionariesModule } from '../functionaries/functionaries.module'
+import { DegreeCertificateRepository } from './repositories/degree-certificate-repository'
 
 @Module({
   controllers: [
@@ -42,6 +45,11 @@ import { CertificateStatusController } from './controllers/certificate-status.co
     GradesSheetService,
     DegreeModalitiesService,
     RoomsService,
+    CertificateBulkService,
+    {
+      provide: 'DegreeCertificateRepository',
+      useClass: DegreeCertificateRepository,
+    },
   ],
   imports: [
     TypeOrmModule.forFeature([
@@ -59,6 +67,7 @@ import { CertificateStatusController } from './controllers/certificate-status.co
     FilesModule,
     StudentsModule,
     VariablesModule,
+    FunctionariesModule,
   ],
 })
 export class DegreeCertificatesModule {}

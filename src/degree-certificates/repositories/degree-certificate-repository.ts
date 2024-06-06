@@ -9,15 +9,14 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
     @InjectDataSource()
     private readonly dataSource: DataSource,
   ) {
-    super(DegreeCertificateRepository, dataSource.manager)
+    super(
+      DegreeCertificateEntity,
+      dataSource.getRepository(DegreeCertificateEntity).manager,
+    )
   }
 
   private get qb() {
-    return super.createQueryBuilder()
-  }
-
-  async findAll() {
-    return this.qb.getMany()
+    return super.createQueryBuilder('degreeCertificate')
   }
 
   async findReplicate({

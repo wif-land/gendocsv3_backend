@@ -12,7 +12,9 @@ import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { CreateCertificateTypeDto } from '../dto/create-certificate-type.dto'
 import { UpdateCertificateTypeDto } from '../dto/update-certificate-type.dto'
 import { CertificateTypeService } from '../services/certificate-type.service'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('degree-certificates/certificate-types')
 @Controller('degree-certificates/certificate-types')
 export class CertificateTypesController {
   constructor(
