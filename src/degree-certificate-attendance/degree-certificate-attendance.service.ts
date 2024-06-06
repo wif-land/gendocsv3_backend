@@ -95,7 +95,9 @@ export class DegreeCertificateAttendanceService {
     )
   }
 
-  async findByDegreeCertificate(degreeCertificateId: number) {
+  async findByDegreeCertificate(
+    degreeCertificateId: number,
+  ): Promise<ApiResponseDto<DegreeCertificateAttendanceEntity[]>> {
     const degreeCertificateAttendance =
       await this.degreeCertificateAttendanceRepository.find({
         where: { degreeCertificate: { id: degreeCertificateId } },
@@ -197,5 +199,20 @@ export class DegreeCertificateAttendanceService {
     }
 
     await this.degreeCertificateAttendanceRepository.delete(id)
+  }
+
+  async removeAllAttendanceByDegreeCertificateId(degreeCertificateId: number) {
+    const degreeCertificateAttendance =
+      await this.degreeCertificateAttendanceRepository.find({
+        where: { degreeCertificate: { id: degreeCertificateId } },
+      })
+
+    if (!degreeCertificateAttendance) {
+      return
+    }
+
+    await this.degreeCertificateAttendanceRepository.delete({
+      degreeCertificate: { id: degreeCertificateId },
+    })
   }
 }

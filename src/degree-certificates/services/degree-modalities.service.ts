@@ -25,6 +25,18 @@ export class DegreeModalitiesService {
     )
   }
 
+  async findDegreeModalityByCode(code: string) {
+    const degreeModality = this.degreeModalityRepository.findOneBy({ code })
+
+    if (!degreeModality) {
+      throw new DegreeCertificateNotFoundError(
+        `La modalidad de grado con código ${code} no existe`,
+      )
+    }
+
+    return degreeModality
+  }
+
   async createDegreeModality(dto: CreateDegreeModalityDto) {
     if (
       this.degreeModalityRepository.findOneBy({

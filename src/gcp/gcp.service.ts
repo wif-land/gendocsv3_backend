@@ -489,4 +489,27 @@ export class GcpService {
 
     return documentId
   }
+
+  async replaceValuesOnCells(
+    spreadsheetId: string,
+    range: string,
+    values: string[][],
+  ) {
+    try {
+      await this.sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range,
+        valueInputOption: 'RAW',
+        requestBody: {
+          values,
+        },
+      })
+
+      return new ApiResponseDto('Datos actualizados con éxito', {
+        success: true,
+      })
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  }
 }

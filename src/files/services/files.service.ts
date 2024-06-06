@@ -262,4 +262,25 @@ export class FilesService {
 
     return path
   }
+
+  async replaceValuesOnCells(
+    sheetId: string,
+    range: string,
+    values: string[][],
+  ) {
+    const result = await this.gcpService.replaceValuesOnCells(
+      sheetId,
+      range,
+      values,
+    )
+
+    if (!result) {
+      throw new HttpException(
+        'Error reemplazando valores en celdas',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    return result
+  }
 }

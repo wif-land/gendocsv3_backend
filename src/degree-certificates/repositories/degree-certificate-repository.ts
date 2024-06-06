@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common'
 import { InjectDataSource } from '@nestjs/typeorm'
-import { DataSource } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 
 @Injectable()
-export class DegreeCertificateRepository {
+export class DegreeCertificateRepository extends Repository<DegreeCertificateEntity> {
   constructor(
     @InjectDataSource()
     private readonly dataSource: DataSource,
-  ) {}
+  ) {
+    super(DegreeCertificateRepository, dataSource.manager)
+  }
 
   private get qb() {
-    return this.dataSource
-      .getRepository(DegreeCertificateEntity)
-      .createQueryBuilder()
+    return super.createQueryBuilder()
   }
 
   async findAll() {
@@ -25,6 +25,11 @@ export class DegreeCertificateRepository {
     studentId,
     certificateTypeId,
     degreeModalityId,
+  }: {
+    topic: string
+    studentId: number
+    certificateTypeId: number
+    degreeModalityId: number
   }): Promise<DegreeCertificateEntity> {
     return this.qb
       .leftJoinAndSelect('degreeCertificate.student', 'student')

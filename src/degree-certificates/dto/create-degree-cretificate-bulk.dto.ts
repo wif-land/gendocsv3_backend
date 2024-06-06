@@ -27,6 +27,7 @@ export class CreateDegreeCertificateBulkDto {
   @IsString()
   certificateType: string
 
+  @IsOptional()
   @IsString()
   certificateStatus: string
 
@@ -48,13 +49,17 @@ export class CreateDegreeCertificateBulkDto {
   secondSecondaryQualifierDni: string
 
   @IsString()
-  tutor: string
+  mentorDni: string
 
   @IsString()
   qualifiersResolution: string
 
-  @IsNumberString()
+  @IsNumberString({ no_symbols: false })
   curriculumGrade: string
+
+  @IsOptional()
+  @IsString()
+  gradesDetails: string
 
   @IsInt()
   userId: number
