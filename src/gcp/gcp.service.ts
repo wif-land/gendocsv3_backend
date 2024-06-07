@@ -62,6 +62,45 @@ export class GcpService {
     return new ApiResponseDto('Subdocumento creado con éxito', data.id)
   }
 
+  async createSheetByParentId(title: string, parentId: string) {
+    const { data } = await this.drive.files.create({
+      requestBody: {
+        name: title,
+        mimeType: 'application/vnd.google-apps.spreadsheet',
+        parents: [parentId],
+      },
+    })
+
+    return new ApiResponseDto('Hoja de cálculo creada con éxito', data.id)
+  }
+
+  async shareAsset(assetId: string, email: string) {
+    await this.drive.permissions.create({
+      fileId: assetId,
+      requestBody: {
+        role: 'writer',
+        type: 'user',
+        emailAddress: email,
+      },
+    })
+
+    return new ApiResponseDto('Documento compartido con éxito', {
+      success: true,
+    })
+  }
+
+  async moveFile(assetId: string, parentId: string) {
+    await this.drive.files.update({
+      fileId: assetId,
+      addParents: parentId,
+      removeParents: this.configService.get('gcp.rootDriveFolderId'),
+    })
+
+    return new ApiResponseDto('Documento movido con éxito', {
+      success: true,
+    })
+  }
+
   async createDocumentByParentIdAndCopy(
     title: string,
     parentId: string,

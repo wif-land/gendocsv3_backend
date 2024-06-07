@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import * as AdmZip from 'adm-zip'
+import AdmZip from 'adm-zip'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import { DOMParser } from 'xmldom'
@@ -18,7 +18,7 @@ export class DocxService {
     const tempPath = `${getProjectPath()}/storage/temp`
     const tempDir = await DocxService.resolveDirectory(`${tempPath}/docx-/`)
     try {
-      const zip = new AdmZip(await fs.readFile(filePath))
+      const zip = new AdmZip(filePath)
       zip.extractAllTo(tempDir, true)
       const documentXmlPath = path.join(tempDir, this.DOC_ZIP_PATH)
       const documentXml = await fs.readFile(documentXmlPath, 'utf8')
