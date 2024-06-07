@@ -302,4 +302,17 @@ export class FilesService {
 
     return result
   }
+
+  async getFileBufferFromPath(filePath: string): Promise<Buffer> {
+    const buffer = await this.fileSystemService.getFileBufferFromPath(filePath)
+
+    if (!buffer) {
+      throw new HttpException(
+        'Error obteniendo buffer del archivo',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    return buffer
+  }
 }

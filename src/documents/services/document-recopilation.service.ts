@@ -21,8 +21,6 @@ import { VariablesService } from '../../variables/variables.service'
 import { DataSource } from 'typeorm'
 import { IReplaceText } from '../../shared/interfaces/replace-text'
 import { formatNumeration } from '../../shared/utils/string'
-import { createReadStream } from 'fs'
-import { ReadStream } from 'typeorm/platform/PlatformTools'
 
 @Injectable()
 export class DocumentRecopilationService {
@@ -303,7 +301,7 @@ export class DocumentRecopilationService {
     })
   }
 
-  async downloadMergedDocument(councilId: number): Promise<string> {
+  async downloadMergedDocument(councilId: number): Promise<Buffer> {
     const council = await this.dataSource.manager
       .getRepository(CouncilEntity)
       .findOne({
@@ -328,7 +326,7 @@ export class DocumentRecopilationService {
       council.name
     }-Recopilación-${formatDateText(council.date)}.docx`
 
-    return mergedDocumentPath
+    return this.filesService.getFileBufferFromPath(mergedDocumentPath)
   }
 
   async getDocumentsByCouncilId(councilId: number) {

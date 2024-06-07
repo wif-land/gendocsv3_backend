@@ -85,4 +85,10 @@ export class FileSystemService {
 
     return new Blob([buffer])
   }
+
+  async getFileBufferFromPath(pathFile: string): Promise<Buffer> {
+    const fileResolved = path.resolve(pathFile)
+
+    return fs.readFileSync(fileResolved)
+  }
 }
