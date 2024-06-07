@@ -71,6 +71,11 @@ export default connectionSource
     TypeOrmModule.forRoot({
       ...config,
       dropSchema: process.env.DROP_SCHEMA === 'true',
+      logging: true,
+      extra: {
+        application_name: 'your_app_name',
+        options: '-c timezone=GMT-5',
+      },
     } as TypeOrmModuleOptions),
     LogModule,
     TerminusModule,

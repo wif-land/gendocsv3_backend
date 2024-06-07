@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
 import { CreateEditDefaultMemberDTO } from './dto/create-edit-default-member.dto'
 import { GetDefaultMembers } from './dto/default-members-get.dto'
@@ -8,12 +8,18 @@ import { CreateDefaultMemberStrategy } from './strategies/members-manipulation/c
 import { UpdateDefaultMemberStrategy } from './strategies/members-manipulation/update-members'
 import { DeleteDefaultMemberStrategy } from './strategies/members-manipulation/delete-default-members'
 import { DefaultMembersContext } from './strategies/members-manipulation/default-members-context'
+import { EmailService } from '../email/email.service'
+import { NotifyMembersDto } from './dto/notify-members.dto'
+import { ValidateMembersAvailability } from './errors/validate-members-availability'
 
 @Injectable()
 export class AttendanceService {
   constructor(
     @InjectRepository(CouncilAttendanceEntity)
     private readonly councilAttendanceRepository: Repository<CouncilAttendanceEntity>,
+    @Inject(EmailService)
+    private readonly emailService: EmailService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async getDefaultByModule(moduleId: number) {
@@ -106,5 +112,30 @@ export class AttendanceService {
     })
     member.hasAttended = !member.hasAttended
     return await this.councilAttendanceRepository.save(member)
+  }
+
+  async notify(councilId: number, members: NotifyMembersDto[]) {
+    await new ValidateMembersAvailability(
+      this.councilAttendanceRepository,
+      councilId,
+      members.map((item) => item.id),
+    ).execute()
+
+    this.emailService
+      .sendTestEmail(
+        members.map((item) => item.email),
+        'This is a test email from Lenin',
+      )
+      .then(() => {
+        this.councilAttendanceRepository.update(
+          members.map((item) => item.id),
+          {
+            hasAttended: true,
+          },
+        )
+      })
+      .catch((error) => {
+        console.error(error)
+      })
   }
 }

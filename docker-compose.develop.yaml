@@ -7,6 +7,8 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_DB: ${DATABASE_NAME}
+      TZ: 'GMT-5'
+      PGTZ: 'GMT-5'
     ports:
       - ${DATABASE_PORT}:5432
     volumes:

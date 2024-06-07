@@ -44,6 +44,38 @@ export class CouncilsService {
   ) {}
 
   async create(createCouncilDto: CreateCouncilDto) {
+    const atTheSameTime = `
+      SELECT * FROM councils_same_time(
+        '${createCouncilDto.date}' :: TIMESTAMP,
+        ARRAY[${
+          createCouncilDto.members
+            .filter((item) => !item.isStudent)
+            .map((item) => item.member)
+            .join(', ') || 0
+        }],
+        ARRAY[${
+          createCouncilDto.members
+            .filter((item) => item.isStudent)
+            .map((item) => item.member)
+            .join(', ') || 0
+        }]
+      )
+    `
+
+    try {
+      const atTheSameTimeQuery = await this.dataSource.query(atTheSameTime)
+
+      console.log(atTheSameTimeQuery)
+      if (atTheSameTimeQuery.length) {
+        throw new HttpException(
+          'Ya existe un consejo en la misma franja horaria',
+          HttpStatus.BAD_REQUEST,
+        )
+      }
+    } catch (error) {
+      console.log(error)
+    }
+
     const year = new Date().getFullYear()
 
     const yearModule = await this.yearModuleRepository.findOneBy({

@@ -8,12 +8,12 @@ export class EmailService {
   constructor(private readonly sendGridClient: SendGridClient) {}
 
   async sendTestEmail(
-    recipient: string,
+    recipients: string[],
     body = 'This is a test mail',
   ): Promise<void> {
     const mail: MailDataRequired = {
-      to: recipient,
-      from: 'noreply@domain.com', // Approved sender ID in Sendgrid
+      to: recipients,
+      from: 'ddlm.montenegro@uta.edu.ec', // Approved sender ID in Sendgrid
       subject: 'Test email',
       content: [{ type: 'text/plain', value: body }],
     }

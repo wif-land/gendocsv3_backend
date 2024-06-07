@@ -1,0 +1,15 @@
+# SEND POST REQUEST TO NOTIFY USERS
+POST http://localhost:3001/api/attendance/council/1/notify
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaXJzdE5hbWUiOiJEYW5pZWxhIiwiZmlyc3RMYXN0TmFtZSI6Ik1vbnRlbmVncm8iLCJzZWNvbmROYW1lIjoiRGFuaWVsYSIsInNlY29uZExhc3ROYW1lIjoiTW9udGVuZWdybyIsIm91dGxvb2tFbWFpbCI6ImRkbG0ubW9udGVuZWdyb0B1dGEuZWR1LmVjIiwiZ29vZ2xlRW1haWwiOiJnZW5kb2NzdjJAZ21haWwuY29tIiwic3ViIjoxLCJyb2xlIjoiQURNSU4iLCJhY2Nlc3NNb2R1bGVzIjpbMSwyLDMsNCw1LDYsNyw4LDksMTAsMTFdLCJpc0FjdGl2ZSI6dHJ1ZSwiaWF0IjoxNzE3NzI5MTE0LCJleHAiOjE3MTgzMzM5MTR9.Xewa6YiuuobECScFdZ-rzhU6AbONR8OwQLMng5H2vU8
+
+[
+  {
+    "id": 3,
+    "email": "mazabandalenin180@gmail.com"
+  },
+  {
+    "id": 4,
+    "email": "merajair17@gmail.com"
+  }
+]
