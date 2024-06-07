@@ -318,7 +318,15 @@ export class NumerationDocumentService {
 
     end = lastAvailableNumeration
 
-    return { start, end }
+    return {
+      start,
+      end,
+      actualStart:
+        numerations?.length !== 0
+          ? numerations[numerations.length - 1].number
+          : -1,
+      actualEnd: numerations?.length !== 0 ? numerations[0].number : -1,
+    }
   }
 
   async getAvailableExtensionNumeration(councilId: number) {
