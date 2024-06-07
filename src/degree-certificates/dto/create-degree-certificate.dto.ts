@@ -16,6 +16,7 @@ export class CreateDegreeCertificateDto {
   })
   topic: string
 
+  @IsOptional()
   @IsDate()
   @Type(() => Date)
   presentationDate: Date
@@ -32,9 +33,11 @@ export class CreateDegreeCertificateDto {
   @IsInt()
   degreeModalityId: number
 
+  @IsOptional()
   @IsInt()
   roomId: number
 
+  @IsOptional()
   @IsInt()
   duration: number
 
