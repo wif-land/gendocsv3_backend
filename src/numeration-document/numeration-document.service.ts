@@ -991,24 +991,26 @@ export class NumerationDocumentService {
       const enqueuedNumbers = []
       const usedNumbers = []
 
-      const council = await this.councilRepository.findOne({
-        where: { id: councilId },
-        relations: {
-          submoduleYearModule: {
-            yearModule: true,
-          },
-          module: true,
-        },
-      })
+      const council = await this.dataSource.manager
+        .createQueryBuilder(CouncilEntity, 'council')
+        .where('council.id = :councilId', { councilId })
+        .leftJoinAndSelect('council.submoduleYearModule', 'submoduleYearModule')
+        .leftJoinAndSelect('submoduleYearModule.yearModule', 'yearModule')
+        .leftJoinAndSelect('council.module', 'module')
+        .getOne()
 
-      if (!council) {
+      if (!council || council === null) {
         throw new NumerationNotFound('Consejo no encontrado')
       }
 
-      const numeration = await this.numerationDocumentRepository.find({
-        where: { council: { id: councilId } },
-        order: { number: 'ASC' },
-      })
+      const numeration = await this.dataSource.manager
+        .createQueryBuilder(NumerationDocumentEntity, 'numerationDocument')
+        .where('numerationDocument.council.id = :councilId', { councilId })
+        .leftJoinAndSelect('numerationDocument.yearModule', 'yearModule')
+        .leftJoinAndSelect('numerationDocument.council', 'council')
+        .leftJoinAndSelect('council.module', 'module')
+        .orderBy('numerationDocument.number', 'ASC')
+        .getMany()
 
       if (!numeration || numeration.length === 0) {
         return new ApiResponseDto(
@@ -1040,13 +1042,15 @@ export class NumerationDocumentService {
         })
       }
 
-      const numerationByYearModule =
-        await this.numerationDocumentRepository.find({
-          where: {
-            yearModule: { id: council.submoduleYearModule.yearModule.id },
-          },
-          order: { number: 'DESC' },
+      const numerationByYearModule = await this.dataSource.manager
+        .createQueryBuilder(NumerationDocumentEntity, 'numerationDocument')
+        .leftJoinAndSelect('numerationDocument.yearModule', 'yearModule')
+        .leftJoinAndSelect('numerationDocument.council', 'council')
+        .where('yearModule.id = :yearModuleId', {
+          yearModuleId: council.submoduleYearModule.yearModule.id,
         })
+        .orderBy('numerationDocument.number', 'DESC')
+        .getMany()
 
       if (numerationByYearModule.length > 0) {
         if (numerationByYearModule[0].council.id === councilId) {

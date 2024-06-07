@@ -28,7 +28,11 @@ export class NumerationDocumentController {
 
   @Get('by-council')
   async findByCouncil(@Query('councilId', ParseIntPipe) id: number) {
-    return await this.numerationDocumentService.getNumerationByCouncil(id)
+    try {
+      return await this.numerationDocumentService.getNumerationByCouncil(id)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   @Get('next-to-register/:moduleId')
