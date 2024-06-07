@@ -89,6 +89,6 @@ export class FileSystemService {
   async getFileBufferFromPath(pathFile: string): Promise<Buffer> {
     const fileResolved = path.resolve(pathFile)
 
-    return fs.readFileSync(fileResolved)
+    return fs.promises.readFile(fileResolved)
   }
 }

@@ -8,7 +8,6 @@ import {
   ParseIntPipe,
   Query,
   HttpException,
-  Res,
 } from '@nestjs/common'
 import { DocumentsService } from './services/documents.service'
 import { CreateDocumentDto } from './dto/create-document.dto'
@@ -80,16 +79,13 @@ export class DocumentsController {
   }
 
   @Get('create-recopilation/:id')
-  async downloadRecopilation(
-    @Res() res,
-    @Param('id', ParseIntPipe) councilId: number,
-  ) {
+  async downloadRecopilation(@Param('id', ParseIntPipe) councilId: number) {
     try {
-      const fileBuffer =
+      const buffer =
         await this.documentRecopilationService.downloadMergedDocument(councilId)
 
       return new ApiResponseDto('Documento obtenido correctamente', {
-        file: fileBuffer.toString('base64'),
+        file: buffer.toString('base64'),
         fileName: `recopilacion-${councilId}.docx`,
       })
     } catch (error) {
