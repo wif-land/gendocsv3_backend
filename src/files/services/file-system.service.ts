@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import * as path from 'path'
-import * as admZip from 'adm-zip'
+import AdmZip from 'adm-zip'
 @Injectable()
 export class FileSystemService {
   async saveDownloadedDocument(
@@ -44,7 +44,7 @@ export class FileSystemService {
   }
 
   async unzipAndTakeFile(zipFilePath: string, relativeTakeFilePath: string) {
-    const zip = new admZip(zipFilePath)
+    const zip = new AdmZip(zipFilePath)
     const zipEntries = zip.getEntries()
 
     const entry = zipEntries.find((e) => e.entryName === relativeTakeFilePath)

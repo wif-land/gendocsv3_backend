@@ -66,7 +66,12 @@ export class DocumentRecopilationService {
 
     const documents = await this.getDocumentsByCouncilId(councilId)
 
-    if (!documents) {
+    if (
+      !documents ||
+      documents.length === 0 ||
+      documents === undefined ||
+      documents === null
+    ) {
       throw new NotFoundException('Documentos no encontrados')
     }
 
@@ -105,6 +110,7 @@ export class DocumentRecopilationService {
     )
 
     const resolvedDocuments = await Promise.all(preparedDocuments)
+    console.log(preparedDocuments)
 
     const mergedDocument = await this.mergeDocuments(council.id, council)
 
@@ -128,6 +134,7 @@ export class DocumentRecopilationService {
     if (!blob) {
       throw new NotFoundException('Documento no encontrado')
     }
+    console.log('test')
 
     const councilPath = getCouncilPath(council)
     const tempDocxPath = `${councilPath}/temp/`
