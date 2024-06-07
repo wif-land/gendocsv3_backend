@@ -78,6 +78,29 @@ export class FilesService {
     return document
   }
 
+  async createSheetByParentId(title: string, parentId: string) {
+    const document = await this.gcpService.createSheetByParentId(
+      title,
+      parentId,
+    )
+
+    if (!document) {
+      throw new HttpException('Error creating sheet', HttpStatus.CONFLICT)
+    }
+
+    return document
+  }
+
+  async shareAsset(driveId: string, email: string) {
+    const result = await this.gcpService.shareAsset(driveId, email)
+
+    if (!result) {
+      throw new HttpException('Error sharing asset', HttpStatus.CONFLICT)
+    }
+
+    return result
+  }
+
   async createDocumentByParentIdAndCopy(
     title: string,
     parentId: string,
