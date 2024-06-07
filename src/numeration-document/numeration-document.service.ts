@@ -210,6 +210,14 @@ export class NumerationDocumentService {
     let start: number
     let end: number
 
+    const actualNumerations = {
+      actualStart:
+        numerations?.length !== 0
+          ? numerations[numerations.length - 1].number
+          : -1,
+      actualEnd: numerations?.length !== 0 ? numerations[0].number : -1,
+    }
+
     if (numerations[numerations.length - 1].number === 1) {
       start = 1
     } else {
@@ -271,7 +279,7 @@ export class NumerationDocumentService {
     if (lastNumeration.council.id === council.id) {
       end = 0
 
-      return { start, end }
+      return { start, end, ...actualNumerations }
     }
 
     const afterRangeCouncilNumeration = await this.dataSource.manager
@@ -291,7 +299,7 @@ export class NumerationDocumentService {
     if (!afterRangeCouncilNumeration || afterRangeCouncilNumeration === null) {
       end = numerations[0].number
 
-      return { start, end }
+      return { start, end, ...actualNumerations }
     }
 
     let lastAvailableNumeration = numerations[0].number
@@ -321,11 +329,7 @@ export class NumerationDocumentService {
     return {
       start,
       end,
-      actualStart:
-        numerations?.length !== 0
-          ? numerations[numerations.length - 1].number
-          : -1,
-      actualEnd: numerations?.length !== 0 ? numerations[0].number : -1,
+      ...actualNumerations,
     }
   }
 
