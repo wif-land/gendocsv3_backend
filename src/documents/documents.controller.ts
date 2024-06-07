@@ -9,6 +9,7 @@ import {
   Query,
   HttpException,
   StreamableFile,
+  Res,
 } from '@nestjs/common'
 import { DocumentsService } from './services/documents.service'
 import { CreateDocumentDto } from './dto/create-document.dto'
@@ -79,14 +80,20 @@ export class DocumentsController {
   }
 
   @Get('create-recopilation/:id')
-  async downloadRecopilation(@Param('id', ParseIntPipe) councilId: number) {
+  async downloadRecopilation(
+    @Res() res,
+    @Param('id', ParseIntPipe) councilId: number,
+  ) {
     try {
-      const fileStream =
+      const filePath =
         await this.documentRecopilationService.downloadMergedDocument(councilId)
 
-      return new StreamableFile(fileStream, {
-        type: 'application/msword', // Ajusta según el tipo de archivo
-        disposition: `attachment; filename="${councilId}.docx"`, // Asegúrate de definir un nombre de archivo adecuado
+      res.download(filePath, `recopilacion-${councilId}.docx`, (error) => {
+        if (error) {
+          console.error(error)
+          // eslint-disable-next-line no-magic-numbers
+          throw new HttpException('Error al descargar el archivo', 500)
+        }
       })
     } catch (error) {
       console.error(error)

@@ -303,7 +303,7 @@ export class DocumentRecopilationService {
     })
   }
 
-  async downloadMergedDocument(councilId: number): Promise<ReadStream> {
+  async downloadMergedDocument(councilId: number): Promise<string> {
     const council = await this.dataSource.manager
       .getRepository(CouncilEntity)
       .findOne({
@@ -328,7 +328,7 @@ export class DocumentRecopilationService {
       council.name
     }-Recopilación-${formatDateText(council.date)}.docx`
 
-    return createReadStream(mergedDocumentPath)
+    return mergedDocumentPath
   }
 
   async getDocumentsByCouncilId(councilId: number) {
