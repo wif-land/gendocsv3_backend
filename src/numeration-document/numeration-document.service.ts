@@ -370,10 +370,7 @@ export class NumerationDocumentService {
       )
     }
 
-    return new ApiResponseDto(
-      'Numeración de extensión disponible obtenida exitosamente',
-      numeration,
-    )
+    return numeration
   }
 
   async reserveNumerationRange(
