@@ -34,6 +34,7 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   @Column({
     name: 'presentation_date',
     type: 'date',
+    nullable: true,
   })
   presentationDate: Date
 
@@ -67,7 +68,7 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   @ManyToOne(
     () => CertificateStatusEntity,
     (certificateStatus) => certificateStatus.degreeCertificates,
-    { eager: true },
+    { eager: true, nullable: true },
   )
   @JoinColumn({
     name: 'certificate_status_id',
@@ -86,7 +87,9 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   })
   degreeModality: DegreeModalityEntity
 
-  @ManyToOne(() => RoomEntity, (room) => room.degreeCertificates)
+  @ManyToOne(() => RoomEntity, (room) => room.degreeCertificates, {
+    nullable: true,
+  })
   @JoinColumn({
     name: 'room_id',
     referencedColumnName: 'id',
@@ -96,6 +99,7 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   @Column({
     name: 'duration',
     type: 'int',
+    nullable: true,
   })
   duration: number
 
