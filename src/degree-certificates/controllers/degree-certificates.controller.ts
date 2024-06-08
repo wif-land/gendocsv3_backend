@@ -83,9 +83,6 @@ export class DegreeCertificatesController {
         createCertificatesDtos,
       )
 
-    return new ApiResponseDto(
-      'Certificados cargados exitosamente',
-      certificates,
-    )
+    return new ApiResponseDto('Certificados cargados', certificates)
   }
 }

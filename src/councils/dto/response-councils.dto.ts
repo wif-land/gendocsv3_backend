@@ -13,6 +13,8 @@ export class ResponseCouncilsDto {
   members: any
   isActive: boolean
   isArchived: boolean
+  recopilationDriveId: string
+  hasProcessedDocuments: boolean
   type: COUNCIL_TYPES
 
   constructor(council: CouncilEntity) {
@@ -30,6 +32,8 @@ export class ResponseCouncilsDto {
       ...member,
       member: member.student ?? member.functionary,
     }))
+    this.recopilationDriveId = council.recopilationDriveId
+    this.hasProcessedDocuments = council.hasProcessedDocuments
     this.type = council.type
   }
 }

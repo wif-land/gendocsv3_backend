@@ -13,8 +13,8 @@ export enum CERT_STATUS_ENUM {
 
 export enum CERT_STATUS_CODE {
   APRO = 'APRO',
-  REPRO = 'REPRO',
-  NO_PRESENTED = 'NO_PRESENTACION',
+  REPR = 'REPR',
+  NO_PRESENTED = 'NO_RESENTACION',
 }
 
 export const getSTATUS_CODE_BY_CERT_STATUS = (
@@ -22,8 +22,8 @@ export const getSTATUS_CODE_BY_CERT_STATUS = (
 ): CERT_STATUS_CODE => {
   if (status?.includes(CERT_STATUS_CODE.APRO)) {
     return CERT_STATUS_CODE.APRO
-  } else if (status?.includes(CERT_STATUS_CODE.REPRO)) {
-    return CERT_STATUS_CODE.REPRO
+  } else if (status?.includes(CERT_STATUS_CODE.REPR)) {
+    return CERT_STATUS_CODE.REPR
   } else {
     return CERT_STATUS_CODE.NO_PRESENTED
   }

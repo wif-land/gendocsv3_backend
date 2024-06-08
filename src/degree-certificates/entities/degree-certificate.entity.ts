@@ -16,14 +16,14 @@ export class DegreeCertificateEntity extends BaseAppEntity {
     type: 'int',
     nullable: true,
   })
-  number: number
+  number?: number
 
   @Column({
     name: 'aux_number',
     type: 'int',
     nullable: true,
   })
-  auxNumber: number
+  auxNumber?: number
 
   @Column({
     name: 'topic',
@@ -36,7 +36,7 @@ export class DegreeCertificateEntity extends BaseAppEntity {
     type: 'date',
     nullable: true,
   })
-  presentationDate: Date
+  presentationDate?: Date
 
   @ManyToOne(() => StudentEntity, (student) => student.degreeCertificates, {
     eager: false,
@@ -74,7 +74,7 @@ export class DegreeCertificateEntity extends BaseAppEntity {
     name: 'certificate_status_id',
     referencedColumnName: 'id',
   })
-  certificateStatus: CertificateStatusEntity
+  certificateStatus?: CertificateStatusEntity
 
   @ManyToOne(
     () => DegreeModalityEntity,
@@ -94,21 +94,21 @@ export class DegreeCertificateEntity extends BaseAppEntity {
     name: 'room_id',
     referencedColumnName: 'id',
   })
-  room: RoomEntity
+  room?: RoomEntity
 
   @Column({
     name: 'duration',
     type: 'int',
     nullable: true,
   })
-  duration: number
+  duration?: number
 
   @Column({
     name: 'link',
     type: 'varchar',
     nullable: true,
   })
-  link: string
+  link?: string
 
   @ManyToOne(
     () => SubmoduleYearModuleEntity,
@@ -125,14 +125,14 @@ export class DegreeCertificateEntity extends BaseAppEntity {
     type: 'varchar',
     nullable: true,
   })
-  gradesSheetDriveId: string
+  gradesSheetDriveId?: string
 
   @Column({
     name: 'certificate_drive_id',
     type: 'varchar',
     nullable: true,
   })
-  certificateDriveId: string
+  certificateDriveId?: string
 
   @Column({
     name: 'deleted_at',

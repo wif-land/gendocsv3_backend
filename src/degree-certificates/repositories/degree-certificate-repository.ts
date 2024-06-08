@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectDataSource } from '@nestjs/typeorm'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, FindOneOptions, Repository } from 'typeorm'
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 
 @Injectable()
@@ -40,6 +40,28 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
         certificateTypeId,
       })
       .andWhere('degreeModality.id = :degreeModalityId', { degreeModalityId })
+      .getOne()
+  }
+
+  async findOneFor(
+    options: FindOneOptions<DegreeCertificateEntity>,
+  ): Promise<DegreeCertificateEntity> {
+    return this.qb
+      .leftJoinAndSelect('degreeCertificate.student', 'student')
+      .leftJoinAndSelect('degreeCertificate.certificateType', 'certificateType')
+      .leftJoinAndSelect('degreeCertificate.degreeModality', 'degreeModality')
+      .leftJoinAndSelect(
+        'degreeCertificate.certificateStatus',
+        'certificateStatus',
+      )
+      .leftJoinAndSelect('degreeCertificate.career', 'career')
+      .leftJoinAndSelect(
+        'degreeCertificate.submoduleYearModule',
+        'submoduleYearModule',
+      )
+      .leftJoinAndSelect('degreeCertificate.room', 'room')
+      .leftJoinAndSelect('degreeCertificate.user', 'user')
+      .where(options.where)
       .getOne()
   }
 }
