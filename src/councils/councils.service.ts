@@ -45,6 +45,14 @@ export class CouncilsService {
   ) {}
 
   async create(createCouncilDto: CreateCouncilDto) {
+    const functionaryIds = createCouncilDto.members
+      .filter((item) => !item.isStudent)
+      .map((item) => Number(item.member))
+
+    const studentIds = createCouncilDto.members
+      .filter((item) => item.isStudent)
+      .map((item) => Number(item.member))
+
     const sameDateCouncils = await this.dataSource.manager
       .createQueryBuilder(CouncilEntity, 'councils')
       .where('councils.date BETWEEN :startDate AND :endDate', {
@@ -60,9 +68,7 @@ export class CouncilsService {
           WHERE functionary_id IN (:...functionaryIds)
           )`,
         {
-          functionaryIds: createCouncilDto.members
-            .filter((item) => !item.isStudent)
-            .map((item) => Number(item.member)),
+          functionaryIds: functionaryIds.length > 0 ? functionaryIds : [0],
         },
       )
       .orWhere(
@@ -70,11 +76,9 @@ export class CouncilsService {
           SELECT council_attendance.council_id
           FROM council_attendance
           WHERE student_id IN (:...studentIds)
-        `,
+        )`,
         {
-          studentIds: createCouncilDto.members
-            .filter((item) => item.isStudent)
-            .map((item) => Number(item.member)),
+          studentIds: studentIds.length > 0 ? studentIds : [0],
         },
       )
       .select(['councils.id'])
