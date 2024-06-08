@@ -1,10 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common'
+import { Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { CreateCouncilDto } from './dto/create-council.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CouncilEntity } from './entities/council.entity'
@@ -23,6 +17,7 @@ import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { StudentEntity } from '../students/entities/student.entity'
 import { CouncilsThatOverlapValidator } from './validators/councils-that-overlap'
+import { EmailService } from '../email/email.service'
 
 @Injectable()
 export class CouncilsService {
@@ -35,13 +30,13 @@ export class CouncilsService {
     private readonly studentRepository: Repository<StudentEntity>,
     @InjectRepository(CouncilAttendanceEntity)
     private readonly councilAttendanceRepository: Repository<CouncilAttendanceEntity>,
-    @InjectRepository(YearModuleEntity)
-    private readonly yearModuleRepository: Repository<YearModuleEntity>,
     @InjectRepository(SubmoduleYearModuleEntity)
     private readonly submoduleYearModuleRepository: Repository<SubmoduleYearModuleEntity>,
     @Inject(FilesService)
     private readonly filesService: FilesService,
     private readonly dataSource: DataSource,
+    @Inject(EmailService)
+    private readonly emailService: EmailService,
   ) {}
 
   async create(data: CreateCouncilDto) {
@@ -100,7 +95,7 @@ export class CouncilsService {
 
         if (!student) {
           throw new NotFoundException(
-            `Student not found with dni ${item.member}`,
+            `No existe estudiante registrado con cédula ${item.member}`,
           )
         }
 
@@ -114,7 +109,7 @@ export class CouncilsService {
 
         if (!functionary) {
           throw new NotFoundException(
-            `Functionary not found with dni ${item.member}`,
+            `No existe funcionario registrado con cédula ${item.member}`,
           )
         }
 
@@ -349,52 +344,48 @@ export class CouncilsService {
 
     await queryRunner.startTransaction()
 
-    try {
-      const updatedCouncils: CouncilEntity[] = []
-      for (const councilDto of updateCouncilsBulkDto) {
-        const { id, ...councilData } = councilDto
-        const hasNameChanged = councilData.name !== undefined
+    const updatedCouncils: CouncilEntity[] = []
+    for (const councilDto of updateCouncilsBulkDto) {
+      const { id, ...councilData } = councilDto
+      const hasNameChanged = councilData.name !== undefined
 
-        if (hasNameChanged) {
-          const queryBuilder = this.dataSource.createQueryBuilder(
-            CouncilEntity,
-            'councils',
-          )
-          queryBuilder.where('councils.id = :id', { id })
+      if (hasNameChanged) {
+        const queryBuilder = this.dataSource.createQueryBuilder(
+          CouncilEntity,
+          'councils',
+        )
+        queryBuilder.where('councils.id = :id', { id })
 
-          const { driveId } = await queryBuilder.getOne()
+        const { driveId } = await queryBuilder.getOne()
 
-          if (!driveId) {
-            throw new NotFoundException(`Council not found with id ${id}`)
-          }
-
-          await this.filesService.renameAsset(driveId, councilData.name)
-        }
-
-        const updatedCouncil = await this.councilRepository.preload({
-          id,
-          ...councilData,
-        })
-
-        if (!updatedCouncil) {
+        if (!driveId) {
           throw new NotFoundException(`Council not found with id ${id}`)
         }
 
-        updatedCouncils.push(updatedCouncil)
-
-        await queryRunner.manager.save(updatedCouncil)
+        await this.filesService.renameAsset(driveId, councilData.name)
       }
 
-      await queryRunner.commitTransaction()
-      await queryRunner.release()
+      const updatedCouncil = await this.councilRepository.preload({
+        id,
+        ...councilData,
+      })
 
-      return new ApiResponseDto(
-        'Consejos actualizados exitosamente',
-        updatedCouncils,
-      )
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+      if (!updatedCouncil) {
+        throw new NotFoundException(`Council not found with id ${id}`)
+      }
+
+      updatedCouncils.push(updatedCouncil)
+
+      await queryRunner.manager.save(updatedCouncil)
     }
+
+    await queryRunner.commitTransaction()
+    await queryRunner.release()
+
+    return new ApiResponseDto(
+      'Consejos actualizados exitosamente',
+      updatedCouncils,
+    )
   }
 
   async notifyMembers(id: number, members: number[]) {
@@ -414,6 +405,11 @@ export class CouncilsService {
     `
 
     await this.dataSource.query(mutation)
+
+    await this.emailService.sendTestEmail(
+      ['lmazabanda4623@uta.edu.ec', 'merajair17@gmail.com'],
+      'Test email from LEnin MAzabanda',
+    )
     return true
   }
 }

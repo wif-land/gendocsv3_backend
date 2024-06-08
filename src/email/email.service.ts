@@ -14,7 +14,7 @@ export class EmailService {
     const mail: MailDataRequired = {
       to: recipients,
       from: 'ddlm.montenegro@uta.edu.ec', // Approved sender ID in Sendgrid
-      subject: 'Test email',
+      subject: 'Test email foerm subject',
       content: [{ type: 'text/plain', value: body }],
     }
 
@@ -29,6 +29,7 @@ export class EmailService {
       templateId: 'Sendgrid_template_ID', // Retrieve from config service or environment variable
       dynamicTemplateData: { body, subject: 'Send Email with template' }, // The data to be used in the template
     }
+
     await this.sendGridClient.send(mail)
   }
 }
