@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger'
 import {
   BaseEntity,
+  BeforeInsert,
+  BeforeUpdate,
   CreateDateColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -33,4 +35,15 @@ export class BaseAppEntity extends BaseEntity {
     name: 'updated_at',
   })
   updatedAt: Date
+
+  @BeforeUpdate()
+  updateTimestamp() {
+    this.updatedAt = new Date()
+  }
+
+  @BeforeInsert()
+  createTimestamp() {
+    this.createdAt = new Date()
+    this.updatedAt = new Date()
+  }
 }

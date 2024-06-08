@@ -46,7 +46,7 @@ export class CouncilsService {
   async create(createCouncilDto: CreateCouncilDto) {
     const atTheSameTime = `
       SELECT * FROM councils_same_time(
-        '${createCouncilDto.date}' :: TIMESTAMP,
+        $1,
         ARRAY[${
           createCouncilDto.members
             .filter((item) => !item.isStudent)
@@ -62,8 +62,34 @@ export class CouncilsService {
       )
     `
 
+    const query = `
+        INSERT INTO logs(body)
+        VALUES (':date')
+    `
+
+    await this.dataSource.query(query, [new Date(createCouncilDto.date)])
+
+    const sameDateCouncils = await this.dataSource.manager
+      .createQueryBuilder(CouncilEntity, 'councils')
+      .where(
+        'councils.date >= :startDate AT TIME ZONE :timezone AND councils.date <= :endDate AT TIME ZONE :timezone',
+        {
+          startDate: new Date(createCouncilDto.date),
+          endDate: new Date(
+            new Date(createCouncilDto.date).getTime() + 60 * 60 * 1000,
+          ),
+          timezone: 'America/Bogota', // Use the appropriate time zone name here
+        },
+      )
+      .getMany()
+
+    console.log('sameDateCouncils', sameDateCouncils)
+
     try {
-      const atTheSameTimeQuery = await this.dataSource.query(atTheSameTime)
+      const atTheSameTimeQuery = await this.dataSource.manager.query(
+        atTheSameTime,
+        [new Date(createCouncilDto.date)],
+      )
 
       console.log(atTheSameTimeQuery)
       if (atTheSameTimeQuery.length) {
