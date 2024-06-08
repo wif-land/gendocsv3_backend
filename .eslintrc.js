@@ -61,10 +61,6 @@ module.exports = {
       'error',
       { assertFunctionNames: ['expect', 'request.*.expect'] },
     ],
-    'no-magic-numbers': [
-      'error',
-      { ignore: [0, 1, -1], ignoreArrayIndexes: true, enforceConst: true },
-    ],
     'max-classes-per-file': ['error', 2],
     'no-console': 'warn',
     'no-constructor-return': 'error',

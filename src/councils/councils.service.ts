@@ -22,6 +22,7 @@ import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { StudentEntity } from '../students/entities/student.entity'
+import { TIMES } from '../shared/utils/date'
 
 @Injectable()
 export class CouncilsService {
@@ -44,62 +45,46 @@ export class CouncilsService {
   ) {}
 
   async create(createCouncilDto: CreateCouncilDto) {
-    const atTheSameTime = `
-      SELECT * FROM councils_same_time(
-        $1,
-        ARRAY[${
-          createCouncilDto.members
-            .filter((item) => !item.isStudent)
-            .map((item) => item.member)
-            .join(', ') || 0
-        }],
-        ARRAY[${
-          createCouncilDto.members
-            .filter((item) => item.isStudent)
-            .map((item) => item.member)
-            .join(', ') || 0
-        }]
-      )
-    `
-
-    const query = `
-        INSERT INTO logs(body)
-        VALUES (':date')
-    `
-
-    await this.dataSource.query(query, [new Date(createCouncilDto.date)])
-
     const sameDateCouncils = await this.dataSource.manager
       .createQueryBuilder(CouncilEntity, 'councils')
-      .where(
-        'councils.date >= :startDate AT TIME ZONE :timezone AND councils.date <= :endDate AT TIME ZONE :timezone',
+      .where('councils.date BETWEEN :startDate AND :endDate', {
+        startDate: new Date(
+          new Date(createCouncilDto.date).getTime() - TIMES.AN_HOUR,
+        ),
+        endDate: new Date(createCouncilDto.date),
+      })
+      .andWhere(
+        `councils.id IN (
+          SELECT council_attendance.council_id
+          FROM council_attendance
+          WHERE functionary_id IN (:...functionaryIds)
+          )`,
         {
-          startDate: new Date(createCouncilDto.date),
-          endDate: new Date(
-            new Date(createCouncilDto.date).getTime() + 60 * 60 * 1000,
-          ),
-          timezone: 'America/Bogota', // Use the appropriate time zone name here
+          functionaryIds: createCouncilDto.members
+            .filter((item) => !item.isStudent)
+            .map((item) => Number(item.member)),
         },
       )
+      .orWhere(
+        `councils.id IN (
+          SELECT council_attendance.council_id
+          FROM council_attendance
+          WHERE student_id IN (:...studentIds)
+        `,
+        {
+          studentIds: createCouncilDto.members
+            .filter((item) => item.isStudent)
+            .map((item) => Number(item.member)),
+        },
+      )
+      .select(['councils.id'])
       .getMany()
 
-    console.log('sameDateCouncils', sameDateCouncils)
-
-    try {
-      const atTheSameTimeQuery = await this.dataSource.manager.query(
-        atTheSameTime,
-        [new Date(createCouncilDto.date)],
+    if (sameDateCouncils.length > 0) {
+      throw new HttpException(
+        'Ya existe un consejo creado en la misma franja horaria',
+        HttpStatus.BAD_REQUEST,
       )
-
-      console.log(atTheSameTimeQuery)
-      if (atTheSameTimeQuery.length) {
-        throw new HttpException(
-          'Ya existe un consejo en la misma franja horaria',
-          HttpStatus.BAD_REQUEST,
-        )
-      }
-    } catch (error) {
-      console.log(error)
     }
 
     const year = new Date().getFullYear()
