@@ -16,9 +16,7 @@ export class HttpExceptionsMiddleware implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost): void {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse()
-    // request object can be used to log when an error occurs
     const request = ctx.getRequest()
-
     const { method, url, headers, body } = request
     this.logger.error(
       'Request:',
@@ -55,11 +53,6 @@ export class HttpExceptionsMiddleware implements ExceptionFilter {
         exception.response?.message ||
         exception.message ||
         'Internal Server Error',
-      // instance:
-      //   exception.response?.instance ||
-      //   exception.instance ||
-      //   exception.stack ||
-      //   'Internal Server Error',
       error: exception.name,
     })
   }
