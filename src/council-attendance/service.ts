@@ -20,7 +20,7 @@ export class AttendanceService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getDefaultByModule(moduleId: number) {
+  async getDefaultByModule(moduleId: number, returnEntity = false) {
     const defaultAttendance = await this.councilAttendanceRepository.find({
       where: {
         council: {
@@ -37,6 +37,10 @@ export class AttendanceService {
       },
     })
 
+    if (returnEntity) {
+      return defaultAttendance
+    }
+
     return defaultAttendance.map(
       (item) =>
         new GetDefaultMembers(item.id, item.positionOrder, item.positionName, {
@@ -50,28 +54,33 @@ export class AttendanceService {
     moduleId: number,
     body: CreateEditDefaultMemberDTO[],
   ) {
+    const defaultMembers: CouncilAttendanceEntity[] =
+      (await this.getDefaultByModule(
+        moduleId,
+        true,
+      )) as CouncilAttendanceEntity[]
+
     const councilAttendanceCommands = new DefaultMembersContext(
       this.councilAttendanceRepository,
       moduleId,
     )
-
-    const toCreate = body.filter((item) => item.action === 'create')
-    councilAttendanceCommands
-      .setStrategy(new CreateDefaultMemberStrategy())
-      .setParams(toCreate)
-    const createPromises = councilAttendanceCommands.execute()
-
-    const toUpdate = body.filter((item) => item.action === 'update')
-    councilAttendanceCommands
-      .setStrategy(new UpdateDefaultMemberStrategy())
-      .setParams(toUpdate)
-    const updatePromises = councilAttendanceCommands.execute()
-
     const toDelete = body.filter((item) => item.action === 'delete')
     councilAttendanceCommands
       .setStrategy(new DeleteDefaultMemberStrategy())
       .setParams(toDelete)
     const deletePromises = councilAttendanceCommands.execute()
+
+    const toUpdate = body.filter((item) => item.action === 'update')
+    councilAttendanceCommands
+      .setStrategy(new UpdateDefaultMemberStrategy())
+      .setParams(toUpdate)
+    const updatePromises = councilAttendanceCommands.execute(defaultMembers)
+
+    const toCreate = body.filter((item) => item.action === 'create')
+    councilAttendanceCommands
+      .setStrategy(new CreateDefaultMemberStrategy())
+      .setParams(toCreate)
+    const createPromises = councilAttendanceCommands.execute(defaultMembers)
 
     const promises = [...createPromises, ...updatePromises, ...deletePromises]
 
