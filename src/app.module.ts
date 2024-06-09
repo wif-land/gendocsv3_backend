@@ -121,6 +121,11 @@ export class AppModule {
       consumer.apply(LoggerMiddleware).forRoutes('auth/*')
       consumer.apply(LoggerMiddleware).forRoutes('careers/*')
       consumer.apply(LoggerMiddleware).forRoutes('modules/*')
+      consumer.apply(LoggerMiddleware).forRoutes('councils/*')
+      consumer.apply(LoggerMiddleware).forRoutes('attendance/*')
+      consumer.apply(LoggerMiddleware).forRoutes('documents/*')
+      consumer.apply(LoggerMiddleware).forRoutes('positions/*')
+      consumer.apply(LoggerMiddleware).forRoutes('degree*')
     }
   }
 }
