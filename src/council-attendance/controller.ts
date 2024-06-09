@@ -13,7 +13,6 @@ import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { CreateEditDefaultMemberDTO } from './dto/create-edit-default-member.dto'
 import { Auth } from '../auth/decorators/auth-decorator'
 import { RolesType } from '../auth/decorators/roles-decorator'
-import { NotifyMembersDto } from './dto/notify-members.dto'
 
 @ApiTags('Attendance')
 @Controller('attendance')
@@ -58,18 +57,6 @@ export class CouncilsAttendanceController {
     return new ApiResponseDto(
       'Representantes modificados exitosamente',
       await this.attendanceService.toggleHasAssisted(id),
-    )
-  }
-
-  @Auth(RolesType.ADMIN, RolesType.WRITER, RolesType.API, RolesType.READER)
-  @Post('council/:councilId/notify')
-  async notify(
-    @Param('councilId', ParseIntPipe) councilId: number,
-    @Body() body: NotifyMembersDto[],
-  ) {
-    return new ApiResponseDto(
-      'Notificación enviada',
-      await this.attendanceService.notify(councilId, body),
     )
   }
 }

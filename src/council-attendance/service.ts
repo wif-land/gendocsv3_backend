@@ -9,8 +9,6 @@ import { UpdateDefaultMemberStrategy } from './strategies/members-manipulation/u
 import { DeleteDefaultMemberStrategy } from './strategies/members-manipulation/delete-default-members'
 import { DefaultMembersContext } from './strategies/members-manipulation/default-members-context'
 import { EmailService } from '../email/email.service'
-import { NotifyMembersDto } from './dto/notify-members.dto'
-import { ValidateMembersAvailability } from './errors/validate-members-availability'
 
 @Injectable()
 export class AttendanceService {
@@ -112,30 +110,5 @@ export class AttendanceService {
     })
     member.hasAttended = !member.hasAttended
     return await this.councilAttendanceRepository.save(member)
-  }
-
-  async notify(councilId: number, members: NotifyMembersDto[]) {
-    await new ValidateMembersAvailability(
-      this.councilAttendanceRepository,
-      councilId,
-      members.map((item) => item.id),
-    ).execute()
-
-    this.emailService
-      .sendTestEmail(
-        members.map((item) => item.email),
-        'This is a test email from Lenin',
-      )
-      .then(() => {
-        this.councilAttendanceRepository.update(
-          members.map((item) => item.id),
-          {
-            hasAttended: true,
-          },
-        )
-      })
-      .catch((error) => {
-        console.error(error)
-      })
   }
 }
