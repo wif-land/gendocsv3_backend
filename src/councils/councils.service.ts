@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { CreateCouncilDto } from './dto/create-council.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CouncilEntity } from './entities/council.entity'
@@ -84,6 +89,29 @@ export class CouncilsService {
           submoduleYearModule: { id: submoduleYearModule.id },
         })
         .save()
+    }
+
+    const studentMembers = data.members.filter((member) => member.isStudent)
+
+    const functionaryMembers = data.members.filter(
+      (member) => !member.isStudent,
+    )
+
+    const studentsSet = new Set(studentMembers.map((member) => member.member))
+    const functionariesSet = new Set(
+      functionaryMembers.map((member) => member.member),
+    )
+
+    if (studentsSet.size !== studentMembers.length) {
+      throw new BadRequestException(
+        'Estudiantes duplicados en la lista, verifique los estudiantes',
+      )
+    }
+
+    if (functionariesSet.size !== functionaryMembers.length) {
+      throw new BadRequestException(
+        'Funcionarios duplicados en la lista, verifique los funcionarios',
+      )
     }
 
     const councilMembers = data.members.map(async (item) => {

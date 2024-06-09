@@ -7,7 +7,7 @@ export abstract class DefaultMemberStrategy {
   protected moduleId: number
   protected params: CreateEditDefaultMemberDTO[]
 
-  abstract execute(): Promise<void>[]
+  abstract execute(defaultMembers?: CouncilAttendanceEntity[]): Promise<void>[]
 
   setRepository(repository: Repository<CouncilAttendanceEntity>): void {
     this.repository = repository
@@ -19,5 +19,28 @@ export abstract class DefaultMemberStrategy {
 
   setParams(params: CreateEditDefaultMemberDTO[]): void {
     this.params = params
+  }
+
+  async validateDifferentsMembers(
+    members: CreateEditDefaultMemberDTO[],
+    membersExist: CouncilAttendanceEntity[],
+  ) {
+    const studentMembers = members.filter((member) => member.isStudent)
+    const functionaryMembers = members.filter((member) => !member.isStudent)
+
+    const studentsMembersSet = new Set(
+      studentMembers.map((member) => member.member),
+    )
+    const functionaryMembersSet = new Set(
+      functionaryMembers.map((member) => member.member),
+    )
+
+    membersExist.forEach((member) => {
+      if (member.student) {
+        studentsMembersSet.add(member.student.id)
+      } else {
+        functionaryMembersSet.add(member.functionary.id)
+      }
+    })
   }
 }
