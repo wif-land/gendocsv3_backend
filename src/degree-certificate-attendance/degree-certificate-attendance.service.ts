@@ -41,7 +41,7 @@ export class DegreeCertificateAttendanceService {
 
     const degreeCertificateAttendance =
       this.degreeCertificateAttendanceRepository.create({
-        ...CreateDegreeCertificateAttendanceDto,
+        ...createDegreeCertificateAttendanceDto,
         degreeCertificate: {
           id: createDegreeCertificateAttendanceDto.degreeCertificateId,
         },
@@ -55,7 +55,6 @@ export class DegreeCertificateAttendanceService {
         'No se pudo crear la asistencia al acta de grado',
       )
     }
-
     const newDegreeCertificateAttendance =
       await this.degreeCertificateAttendanceRepository.save(
         degreeCertificateAttendance,
@@ -95,7 +94,9 @@ export class DegreeCertificateAttendanceService {
     )
   }
 
-  async findByDegreeCertificate(degreeCertificateId: number) {
+  async findByDegreeCertificate(
+    degreeCertificateId: number,
+  ): Promise<ApiResponseDto<DegreeCertificateAttendanceEntity[]>> {
     const degreeCertificateAttendance =
       await this.degreeCertificateAttendanceRepository.find({
         where: { degreeCertificate: { id: degreeCertificateId } },
@@ -197,5 +198,20 @@ export class DegreeCertificateAttendanceService {
     }
 
     await this.degreeCertificateAttendanceRepository.delete(id)
+  }
+
+  async removeAllAttendanceByDegreeCertificateId(degreeCertificateId: number) {
+    const degreeCertificateAttendance =
+      await this.degreeCertificateAttendanceRepository.find({
+        where: { degreeCertificate: { id: degreeCertificateId } },
+      })
+
+    if (!degreeCertificateAttendance) {
+      return
+    }
+
+    await this.degreeCertificateAttendanceRepository.delete({
+      degreeCertificate: { id: degreeCertificateId },
+    })
   }
 }

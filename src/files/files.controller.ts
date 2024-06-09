@@ -1,4 +1,4 @@
-import { Controller, Post } from '@nestjs/common'
+import { Body, Controller, Logger, Post } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { FilesService } from './services/files.service'
 import { Auth } from '../auth/decorators/auth-decorator'
@@ -14,5 +14,18 @@ export class FilesController {
     const document = await this.filesService.createDocument('Test from JAIR!')
 
     return document
+  }
+
+  @Post('share')
+  async shareAsset(
+    @Body() { email, driveId }: { email: string; driveId: string },
+  ) {
+    try {
+      const result = await this.filesService.shareAsset(driveId, email)
+
+      return result
+    } catch (error) {
+      Logger.error(error)
+    }
   }
 }

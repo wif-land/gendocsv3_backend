@@ -9,7 +9,10 @@ import { InjectDataSource } from '@nestjs/typeorm'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { DocumentEntity } from '../entities/document.entity'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
-import { getCouncilPath, getYearModulePath } from '../helpers/path-helper'
+import {
+  getCouncilPath,
+  getYearModulePath,
+} from '../../shared/helpers/path-helper'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 import { FilesService } from '../../files/services/files.service'
@@ -18,8 +21,6 @@ import { VariablesService } from '../../variables/variables.service'
 import { DataSource } from 'typeorm'
 import { IReplaceText } from '../../shared/interfaces/replace-text'
 import { formatNumeration } from '../../shared/utils/string'
-import { createReadStream } from 'fs'
-import { ReadStream } from 'typeorm/platform/PlatformTools'
 
 @Injectable()
 export class DocumentRecopilationService {
@@ -63,7 +64,12 @@ export class DocumentRecopilationService {
 
     const documents = await this.getDocumentsByCouncilId(councilId)
 
-    if (!documents) {
+    if (
+      !documents ||
+      documents.length === 0 ||
+      documents === undefined ||
+      documents === null
+    ) {
       throw new NotFoundException('Documentos no encontrados')
     }
 
@@ -102,12 +108,14 @@ export class DocumentRecopilationService {
     )
 
     const resolvedDocuments = await Promise.all(preparedDocuments)
+    console.log(preparedDocuments)
 
     const mergedDocument = await this.mergeDocuments(council.id, council)
 
     return new ApiResponseDto('Recopilación de documentos creada', {
       documentsRecopilated: resolvedDocuments.length,
       mergedDocument: !!mergedDocument.data.mergedDocumentPath,
+      council: mergedDocument.data.council,
     })
   }
 
@@ -124,6 +132,7 @@ export class DocumentRecopilationService {
     if (!blob) {
       throw new NotFoundException('Documento no encontrado')
     }
+    console.log('test')
 
     const councilPath = getCouncilPath(council)
     const tempDocxPath = `${councilPath}/temp/`
@@ -204,8 +213,17 @@ export class DocumentRecopilationService {
       )
     }
 
+    const councilWithRecopilation = await this.dataSource.manager
+      .getRepository(CouncilEntity)
+      .findOne({
+        where: {
+          id: councilId,
+        },
+      })
+
     return new ApiResponseDto('Documentos del consejo procesados', {
       mergedDocumentPath,
+      council: councilWithRecopilation,
     })
   }
 
@@ -283,7 +301,7 @@ export class DocumentRecopilationService {
     })
   }
 
-  async downloadMergedDocument(councilId: number): Promise<ReadStream> {
+  async downloadMergedDocument(councilId: number): Promise<Buffer> {
     const council = await this.dataSource.manager
       .getRepository(CouncilEntity)
       .findOne({
@@ -308,7 +326,7 @@ export class DocumentRecopilationService {
       council.name
     }-Recopilación-${formatDateText(council.date)}.docx`
 
-    return createReadStream(mergedDocumentPath)
+    return this.filesService.getFileBufferFromPath(mergedDocumentPath)
   }
 
   async getDocumentsByCouncilId(councilId: number) {

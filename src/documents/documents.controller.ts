@@ -8,13 +8,13 @@ import {
   ParseIntPipe,
   Query,
   HttpException,
-  StreamableFile,
 } from '@nestjs/common'
 import { DocumentsService } from './services/documents.service'
 import { CreateDocumentDto } from './dto/create-document.dto'
 import { ApiTags } from '@nestjs/swagger'
 import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
 import { DocumentRecopilationService } from './services/document-recopilation.service'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @ApiTags('Documents')
 @Controller('documents')
@@ -81,12 +81,12 @@ export class DocumentsController {
   @Get('create-recopilation/:id')
   async downloadRecopilation(@Param('id', ParseIntPipe) councilId: number) {
     try {
-      const fileStream =
+      const buffer =
         await this.documentRecopilationService.downloadMergedDocument(councilId)
 
-      return new StreamableFile(fileStream, {
-        type: 'application/msword', // Ajusta según el tipo de archivo
-        disposition: `attachment; filename="${councilId}.docx"`, // Asegúrate de definir un nombre de archivo adecuado
+      return new ApiResponseDto('Documento obtenido correctamente', {
+        file: buffer.toString('base64'),
+        fileName: `recopilacion-${councilId}.docx`,
       })
     } catch (error) {
       console.error(error)

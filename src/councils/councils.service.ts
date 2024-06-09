@@ -1,10 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common'
+import { Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { CreateCouncilDto } from './dto/create-council.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CouncilEntity } from './entities/council.entity'
@@ -22,6 +16,9 @@ import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { StudentEntity } from '../students/entities/student.entity'
+import { CouncilsThatOverlapValidator } from './validators/councils-that-overlap'
+import { EmailService } from '../email/email.service'
+import { NotifyMembersDTO } from './dto/notify-members.dto'
 
 @Injectable()
 export class CouncilsService {
@@ -34,22 +31,27 @@ export class CouncilsService {
     private readonly studentRepository: Repository<StudentEntity>,
     @InjectRepository(CouncilAttendanceEntity)
     private readonly councilAttendanceRepository: Repository<CouncilAttendanceEntity>,
-    @InjectRepository(YearModuleEntity)
-    private readonly yearModuleRepository: Repository<YearModuleEntity>,
     @InjectRepository(SubmoduleYearModuleEntity)
     private readonly submoduleYearModuleRepository: Repository<SubmoduleYearModuleEntity>,
     @Inject(FilesService)
     private readonly filesService: FilesService,
     private readonly dataSource: DataSource,
+    @Inject(EmailService)
+    private readonly emailService: EmailService,
   ) {}
 
-  async create(createCouncilDto: CreateCouncilDto) {
+  async create(data: CreateCouncilDto) {
+    await new CouncilsThatOverlapValidator(this.dataSource).validate(data)
+
     const year = new Date().getFullYear()
 
-    const yearModule = await this.yearModuleRepository.findOneBy({
-      year,
-      module: { id: createCouncilDto.moduleId },
-    })
+    const yearModule = await this.dataSource.manager
+      .createQueryBuilder(YearModuleEntity, 'yearModules')
+      .where('yearModules.year = :year', { year })
+      .andWhere('yearModules.module_id = :moduleId', {
+        moduleId: data.moduleId,
+      })
+      .getOne()
 
     if (!yearModule) {
       throw new NotFoundException('Year module not found')
@@ -66,19 +68,25 @@ export class CouncilsService {
     }
 
     const { data: driveId } = await this.filesService.createFolderByParentId(
-      createCouncilDto.name,
+      data.name,
       submoduleYearModule.driveId,
     )
 
-    const council = this.councilRepository.create({
-      ...createCouncilDto,
-      driveId,
-      module: { id: createCouncilDto.moduleId },
-      user: { id: createCouncilDto.userId },
-      submoduleYearModule: { id: submoduleYearModule.id },
-    })
-    const councilInserted = await this.councilRepository.save(council)
-    const councilMembers = createCouncilDto.members.map(async (item) => {
+    let council: CouncilEntity
+
+    if (driveId) {
+      council = await this.councilRepository
+        .create({
+          ...data,
+          driveId,
+          module: { id: data.moduleId },
+          user: { id: data.userId },
+          submoduleYearModule: { id: submoduleYearModule.id },
+        })
+        .save()
+    }
+
+    const councilMembers = data.members.map(async (item) => {
       let memberParam = {}
 
       if (item.isStudent) {
@@ -88,7 +96,7 @@ export class CouncilsService {
 
         if (!student) {
           throw new NotFoundException(
-            `Student not found with dni ${item.member}`,
+            `No existe estudiante registrado con cédula ${item.member}`,
           )
         }
 
@@ -102,7 +110,7 @@ export class CouncilsService {
 
         if (!functionary) {
           throw new NotFoundException(
-            `Functionary not found with dni ${item.member}`,
+            `No existe funcionario registrado con cédula ${item.member}`,
           )
         }
 
@@ -114,61 +122,45 @@ export class CouncilsService {
       return this.councilAttendanceRepository.save({
         ...item,
         ...memberParam,
-        council: { id: councilInserted.id },
-        id: undefined,
+        council: { id: council.id },
       })
     })
 
     return {
-      ...councilInserted,
+      ...council,
       members: await Promise.all(councilMembers),
     }
   }
 
   async findAllAndCount(paginationDto: PaginationDto) {
-    // eslint-disable-next-line no-magic-numbers
     const { moduleId, limit = 10, offset = 0 } = paginationDto
-    try {
-      const queryBuilder = this.dataSource.createQueryBuilder(
-        CouncilEntity,
-        'councils',
-      )
-      queryBuilder.leftJoinAndSelect('councils.user', 'user')
-      queryBuilder.leftJoinAndSelect('councils.module', 'module')
-      queryBuilder.leftJoinAndSelect(
-        'councils.submoduleYearModule',
-        'submoduleYearModule',
-      )
-      queryBuilder.leftJoinAndSelect('councils.attendance', 'attendance')
-      queryBuilder.leftJoinAndSelect('attendance.functionary', 'functionary')
-      queryBuilder.where('module.id = :moduleId', { moduleId })
-      queryBuilder.orderBy('councils.createdAt', 'DESC')
-      queryBuilder.take(limit)
-      queryBuilder.skip(offset)
+    const councils = await this.dataSource
+      .createQueryBuilder(CouncilEntity, 'councils')
+      .leftJoinAndSelect('councils.user', 'user')
+      .leftJoinAndSelect('councils.module', 'module')
+      .leftJoinAndSelect('councils.submoduleYearModule', 'submoduleYearModule')
+      .leftJoinAndSelect('councils.attendance', 'attendance')
+      .leftJoinAndSelect('attendance.functionary', 'functionary')
+      .where('module.id = :moduleId', { moduleId })
+      .orderBy('councils.createdAt', 'DESC')
+      .take(limit)
+      .skip(offset)
+      .getMany()
 
-      const countQueryBuilder = this.dataSource.createQueryBuilder(
-        CouncilEntity,
-        'councils',
-      )
-      countQueryBuilder.leftJoin('councils.module', 'module')
-      countQueryBuilder.where('module.id = :moduleId', { moduleId })
+    const count = await this.dataSource
+      .createQueryBuilder(CouncilEntity, 'councils')
+      .leftJoin('councils.module', 'module')
+      .where('module.id = :moduleId', { moduleId })
+      .getCount()
 
-      const count = await countQueryBuilder.getCount()
-
-      const councils = await queryBuilder.getMany()
-
-      return new ApiResponseDto('Consejos encontrados', {
-        count,
-        councils: councils.map((council) => new ResponseCouncilsDto(council)),
-      })
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
-    }
+    return new ApiResponseDto('Consejos encontrados', {
+      count,
+      councils: councils.map((council) => new ResponseCouncilsDto(council)),
+    })
   }
 
   async findByFilters(filters: CouncilFiltersDto) {
-    // eslint-disable-next-line no-magic-numbers
-    const { moduleId, limit = 10, offset = 0 } = filters
+    const { moduleId = 0, limit = 10, offset = 0 } = filters
 
     const qb = this.dataSource.createQueryBuilder(CouncilEntity, 'councils')
 
@@ -198,7 +190,6 @@ export class CouncilsService {
       )
 
     const endDate = new Date(filters.endDate || filters.startDate)
-    // eslint-disable-next-line no-magic-numbers
     endDate.setHours(23, 59, 59, 999)
 
     if (filters.dateType === DATE_TYPES.CREATION) {
@@ -354,55 +345,51 @@ export class CouncilsService {
 
     await queryRunner.startTransaction()
 
-    try {
-      const updatedCouncils: CouncilEntity[] = []
-      for (const councilDto of updateCouncilsBulkDto) {
-        const { id, ...councilData } = councilDto
-        const hasNameChanged = councilData.name !== undefined
+    const updatedCouncils: CouncilEntity[] = []
+    for (const councilDto of updateCouncilsBulkDto) {
+      const { id, ...councilData } = councilDto
+      const hasNameChanged = councilData.name !== undefined
 
-        if (hasNameChanged) {
-          const queryBuilder = this.dataSource.createQueryBuilder(
-            CouncilEntity,
-            'councils',
-          )
-          queryBuilder.where('councils.id = :id', { id })
+      if (hasNameChanged) {
+        const queryBuilder = this.dataSource.createQueryBuilder(
+          CouncilEntity,
+          'councils',
+        )
+        queryBuilder.where('councils.id = :id', { id })
 
-          const { driveId } = await queryBuilder.getOne()
+        const { driveId } = await queryBuilder.getOne()
 
-          if (!driveId) {
-            throw new NotFoundException(`Council not found with id ${id}`)
-          }
-
-          await this.filesService.renameAsset(driveId, councilData.name)
-        }
-
-        const updatedCouncil = await this.councilRepository.preload({
-          id,
-          ...councilData,
-        })
-
-        if (!updatedCouncil) {
+        if (!driveId) {
           throw new NotFoundException(`Council not found with id ${id}`)
         }
 
-        updatedCouncils.push(updatedCouncil)
-
-        await queryRunner.manager.save(updatedCouncil)
+        await this.filesService.renameAsset(driveId, councilData.name)
       }
 
-      await queryRunner.commitTransaction()
-      await queryRunner.release()
+      const updatedCouncil = await this.councilRepository.preload({
+        id,
+        ...councilData,
+      })
 
-      return new ApiResponseDto(
-        'Consejos actualizados exitosamente',
-        updatedCouncils,
-      )
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+      if (!updatedCouncil) {
+        throw new NotFoundException(`Council not found with id ${id}`)
+      }
+
+      updatedCouncils.push(updatedCouncil)
+
+      await queryRunner.manager.save(updatedCouncil)
     }
+
+    await queryRunner.commitTransaction()
+    await queryRunner.release()
+
+    return new ApiResponseDto(
+      'Consejos actualizados exitosamente',
+      updatedCouncils,
+    )
   }
 
-  async notifyMembers(id: number, members: number[]) {
+  async notifyMembers(id: number, members: NotifyMembersDTO[]) {
     const council = await this.councilRepository.findOne({
       where: { id },
     })
@@ -414,11 +401,19 @@ export class CouncilsService {
     const mutation = `
       UPDATE council_attendance
       SET has_been_notified = true
-      WHERE id IN (${members.join(', ')})
+      WHERE id IN (${members.map((val) => val.id).join(', ')})
       AND council_id = ${id}
     `
 
     await this.dataSource.query(mutation)
+
+    // TODO: GENERATE FILE TO SEND AS AN ATTACHMENT WITH THE RESUME OF THE COUNCIL MEETING
+    // si mandan solo un miembro, se genera solo con ese miembro? o como
+    // o debo consultar todos los miembros y generar un solo archivo con todos los miembros?
+    await this.emailService.sendTestEmail(
+      members.map((val) => val.email),
+      'Test email from Lenin',
+    )
     return true
   }
 }

@@ -1,4 +1,4 @@
-.PHONY: up down clean prepare_production backup generate_ssh_key deploy_all_production deploy_backend_production deploy_frontend_production deploy_db_production
+.PHONY: up down clean prepare_production backup generate_ssh_key deploy_all_production deploy_backend_production deploy_frontend_production deploy_db_production install_cron uninstall_cron
 
 ENV_FILE := .env
 ENV_FILE_PRODUCTION := .env.production
@@ -8,6 +8,8 @@ REMOTE_DIR := /root/gendocsv3
 VM_USER := root
 BACKEND_DOCKER_IMAGE := leninner/gendocsv3:latest
 FRONTEND_DOCKER_IMAGE := leninner/gendocsv3-frontend:latest
+BACKUP_SCRIPT := ./scripts/backup.sh
+CRON_SCHEDULE := 0 0 * * *  # Ejemplo: se ejecutará todos los días a la medianoche
 
 up:
 	docker compose -f $(COMPOSE_DEVELOP_FILE) --env-file $(ENV_FILE) up -d
@@ -69,3 +71,17 @@ backup:
 generate_ssh_key:
 	ssh-keygen -t rsa -b 2048 -C "gendocsv3" -f ~/.ssh/id_gendocsv3 -N "" | true
 	scp ~/.ssh/id_gendocsv3.pub ${VM_USER}@$(VM_IP):~/.ssh/authorized_keys
+
+install_cron:
+	@echo "Instalando el cronjob..."
+	@crontab -l > gendocsv3_backup_script 2>/dev/null || true
+	@echo "$(CRON_SCHEDULE) $(BACKUP_SCRIPT)" >> gendocsv3_backup_script
+	@crontab gendocsv3_backup_script
+	@rm gendocsv3_backup_script
+	@echo "Cronjob instalado correctamente."
+
+# Objetivo para desinstalar el cronjob
+uninstall_cron:
+	@echo "Desinstalando el cronjob..."
+	@crontab -l | grep -v "$(BACKUP_SCRIPT)" | crontab -
+	@echo "Cronjob desinstalado correctamente."

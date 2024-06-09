@@ -1,5 +1,6 @@
-import { Controller, Post, Body } from '@nestjs/common'
+import { Controller, Post, Body, Logger } from '@nestjs/common'
 import { GcpService } from './gcp.service'
+import { Auth } from '../auth/decorators/auth-decorator'
 
 export interface ITestDto {
   templateId: string
@@ -44,6 +45,48 @@ export class GcpController {
       // eslint-disable-next-line no-console
       console.error(error)
       return error
+    }
+  }
+
+  @Auth()
+  @Post('by-parent')
+  async createDocumentByParentId(@Body() { parentId }: { parentId: string }) {
+    try {
+      const document = await this.gcpService.createDocumentByParentId(
+        'PLANTILLA REPORTES',
+        parentId,
+      )
+
+      return document
+    } catch (error) {
+      Logger.error(error)
+    }
+  }
+
+  @Post('sheet/by-parent')
+  async createSheetByParentId(@Body() { parentId }: { parentId: string }) {
+    try {
+      const document = await this.gcpService.createSheetByParentId(
+        'PLANTILLA REPORTES',
+        parentId,
+      )
+
+      return document
+    } catch (error) {
+      Logger.error(error)
+    }
+  }
+
+  @Post('move')
+  async moveDocument(
+    @Body() { documentId, parentId }: { documentId: string; parentId: string },
+  ) {
+    try {
+      const document = await this.gcpService.moveFile(documentId, parentId)
+
+      return document
+    } catch (error) {
+      Logger.error(error)
     }
   }
 }

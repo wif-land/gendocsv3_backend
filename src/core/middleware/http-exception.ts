@@ -4,16 +4,33 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common'
+import * as util from 'util'
 
 @Catch()
-export class AllExceptionsFilter implements ExceptionFilter {
+export class HttpExceptionsMiddleware implements ExceptionFilter {
+  private readonly logger = new Logger(HttpExceptionsMiddleware.name)
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   catch(exception: any, host: ArgumentsHost): void {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse()
-    // request object can be used to log when an error occurs
-    // const request = ctx.getRequest()
+    const request = ctx.getRequest()
+    const { method, url, headers, body } = request
+    this.logger.error(
+      'Request:',
+      util.inspect(
+        {
+          method,
+          url,
+          headers,
+          body,
+          exception,
+        },
+        { depth: null, colors: true },
+      ),
+    )
 
     const status =
       exception instanceof HttpException
@@ -36,11 +53,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         exception.response?.message ||
         exception.message ||
         'Internal Server Error',
-      // instance:
-      //   exception.response?.instance ||
-      //   exception.instance ||
-      //   exception.stack ||
-      //   'Internal Server Error',
       error: exception.name,
     })
   }

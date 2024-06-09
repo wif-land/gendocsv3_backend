@@ -5,7 +5,7 @@ import { AppService } from './app.service'
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'
 import { ConfigModule } from '@nestjs/config'
 import configuration from './config/configuration'
-import { LoggerMiddleware } from './shared/utils/logger.middleware'
+import { LoggerMiddleware } from './shared/middlewares/logger.middleware'
 import { LogModule } from './shared/logs/log.module'
 import { TerminusModule } from '@nestjs/terminus'
 import { HttpModule } from '@nestjs/axios'
@@ -71,6 +71,11 @@ export default connectionSource
     TypeOrmModule.forRoot({
       ...config,
       dropSchema: process.env.DROP_SCHEMA === 'true',
+      logging: true,
+      extra: {
+        application_name: 'your_app_name',
+        options: '-c timezone=GMT-5',
+      },
     } as TypeOrmModuleOptions),
     LogModule,
     TerminusModule,

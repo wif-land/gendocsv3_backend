@@ -99,6 +99,17 @@ export class ModuleEntity extends BaseAppEntity {
   })
   compilationTemplateDriveId: string
 
+  @ApiProperty({
+    example: 'asdfasdfas',
+    description: 'Id de drive de la plantilla de reportes de actas de grado',
+  })
+  @Column({
+    name: 'report_template_drive_id',
+    type: 'varchar',
+    nullable: true,
+  })
+  reportTemplateDriveId: string
+
   @OneToMany(
     () => CouncilAttendanceEntity,
     (councilAttendance) => councilAttendance.module,
