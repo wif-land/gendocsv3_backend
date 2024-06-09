@@ -18,6 +18,7 @@ import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { StudentEntity } from '../students/entities/student.entity'
 import { CouncilsThatOverlapValidator } from './validators/councils-that-overlap'
 import { EmailService } from '../email/email.service'
+import { NotifyMembersDTO } from './dto/notify-members.dto'
 
 @Injectable()
 export class CouncilsService {
@@ -388,7 +389,7 @@ export class CouncilsService {
     )
   }
 
-  async notifyMembers(id: number, members: number[]) {
+  async notifyMembers(id: number, members: NotifyMembersDTO[]) {
     const council = await this.councilRepository.findOne({
       where: { id },
     })
@@ -400,15 +401,18 @@ export class CouncilsService {
     const mutation = `
       UPDATE council_attendance
       SET has_been_notified = true
-      WHERE id IN (${members.join(', ')})
+      WHERE id IN (${members.map((val) => val.id).join(', ')})
       AND council_id = ${id}
     `
 
     await this.dataSource.query(mutation)
 
+    // TODO: GENERATE FILE TO SEND AS AN ATTACHMENT WITH THE RESUME OF THE COUNCIL MEETING
+    // si mandan solo un miembro, se genera solo con ese miembro? o como
+    // o debo consultar todos los miembros y generar un solo archivo con todos los miembros?
     await this.emailService.sendTestEmail(
-      ['lmazabanda4623@uta.edu.ec', 'merajair17@gmail.com'],
-      'Test email from LEnin MAzabanda',
+      members.map((val) => val.email),
+      'Test email from Lenin',
     )
     return true
   }
