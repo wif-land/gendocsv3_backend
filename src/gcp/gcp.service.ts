@@ -214,6 +214,26 @@ export class GcpService {
     }
   }
 
+  async removeAssetsFromFolder(folderId: string) {
+    try {
+      const { data } = await this.drive.files.list({
+        q: `'${folderId}' in parents`,
+      })
+
+      data.files.forEach(async (file) => {
+        await this.drive.files.delete({
+          fileId: file.id,
+        })
+      })
+
+      return new ApiResponseDto('Documentos eliminados con éxito', {
+        success: true,
+      })
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  }
+
   async getValuesFromSheet(spreadsheetId: string, range: string) {
     try {
       const { data } = await this.sheets.spreadsheets.values.get({
