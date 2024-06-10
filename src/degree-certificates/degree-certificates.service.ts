@@ -100,11 +100,7 @@ export class DegreeCertificatesService {
     })
   }
 
-  async create(dto: CreateDegreeCertificateDto) {
-    const student: StudentEntity = (
-      await this.studentService.findOne(dto.studentId)
-    ).data
-
+  async checkStudent(student: StudentEntity): Promise<void> {
     const hasApproved =
       await this.degreeCertificateRepository.findApprovedByStudent(student.id)
 
@@ -135,18 +131,26 @@ export class DegreeCertificatesService {
         `El estudiante no cumple con los requisitos para obtener el certificado de grado. Créditos aprobados: ${student.approvedCredits}, Horas de vinculación: ${student.vinculationHours}, Horas de pasantías: ${student.internshipHours}`,
       )
     }
+  }
 
+  async checkPresentationDate(
+    presentationDate?: Date,
+    duration?: number,
+    roomId?: number,
+  ) {
     if (
-      // eslint-disable-next-line no-extra-parens
-      (dto.presentationDate && dto.presentationDate !== null) ||
-      // eslint-disable-next-line no-extra-parens
-      (dto.duration && dto.duration !== null)
+      roomId &&
+      roomId !== null &&
+      presentationDate &&
+      presentationDate !== null &&
+      duration &&
+      duration !== null
     ) {
       const certificatesInRange =
         await this.degreeCertificateRepository.countCertificatesInDateRangeByRoom(
-          dto.presentationDate,
-          addMinutesToDate(dto.presentationDate, dto.duration),
-          dto.roomId,
+          presentationDate,
+          addMinutesToDate(presentationDate, duration),
+          roomId,
         )
 
       if (certificatesInRange > 0) {
@@ -155,6 +159,20 @@ export class DegreeCertificatesService {
         )
       }
     }
+  }
+
+  async create(dto: CreateDegreeCertificateDto) {
+    const student: StudentEntity = (
+      await this.studentService.findOne(dto.studentId)
+    ).data
+
+    await this.checkStudent(student)
+    await this.checkPresentationDate(
+      dto.presentationDate,
+      dto.duration,
+      dto.roomId,
+    )
+
     const certificateStatusType =
       await this.certificateStatusService.findCertificateStatusType(
         dto.certificateTypeId,

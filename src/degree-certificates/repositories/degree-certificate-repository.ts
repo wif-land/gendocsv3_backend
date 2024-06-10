@@ -27,27 +27,14 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
     return super.createQueryBuilder('degreeCertificate')
   }
 
-  async findReplicate({
-    topic,
-    studentId,
-    certificateTypeId,
-    degreeModalityId,
-  }: {
-    topic: string
-    studentId: number
-    certificateTypeId: number
-    degreeModalityId: number
-  }): Promise<DegreeCertificateEntity> {
+  async findReplicate(studentId: number): Promise<DegreeCertificateEntity> {
     return this.qb
       .leftJoinAndSelect('degreeCertificate.student', 'student')
       .leftJoinAndSelect('degreeCertificate.certificateType', 'certificateType')
       .leftJoinAndSelect('degreeCertificate.degreeModality', 'degreeModality')
-      .where('topic = :topic', { topic })
       .andWhere('student.id = :studentId', { studentId })
-      .andWhere('certificateType.id = :certificateTypeId', {
-        certificateTypeId,
-      })
-      .andWhere('degreeModality.id = :degreeModalityId', { degreeModalityId })
+      .andWhere('degreeCertificate.deletedAt IS NULL')
+      .orderBy('degreeCertificate.id', 'DESC')
       .getOne()
   }
 
@@ -167,8 +154,9 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       )
       .leftJoinAndSelect('degreeCertificate.room', 'room')
       .leftJoinAndSelect('degreeCertificate.user', 'user')
-      .where('student.id = :studentId', { studentId })
-      .where(`certificateStatus.code = ${CERT_STATUS_CODE.APRO}`)
+      .where('degreeCertificate.deletedAt IS NULL')
+      .andWhere('student.id = :studentId', { studentId })
+      .andWhere(`certificateStatus.code = ${CERT_STATUS_CODE.APRO}`)
       .getOne()
   }
 
@@ -192,15 +180,15 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       )
       .leftJoinAndSelect('degreeCertificate.room', 'room')
       .leftJoinAndSelect('degreeCertificate.user', 'user')
-      .where(
+      .where('degreeCertificate.deletedAt IS NULL')
+      .andWhere('degreeCertificate.isClosed = :isClosed', { isClosed: false })
+      .andWhere(
         'degreeCertificate.presentationDate BETWEEN :startDate AND :endDate',
         {
           startDate,
           endDate,
         },
       )
-      .andWhere('degreeCertificate.deletedAt IS NULL')
-      .andWhere('degreeCertificate.isClosed = :isClosed', { isClosed: false })
       .getMany()
   }
 

@@ -211,12 +211,9 @@ export class CertificateBulkService {
   }> {
     let degreeCertificate: DegreeCertificateEntity
 
-    degreeCertificate = await this.degreeCertificateRepository.findReplicate({
-      topic: createCertificateDto.topic,
-      studentId: student.id,
-      certificateTypeId: certificateType.id,
-      degreeModalityId: degreeModalityEntity.id,
-    })
+    degreeCertificate = await this.degreeCertificateRepository.findReplicate(
+      student.id,
+    )
 
     console.log(degreeCertificate)
 
@@ -286,6 +283,8 @@ export class CertificateBulkService {
           ),
         )
       }
+
+      await this.degreeCertificateService.checkStudent(students[0])
 
       return students
     } catch (error) {
