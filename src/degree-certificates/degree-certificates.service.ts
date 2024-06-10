@@ -104,6 +104,8 @@ export class DegreeCertificatesService {
     const hasApproved =
       await this.degreeCertificateRepository.findApprovedByStudent(student.id)
 
+    console.log(hasApproved)
+
     if (hasApproved != null && hasApproved !== undefined) {
       throw new DegreeCertificateAlreadyExists(
         `El estudiante con id ${student.id} ya cuenta con un certificado de grado aprobado`,

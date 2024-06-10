@@ -138,6 +138,7 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
   }
 
   async findApprovedByStudent(studentId: number) {
+    console.log('studentId', studentId)
     return await this.qb
       .leftJoinAndSelect('degreeCertificate.student', 'student')
       .leftJoinAndSelect('student.career', 'studentCareer')
@@ -156,7 +157,7 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .leftJoinAndSelect('degreeCertificate.user', 'user')
       .where('degreeCertificate.deletedAt IS NULL')
       .andWhere('student.id = :studentId', { studentId })
-      .andWhere(`certificateStatus.code = ${CERT_STATUS_CODE.APRO}`)
+      .andWhere(`certificateStatus.code = UPPER('${CERT_STATUS_CODE.APRO}')`)
       .getOne()
   }
 

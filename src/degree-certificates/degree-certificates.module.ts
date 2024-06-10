@@ -28,6 +28,8 @@ import { CertificateStatusController } from './controllers/certificate-status.co
 import { CertificateBulkService } from './services/certificate-bulk.service'
 import { FunctionariesModule } from '../functionaries/functionaries.module'
 import { DegreeCertificateRepository } from './repositories/degree-certificate-repository'
+import { BullModule } from '@nestjs/bull'
+import { CertificateProcessor } from './processors/certificate-procesor'
 
 @Module({
   controllers: [
@@ -46,12 +48,16 @@ import { DegreeCertificateRepository } from './repositories/degree-certificate-r
     DegreeModalitiesService,
     RoomsService,
     CertificateBulkService,
+    CertificateProcessor,
     {
       provide: 'DegreeCertificateRepository',
       useClass: DegreeCertificateRepository,
     },
   ],
   imports: [
+    BullModule.registerQueue({
+      name: 'certificateQueue',
+    }),
     TypeOrmModule.forFeature([
       CertificateStatusEntity,
       CertificateTypeEntity,

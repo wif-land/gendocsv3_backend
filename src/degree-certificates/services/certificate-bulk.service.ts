@@ -21,10 +21,16 @@ import { DegreeModalityEntity } from '../entities/degree-modality.entity'
 import { StudentEntity } from '../../students/entities/student.entity'
 import { GradesSheetService } from './grades-sheet.service'
 import { ErrorsBulkCertificate } from '../errors/errors-bulk-certificate'
+import { InjectQueue } from '@nestjs/bull'
+import { Queue } from 'bull'
 
 @Injectable()
 export class CertificateBulkService {
+  private readonly logger = new Logger(CertificateBulkService.name)
+
   constructor(
+    @InjectQueue('certificateQueue')
+    private certificateQueue: Queue<CreateDegreeCertificateBulkDto>,
     private readonly degreeCertificateService: DegreeCertificatesService,
 
     private readonly studentsService: StudentsService,
@@ -50,44 +56,11 @@ export class CertificateBulkService {
 
   async createBulkCertificates(
     createCertificatesDtos: CreateDegreeCertificateBulkDto[],
-  ): Promise<{ message: string; errors?: ErrorsBulkCertificate[] }[]> {
-    const responses: {
-      message: string
-      errors?: ErrorsBulkCertificate[]
-    }[] = []
-    // create bulk certificates
-    const promises = createCertificatesDtos.map(
-      async (createCertificateDto) => {
-        const { degreeCertificate, errors } =
-          await this.createDegreeCertificate(createCertificateDto)
-
-        if (!degreeCertificate) {
-          responses.push({
-            message: `No se pudo crear el certificado de grado con el tema ${createCertificateDto.topic}`,
-            errors,
-          })
-
-          return
-        }
-
-        if (degreeCertificate && errors.length > 0) {
-          responses.push({
-            message: `Se creó el certificado de grado con el tema ${createCertificateDto.topic} pero con conflictos`,
-            errors,
-          })
-
-          return
-        }
-
-        responses.push({
-          message: `Certificado de grado con el tema ${createCertificateDto.topic} creado exitosamente`,
-        })
-      },
-    )
-
-    await Promise.all(promises)
-
-    return responses
+  ) {
+    this.logger.log('Creando certificados de grado en lote...')
+    createCertificatesDtos.forEach(async (dto) => {
+      await this.certificateQueue.add('createCertificate', dto)
+    })
   }
 
   async createDegreeCertificate(
@@ -104,6 +77,8 @@ export class CertificateBulkService {
         attendance?: undefined
       }
   > {
+    this.logger.log('Creando un certificado de grado...')
+
     const errors: ErrorsBulkCertificate[] = []
     // validate certificate student
     const students = await this.validateStudent(
@@ -136,6 +111,7 @@ export class CertificateBulkService {
     )
 
     if (errors.length > 0) {
+      this.logger.error(errors)
       return { errors }
     }
     // start transaction
@@ -170,6 +146,9 @@ export class CertificateBulkService {
         degreeCertificate,
         errors,
       )
+
+      await queryRunner.commitTransaction()
+      this.logger.log({ degreeCertificate, attendance, errors })
 
       return { degreeCertificate, attendance, errors }
 
@@ -284,16 +263,18 @@ export class CertificateBulkService {
         )
       }
 
-      await this.degreeCertificateService.checkStudent(students[0])
+      await this.degreeCertificateService.checkStudent(students.students[0])
 
       return students
     } catch (error) {
-      errors.push(
-        new ErrorsBulkCertificate(
-          `No se pudo obtener el estudiante con cédula ${studentDni}`,
-          new Error().stack,
-        ),
-      )
+      const msg =
+        error.message.message ||
+        error.message.detail ||
+        error.detail ||
+        error.message ||
+        `No se pudo obtener el estudiante con cédula ${studentDni}`
+
+      errors.push(new ErrorsBulkCertificate(msg, error.stack))
     }
   }
 
@@ -311,7 +292,7 @@ export class CertificateBulkService {
       errors.push(
         new ErrorsBulkCertificate(
           `No existe el tipo de certificado ${certificateType}`,
-          new Error().stack,
+          error.stack,
         ),
       )
     }
@@ -335,7 +316,7 @@ export class CertificateBulkService {
       errors.push(
         new ErrorsBulkCertificate(
           `No existe el estado de certificado ${certificateStatus}`,
-          new Error().stack,
+          error.stack,
         ),
       )
     }
@@ -357,7 +338,7 @@ export class CertificateBulkService {
       errors.push(
         new ErrorsBulkCertificate(
           `No existe la modalidad de grado ${degreeModality}`,
-          new Error().stack,
+          error.stack,
         ),
       )
     }
@@ -434,7 +415,7 @@ export class CertificateBulkService {
       errors.push(
         new ErrorsBulkCertificate(
           'No se pudo actualizar la asistencia al acta de grado',
-          new Error().stack,
+          error.stack,
         ),
       )
     }
@@ -680,7 +661,7 @@ export class CertificateBulkService {
         errors.push(
           new ErrorsBulkCertificate(
             'No se pudo reemplazar las variables de notas',
-            new Error().stack,
+            error.stack,
           ),
         )
       }
@@ -688,7 +669,7 @@ export class CertificateBulkService {
       errors.push(
         new ErrorsBulkCertificate(
           'No se pudo obtener las variables de notas',
-          new Error().stack,
+          error.stack,
         ),
       )
     }
