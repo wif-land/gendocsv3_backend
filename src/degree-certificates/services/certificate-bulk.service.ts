@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common'
 import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
 import { DegreeCertificatesService } from '../degree-certificates.service'
 import { StudentsService } from '../../students/students.service'
@@ -59,7 +65,13 @@ export class CertificateBulkService {
   ) {
     this.logger.log('Creando certificados de grado en lote...')
     createCertificatesDtos.forEach(async (dto) => {
-      await this.certificateQueue.add('createCertificate', dto)
+      await this.certificateQueue.add('createCertificate', dto, {
+        attempts: 2,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+      })
     })
   }
 
@@ -164,7 +176,10 @@ export class CertificateBulkService {
       // TODO: Al notificar a los docentes de la asistencia a actas de grado, realizar el control de asistencia mencionado en el punto anterior
       // INFO: Existen 3 etapas de inicio, 1. Inicio de proyecto en producción(Corre migraciones y ejecuta endpoint para crear las carpetas en el drive de cada módulo y submódulo), 2. Reinicio Anual (Cambia el año del sistema en la tabla de la bd, y ejecuta endpoint para crear los modulos y submódulos por año y las carpetas en el drive de cada módulo y submódulo de ese año), 3. Creación de una carrera y por ende un módulo ( Ejecuta endpoint para crear los submódulos y años y módulos y las carpetas en el drive de cada módulo y submódulo de ese año para la carrera creada y copia las plantillas generales para tipos de acta de grado y consejos y plantillas en base al últimos módulo creado)
     } catch (error) {
-      console.log(error)
+      if (error.code && error.code === HttpStatus.TOO_MANY_REQUESTS) {
+        throw new Error('Temporary Google API error, retrying...')
+      }
+      this.logger.error(error)
       errors.push(
         new ErrorsBulkCertificate(
           'No se pudo crear el certificado de grado',
@@ -658,6 +673,12 @@ export class CertificateBulkService {
 
         return true
       } catch (error) {
+        if (error.code && error.code === HttpStatus.TOO_MANY_REQUESTS) {
+          throw new HttpException(
+            'Temporary Google API error, retrying...',
+            HttpStatus.TOO_MANY_REQUESTS,
+          )
+        }
         errors.push(
           new ErrorsBulkCertificate(
             'No se pudo reemplazar las variables de notas',
@@ -666,6 +687,12 @@ export class CertificateBulkService {
         )
       }
     } catch (error) {
+      if (error.code && error.code === HttpStatus.TOO_MANY_REQUESTS) {
+        throw new HttpException(
+          'Temporary Google API error, retrying...',
+          HttpStatus.TOO_MANY_REQUESTS,
+        )
+      }
       errors.push(
         new ErrorsBulkCertificate(
           'No se pudo obtener las variables de notas',

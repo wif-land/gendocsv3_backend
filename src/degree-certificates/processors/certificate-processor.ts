@@ -34,7 +34,15 @@ export class CertificateProcessor {
         `Error al procesar el trabajo ${job.id}: ${error.message}`,
         error.stack,
       )
-      throw error
+      if (error.isRecoverable) {
+        throw new Error('Temporary Google API error, retrying...') // Bull reintentará
+      } else {
+        // Loguea el error y lo envía al cliente sin reintentar
+        this.logger.error(
+          `Error irrecuperable en el trabajo ${job.id}: ${error.message}`,
+        )
+        // Aquí podrías emitir un evento o guardar el error en una base de datos para que el cliente pueda recuperarlo
+      }
     }
   }
 

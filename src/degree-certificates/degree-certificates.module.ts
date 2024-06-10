@@ -29,7 +29,7 @@ import { CertificateBulkService } from './services/certificate-bulk.service'
 import { FunctionariesModule } from '../functionaries/functionaries.module'
 import { DegreeCertificateRepository } from './repositories/degree-certificate-repository'
 import { BullModule } from '@nestjs/bull'
-import { CertificateProcessor } from './processors/certificate-procesor'
+import { CertificateProcessor } from './processors/certificate-processor'
 
 @Module({
   controllers: [
