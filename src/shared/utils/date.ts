@@ -37,3 +37,6 @@ export const formatHourMinutesText = (date: Date): string => {
     minutes === 1 ? 'minuto' : 'minutos'
   }`
 }
+
+export const addMinutesToDate = (date: Date, minutes: number): Date =>
+  new Date(date.getTime() + minutes * 60000)

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { IsNull, Not, Repository } from 'typeorm'
 import { CreateDegreeCertificateDto } from './dto/create-degree-certificate.dto'
@@ -20,6 +20,9 @@ import { DegreeCertificateConflict } from './errors/degree-certificate-conflict'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { GradesSheetService } from './services/grades-sheet.service'
 import { CertificateStatusService } from './services/certificate-status.service'
+import { DegreeCertificateRepository } from './repositories/degree-certificate-repository'
+import { addMinutesToDate } from '../shared/utils/date'
+import { RoomsService } from './services/rooms.service'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -27,13 +30,14 @@ export class DegreeCertificatesService {
     private readonly yearModuleService: YearModuleService,
     private readonly filesService: FilesService,
     private readonly studentService: StudentsService,
+    private readonly roomsService: RoomsService,
     private readonly variablesService: VariablesService,
     private readonly degreeCertificateAttendanceService: DegreeCertificateAttendanceService,
     private readonly gradesSheetService: GradesSheetService,
     private readonly certificateStatusService: CertificateStatusService,
 
-    @InjectRepository(DegreeCertificateEntity)
-    private readonly degreeCertificateRepository: Repository<DegreeCertificateEntity>,
+    @Inject('DegreeCertificateRepository')
+    private readonly degreeCertificateRepository: DegreeCertificateRepository,
 
     @InjectRepository(CertificateTypeEntity)
     private readonly certificateTypeRepository: Repository<CertificateTypeEntity>,
@@ -76,25 +80,15 @@ export class DegreeCertificatesService {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 10, offset = 0 } = paginationDto
 
-    const degreeCertificates = await this.degreeCertificateRepository.find({
-      relationLoadStrategy: 'join',
-      relations: {
-        student: {
-          canton: true,
+    const degreeCertificates =
+      await this.degreeCertificateRepository.findManyFor({
+        where: {
+          career: { id: carrerId },
+          deletedAt: IsNull(),
         },
-        career: true,
-        certificateType: true,
-        certificateStatus: true,
-        degreeModality: true,
-        room: true,
-      },
-      where: {
-        career: { id: carrerId },
-        deletedAt: IsNull(),
-      },
-      take: limit,
-      skip: offset,
-    })
+        take: limit,
+        skip: offset,
+      })
 
     const countQueryBuilder =
       this.degreeCertificateRepository.createQueryBuilder('degreeCertificates')
@@ -106,55 +100,61 @@ export class DegreeCertificatesService {
     })
   }
 
-  async findReplicate(CreateCertificateDegreeDto: CreateDegreeCertificateDto) {
-    const submoduleYearModule = await this.getCurrentDegreeSubmoduleYearModule()
-
-    const degreeCertificate = await this.degreeCertificateRepository.findOneBy({
-      deletedAt: null,
-      presentationDate: CreateCertificateDegreeDto.presentationDate,
-      student: { id: CreateCertificateDegreeDto.studentId },
-      isClosed: false,
-      certificateType: { id: CreateCertificateDegreeDto.certificateTypeId },
-      certificateStatus: {
-        id: CreateCertificateDegreeDto.certificateStatusId,
-      },
-      degreeModality: { id: CreateCertificateDegreeDto.degreeModalityId },
-      room: { id: CreateCertificateDegreeDto.roomId },
-      submoduleYearModule: {
-        id: submoduleYearModule.id,
-      },
-    })
-
-    if (!degreeCertificate || degreeCertificate == null) {
-      return undefined
-    }
-
-    return degreeCertificate
-  }
-
   async create(dto: CreateDegreeCertificateDto) {
-    if (await this.findReplicate(dto)) {
-      throw new DegreeCertificateAlreadyExists(
-        'Ya existe un certificado con los mismos datos',
-      )
-    }
-
     const student: StudentEntity = (
       await this.studentService.findOne(dto.studentId)
     ).data
 
-    if (
-      student.gender == null ||
-      student.endStudiesDate == null ||
-      student.startStudiesDate == null ||
-      student.internshipHours == null ||
-      student.vinculationHours == null
-    ) {
-      throw new DegreeCertificateBadRequestError(
-        'El estudiante no cuenta con la información necesaria para generar la acta de grado',
+    const hasApproved =
+      await this.degreeCertificateRepository.findApprovedByStudent(student.id)
+
+    if (hasApproved != null && hasApproved !== undefined) {
+      throw new DegreeCertificateAlreadyExists(
+        `El estudiante con id ${student.id} ya cuenta con un certificado de grado aprobado`,
       )
     }
 
+    if (
+      student.gender == null ||
+      student.startStudiesDate == null ||
+      student.internshipHours == null ||
+      student.vinculationHours == null ||
+      student.approvedCredits == null
+    ) {
+      throw new DegreeCertificateBadRequestError(
+        'Falta información. Revise el genero, fecha de inicio de estudios, horas de pasantias y horas de vinculacion del estudiante',
+      )
+    }
+
+    if (
+      student.approvedCredits < student.career.credits ||
+      student.vinculationHours < student.career.vinculationHours ||
+      student.internshipHours < student.career.internshipHours
+    ) {
+      throw new DegreeCertificateBadRequestError(
+        `El estudiante no cumple con los requisitos para obtener el certificado de grado. Créditos aprobados: ${student.approvedCredits}, Horas de vinculación: ${student.vinculationHours}, Horas de pasantías: ${student.internshipHours}`,
+      )
+    }
+
+    if (
+      // eslint-disable-next-line no-extra-parens
+      (dto.presentationDate && dto.presentationDate !== null) ||
+      // eslint-disable-next-line no-extra-parens
+      (dto.duration && dto.duration !== null)
+    ) {
+      const certificatesInRange =
+        await this.degreeCertificateRepository.countCertificatesInDateRangeByRoom(
+          dto.presentationDate,
+          addMinutesToDate(dto.presentationDate, dto.duration),
+          dto.roomId,
+        )
+
+      if (certificatesInRange > 0) {
+        throw new DegreeCertificateBadRequestError(
+          'Ya existe una acta de grado en la aula seleccionada en el rango de fechas proporcionado',
+        )
+      }
+    }
     const certificateStatusType =
       await this.certificateStatusService.findCertificateStatusType(
         dto.certificateTypeId,
@@ -178,7 +178,7 @@ export class DegreeCertificatesService {
       certificateType: { id: dto.certificateTypeId },
       certificateStatus: { id: dto.certificateStatusId },
       degreeModality: { id: dto.degreeModalityId },
-      room: { id: dto.roomId },
+      room: { id: dto.roomId ? dto.roomId : null },
       submoduleYearModule: {
         id: submoduleYearModuleId.id,
       },
@@ -198,20 +198,8 @@ export class DegreeCertificatesService {
     )
 
     const relationshipCertificate =
-      await this.degreeCertificateRepository.findOne({
+      await this.degreeCertificateRepository.findOneFor({
         where: { id: newCertificate.id },
-        relationLoadStrategy: 'join',
-        relations: {
-          student: {
-            canton: true,
-          },
-          career: true,
-          certificateType: true,
-          certificateStatus: true,
-          degreeModality: true,
-          room: true,
-          submoduleYearModule: true,
-        },
       })
 
     const { data: createdDegreeCertificate } =
@@ -322,23 +310,11 @@ export class DegreeCertificatesService {
   }
 
   async generateDocument(id: number) {
-    const degreeCertificate = await this.degreeCertificateRepository.findOne({
-      where: { id },
-      relationLoadStrategy: 'join',
-      relations: {
-        student: {
-          canton: true,
-        },
-        career: {
-          coordinator: true,
-        },
-        certificateType: true,
-        certificateStatus: true,
-        degreeModality: true,
-        room: true,
-        submoduleYearModule: true,
+    const degreeCertificate = await this.degreeCertificateRepository.findOneFor(
+      {
+        where: { id },
       },
-    })
+    )
 
     if (!degreeCertificate) {
       throw new DegreeCertificateNotFoundError(
@@ -368,8 +344,6 @@ export class DegreeCertificatesService {
         `No se encontró el estado de certificado ${degreeCertificate.certificateStatus.code} para el tipo de certificado ${degreeCertificate.certificateType.name}`,
       )
     }
-
-    // TODO: Ask about the limit of intership and vinculation hours to validate, at the moment it will only verify that they are not null
 
     if (
       degreeCertificate.student.gender == null ||
@@ -444,18 +418,11 @@ export class DegreeCertificatesService {
   }
 
   async update(id: number, dto: UpdateDegreeCertificateDto) {
-    const degreeCertificate = await this.degreeCertificateRepository.findOne({
-      where: { id },
-      relationLoadStrategy: 'join',
-      relations: {
-        student: true,
-        certificateType: true,
-        certificateStatus: true,
-        degreeModality: true,
-        room: true,
-        submoduleYearModule: true,
+    const degreeCertificate = await this.degreeCertificateRepository.findOneFor(
+      {
+        where: { id },
       },
-    })
+    )
 
     if (!degreeCertificate) {
       throw new DegreeCertificateNotFoundError(
