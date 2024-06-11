@@ -12,7 +12,7 @@ export class NotificationEntity extends BaseAppEntity {
   @Column({ name: 'type', type: 'varchar', nullable: false })
   type: string
 
-  @Column({ name: 'messages', type: 'simple-array', nullable: false })
+  @Column({ name: 'messages', type: 'simple-array', nullable: true })
   messages: string[]
 
   @Column({

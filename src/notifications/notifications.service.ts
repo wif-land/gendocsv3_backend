@@ -16,25 +16,33 @@ export class NotificationsService {
   async create(
     notification: CreateNotificationDto,
   ): Promise<NotificationEntity> {
-    const notificationModel = await this.notificationRepository.create({
-      ...notification,
-      createdBy: { id: notification.createdBy },
-    })
-    return await this.notificationRepository.save(notificationModel)
+    try {
+      console.log('notificationModel', notification)
+      const notificationModel = await this.notificationRepository.create({
+        ...notification,
+        createdBy: { id: notification.createdBy },
+      })
+
+      return await this.notificationRepository.save(notificationModel)
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   async findAll(): Promise<NotificationEntity[]> {
     return await this.notificationRepository.find()
   }
 
-  async countNotificationsCompletedByParent(parentId: number): Promise<number> {
+  async notificationsCompletedByParent(
+    parentId: number,
+  ): Promise<NotificationEntity[]> {
     return await this.notificationRepository
       .createQueryBuilder('notifications')
       .where('notifications.parentId = :parentId', { parentId })
       .andWhere('notifications.status = :status', {
         status: NotificationStatus.COMPLETED,
       })
-      .getCount()
+      .getMany()
   }
 
   async findOne(id: number): Promise<NotificationEntity> {

@@ -27,7 +27,12 @@ export class NotificationsGateway {
   server: Server
 
   @UseFilters(WsAndHttpExceptionFilter)
-  handleSendNotification(@MessageBody() data: NotificationEntity): void {
+  handleSendNotification(
+    @MessageBody()
+    data:
+      | NotificationEntity
+      | { notification: NotificationEntity; chids: NotificationEntity[] },
+  ): void {
     this.server.emit('notification', data)
   }
 }

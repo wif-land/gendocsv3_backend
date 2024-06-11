@@ -23,6 +23,7 @@ import { CertificateStatusService } from './services/certificate-status.service'
 import { DegreeCertificateRepository } from './repositories/degree-certificate-repository'
 import { addMinutesToDate } from '../shared/utils/date'
 import { RoomsService } from './services/rooms.service'
+import { ErrorsBulkCertificate } from './errors/errors-bulk-certificate'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -100,13 +101,23 @@ export class DegreeCertificatesService {
     })
   }
 
-  async checkStudent(student: StudentEntity): Promise<void> {
+  async checkStudent(
+    student: StudentEntity,
+    errors?: ErrorsBulkCertificate[],
+  ): Promise<void> {
     const hasApproved =
       await this.degreeCertificateRepository.findApprovedByStudent(student.id)
 
     console.log(hasApproved)
 
     if (hasApproved != null && hasApproved !== undefined) {
+      if (errors) {
+        errors.push({
+          detail: `El estudiante con id ${student.id} ya cuenta con un certificado de grado aprobado`,
+          instance: new Error().stack,
+        })
+        return
+      }
       throw new DegreeCertificateAlreadyExists(
         `El estudiante con id ${student.id} ya cuenta con un certificado de grado aprobado`,
       )

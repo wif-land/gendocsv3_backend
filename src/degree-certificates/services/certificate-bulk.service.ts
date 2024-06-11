@@ -115,36 +115,32 @@ export class CertificateBulkService {
     await this.certificateQueue.whenCurrentJobsFinished()
 
     const completedWithoutErrors =
-      await this.notificationsService.countNotificationsCompletedByParent(
+      await this.notificationsService.notificationsCompletedByParent(
         rootNotification.id,
       )
+    let savedRootNotification: NotificationEntity
 
-    if (completedWithoutErrors === createCertificatesDtos.length) {
+    if (completedWithoutErrors.length === createCertificatesDtos.length) {
       // eslint-disable-next-line require-atomic-updates
       rootNotification.status = NotificationStatus.COMPLETED
-      await rootNotification.save()
-
-      await this.notificationsGateway.handleSendNotification(rootNotification)
-
-      return
-    }
-
-    if (
-      completedWithoutErrors < createCertificatesDtos.length &&
-      completedWithoutErrors > 0
+      savedRootNotification = await rootNotification.save()
+    } else if (
+      completedWithoutErrors.length < createCertificatesDtos.length &&
+      completedWithoutErrors.length > 0
     ) {
       // eslint-disable-next-line require-atomic-updates
       rootNotification.status = NotificationStatus.WITH_ERRORS
-      await rootNotification.save()
-
-      await this.notificationsGateway.handleSendNotification(rootNotification)
-
-      return
+      savedRootNotification = await rootNotification.save()
+    } else {
+      // eslint-disable-next-line require-atomic-updates
+      rootNotification.status = NotificationStatus.FAILURE
+      savedRootNotification = await rootNotification.save()
     }
 
-    // eslint-disable-next-line require-atomic-updates
-    rootNotification.status = NotificationStatus.FAILURE
-    await rootNotification.save()
+    await this.notificationsGateway.handleSendNotification({
+      notification: savedRootNotification,
+      chids: completedWithoutErrors,
+    })
   }
 
   async createDegreeCertificate(
@@ -172,6 +168,11 @@ export class CertificateBulkService {
       data: JSON.stringify(createCertificateDto),
       parentId: notification.id,
     })
+
+    if (!childNotification) {
+      console.log('childNotification', childNotification)
+      throw Error('No se pudo crear la notificación')
+    }
 
     const errors: ErrorsBulkCertificate[] = []
     // validate certificate student
@@ -392,7 +393,10 @@ export class CertificateBulkService {
         )
       }
 
-      await this.degreeCertificateService.checkStudent(students.students[0])
+      await this.degreeCertificateService.checkStudent(
+        students.students[0],
+        errors,
+      )
 
       return students
     } catch (error) {
