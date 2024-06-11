@@ -30,6 +30,7 @@ import { FunctionariesModule } from '../functionaries/functionaries.module'
 import { DegreeCertificateRepository } from './repositories/degree-certificate-repository'
 import { BullModule } from '@nestjs/bull'
 import { CertificateProcessor } from './processors/certificate-processor'
+import { NotificationsModule } from '../notifications/notifications.module'
 
 @Module({
   controllers: [
@@ -74,6 +75,7 @@ import { CertificateProcessor } from './processors/certificate-processor'
     StudentsModule,
     VariablesModule,
     FunctionariesModule,
+    NotificationsModule,
   ],
 })
 export class DegreeCertificatesModule {}

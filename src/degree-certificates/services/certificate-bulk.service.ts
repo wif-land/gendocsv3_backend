@@ -14,7 +14,7 @@ import { CertificateStatusService } from './certificate-status.service'
 import { DegreeModalitiesService } from './degree-modalities.service'
 import { getSTATUS_CODE_BY_CERT_STATUS } from '../../shared/enums/genders'
 import { DegreeCertificateRepository } from '../repositories/degree-certificate-repository'
-import { DEGREE_MODALITY } from '../constants'
+import { CertificateBulkCreation, DEGREE_MODALITY } from '../constants'
 import { CertificateTypeEntity } from '../entities/certificate-type.entity'
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 import { InjectDataSource } from '@nestjs/typeorm'
@@ -29,14 +29,23 @@ import { GradesSheetService } from './grades-sheet.service'
 import { ErrorsBulkCertificate } from '../errors/errors-bulk-certificate'
 import { InjectQueue } from '@nestjs/bull'
 import { Queue } from 'bull'
+import { NotificationsService } from '../../notifications/notifications.service'
+import { NotificationsGateway } from '../../notifications/notifications.gateway'
+import { RolesType } from '../../auth/decorators/roles-decorator'
+import { NotificationStatus } from '../../shared/enums/notification-status'
+import { NotificationEntity } from '../../notifications/entities/notification.entity'
 
 @Injectable()
 export class CertificateBulkService {
   private readonly logger = new Logger(CertificateBulkService.name)
 
+  // Si se cambia el id del módulo de comunes que tiene a las actas de grado
+  // cambiar esta variable, se evita hacer la consulta a la bd por optimizar tiempos
+  private readonly degreeCertificatesModuleId = 1
+
   constructor(
     @InjectQueue('certificateQueue')
-    private certificateQueue: Queue<CreateDegreeCertificateBulkDto>,
+    private certificateQueue: Queue<CertificateBulkCreation>,
     private readonly degreeCertificateService: DegreeCertificatesService,
 
     private readonly studentsService: StudentsService,
@@ -53,6 +62,10 @@ export class CertificateBulkService {
 
     private readonly gradesSheetService: GradesSheetService,
 
+    private readonly notificationsService: NotificationsService,
+
+    private readonly notificationsGateway: NotificationsGateway,
+
     @Inject('DegreeCertificateRepository')
     private readonly degreeCertificateRepository: DegreeCertificateRepository,
 
@@ -62,21 +75,81 @@ export class CertificateBulkService {
 
   async createBulkCertificates(
     createCertificatesDtos: CreateDegreeCertificateBulkDto[],
+    userId: number,
+    isRetry?: boolean,
   ) {
     this.logger.log('Creando certificados de grado en lote...')
-    createCertificatesDtos.forEach(async (dto) => {
-      await this.certificateQueue.add('createCertificate', dto, {
-        attempts: 2,
-        backoff: {
-          type: 'exponential',
-          delay: 1000,
-        },
-      })
+    const rootNotification = await this.notificationsService.create({
+      isMain: true,
+      name: `Carga de actas de grado -l${createCertificatesDtos.length}`,
+      createdBy: userId,
+      isRetry,
+      scope: {
+        modules: [this.degreeCertificatesModuleId],
+        roles: [RolesType.ADMIN, RolesType.WRITER],
+      },
+      status: NotificationStatus.IN_PROGRESS,
+      type: 'createBulkCertificates',
     })
+
+    if (!rootNotification) {
+      throw Error('No se pudo crear la notificación')
+    }
+
+    this.notificationsGateway.handleSendNotification(rootNotification)
+
+    createCertificatesDtos.forEach(async (dto) => {
+      await this.certificateQueue.add(
+        'createCertificate',
+        { notification: rootNotification, dto },
+        {
+          attempts: 2,
+          backoff: {
+            type: 'exponential',
+            delay: 1000,
+          },
+        },
+      )
+    })
+
+    await this.certificateQueue.whenCurrentJobsFinished()
+
+    const completedWithoutErrors =
+      await this.notificationsService.countNotificationsCompletedByParent(
+        rootNotification.id,
+      )
+
+    if (completedWithoutErrors === createCertificatesDtos.length) {
+      // eslint-disable-next-line require-atomic-updates
+      rootNotification.status = NotificationStatus.COMPLETED
+      await rootNotification.save()
+
+      await this.notificationsGateway.handleSendNotification(rootNotification)
+
+      return
+    }
+
+    if (
+      completedWithoutErrors < createCertificatesDtos.length &&
+      completedWithoutErrors > 0
+    ) {
+      // eslint-disable-next-line require-atomic-updates
+      rootNotification.status = NotificationStatus.WITH_ERRORS
+      await rootNotification.save()
+
+      await this.notificationsGateway.handleSendNotification(rootNotification)
+
+      return
+    }
+
+    // eslint-disable-next-line require-atomic-updates
+    rootNotification.status = NotificationStatus.FAILURE
+    await rootNotification.save()
   }
 
   async createDegreeCertificate(
     createCertificateDto: CreateDegreeCertificateBulkDto,
+    notification: NotificationEntity,
   ): Promise<
     | {
         degreeCertificate: DegreeCertificateEntity
@@ -90,6 +163,15 @@ export class CertificateBulkService {
       }
   > {
     this.logger.log('Creando un certificado de grado...')
+
+    const childNotification = await this.notificationsService.create({
+      createdBy: notification.createdBy.id,
+      name: `Acta de grado -${createCertificateDto.studentDni}`,
+      type: 'createDegreeCertificate',
+      status: NotificationStatus.IN_PROGRESS,
+      data: JSON.stringify(createCertificateDto),
+      parentId: notification.id,
+    })
 
     const errors: ErrorsBulkCertificate[] = []
     // validate certificate student
@@ -124,6 +206,12 @@ export class CertificateBulkService {
 
     if (errors.length > 0) {
       this.logger.error(errors)
+      const messages = errors.map((e) => e.detail)
+
+      await this.notificationsService.updateFailureMsg(
+        childNotification.id,
+        messages,
+      )
       return { errors }
     }
     // start transaction
@@ -142,7 +230,13 @@ export class CertificateBulkService {
         )
 
       if (degreeCertificateErrors.length > 0) {
-        return
+        const messages = errors.map((e) => e.detail)
+
+        await this.notificationsService.updateFailureMsg(
+          childNotification.id,
+          messages,
+        )
+        return { errors }
       }
 
       // generate grades sheet
@@ -162,6 +256,20 @@ export class CertificateBulkService {
       await queryRunner.commitTransaction()
       this.logger.log({ degreeCertificate, attendance, errors })
 
+      if (errors.length > 0) {
+        const messages = errors.map((e) => e.detail)
+
+        await this.notificationsService.update(childNotification.id, {
+          messages,
+          status: NotificationStatus.WITH_ERRORS,
+        })
+        return { degreeCertificate, attendance, errors }
+      }
+
+      await this.notificationsService.update(childNotification.id, {
+        status: NotificationStatus.COMPLETED,
+      })
+
       return { degreeCertificate, attendance, errors }
 
       // TODO: Refactor this
@@ -176,6 +284,7 @@ export class CertificateBulkService {
       // TODO: Al notificar a los docentes de la asistencia a actas de grado, realizar el control de asistencia mencionado en el punto anterior
       // INFO: Existen 3 etapas de inicio, 1. Inicio de proyecto en producción(Corre migraciones y ejecuta endpoint para crear las carpetas en el drive de cada módulo y submódulo), 2. Reinicio Anual (Cambia el año del sistema en la tabla de la bd, y ejecuta endpoint para crear los modulos y submódulos por año y las carpetas en el drive de cada módulo y submódulo de ese año), 3. Creación de una carrera y por ende un módulo ( Ejecuta endpoint para crear los submódulos y años y módulos y las carpetas en el drive de cada módulo y submódulo de ese año para la carrera creada y copia las plantillas generales para tipos de acta de grado y consejos y plantillas en base al últimos módulo creado)
     } catch (error) {
+      await queryRunner.rollbackTransaction()
       if (error.code && error.code === HttpStatus.TOO_MANY_REQUESTS) {
         throw new Error('Temporary Google API error, retrying...')
       }
@@ -187,7 +296,12 @@ export class CertificateBulkService {
         ),
       )
 
-      await queryRunner.rollbackTransaction()
+      const messages = errors.map((e) => e.detail)
+      await this.notificationsService.updateFailureMsg(
+        notification.id,
+        messages,
+      )
+
       return { errors }
     }
   }

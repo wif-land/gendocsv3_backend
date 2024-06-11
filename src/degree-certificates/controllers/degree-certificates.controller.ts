@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -74,13 +75,17 @@ export class DegreeCertificatesController {
     return await this.degreeCertificatesService.generateDocument(id)
   }
 
-  @Patch('bulk/load')
+  @Patch('bulk/load/:userId')
   async loadBulk(
     @Body() createCertificatesDtos: CreateDegreeCertificateBulkDto[],
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('is-retry', ParseBoolPipe) isRetry: boolean,
   ) {
     const certificates =
       await this.certificateBulkService.createBulkCertificates(
         createCertificatesDtos,
+        userId,
+        isRetry,
       )
 
     return new ApiResponseDto('Certificados cargados', certificates)

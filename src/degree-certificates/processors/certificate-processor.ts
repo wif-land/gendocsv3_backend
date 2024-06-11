@@ -7,9 +7,9 @@ import {
   Processor,
 } from '@nestjs/bull'
 import { Job } from 'bull'
-import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
 import { CertificateBulkService } from '../services/certificate-bulk.service'
 import { Logger } from '@nestjs/common/services/logger.service'
+import { CertificateBulkCreation } from '../constants'
 
 @Processor('certificateQueue')
 export class CertificateProcessor {
@@ -18,13 +18,14 @@ export class CertificateProcessor {
   constructor(private certificateService: CertificateBulkService) {}
 
   @Process('createCertificate')
-  async handleCertificateCreation(job: Job<CreateDegreeCertificateBulkDto>) {
+  async handleCertificateCreation(job: Job<CertificateBulkCreation>) {
     this.logger.log(
-      `Procesando el trabajo ${job.id} para el tema ${job.data.topic}`,
+      `Procesando el trabajo ${job.id} para el tema ${job.data.dto.topic}`,
     )
     try {
       const result = await this.certificateService.createDegreeCertificate(
-        job.data,
+        job.data.dto,
+        job.data.notification,
       )
       this.logger.log(`Trabajo ${job.id} completado exitosamente`)
 

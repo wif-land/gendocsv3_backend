@@ -42,6 +42,7 @@ import { DocxModule } from './files/modules/docx.module'
 import { EmailService } from './email/email.service'
 import { EmailModule } from './email/email.module'
 import { BullModule } from '@nestjs/bull'
+import { NotificationsModule } from './notifications/notifications.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -114,6 +115,7 @@ export default connectionSource
     CouncilsAttendanceModule,
     DegreeCertificateAttendanceModule,
     EmailModule,
+    NotificationsModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService, EmailService],
