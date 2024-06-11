@@ -8,13 +8,13 @@ export class EmailService {
   constructor(private readonly sendGridClient: SendGridClient) {}
 
   async sendTestEmail(
-    recipient: string,
+    recipients: string[],
     body = 'This is a test mail',
   ): Promise<void> {
     const mail: MailDataRequired = {
-      to: recipient,
-      from: 'noreply@domain.com', // Approved sender ID in Sendgrid
-      subject: 'Test email',
+      to: recipients,
+      from: 'ddlm.montenegro@uta.edu.ec', // Approved sender ID in Sendgrid
+      subject: 'Test email foerm subject',
       content: [{ type: 'text/plain', value: body }],
     }
 
@@ -29,6 +29,7 @@ export class EmailService {
       templateId: 'Sendgrid_template_ID', // Retrieve from config service or environment variable
       dynamicTemplateData: { body, subject: 'Send Email with template' }, // The data to be used in the template
     }
+
     await this.sendGridClient.send(mail)
   }
 }

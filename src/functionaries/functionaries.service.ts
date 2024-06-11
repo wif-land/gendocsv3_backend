@@ -85,19 +85,19 @@ export class FunctionariesService {
 
   async findByFilters(filters: FunctionaryFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 10, offset = 0 } = filters
+    const { limit = 10, offset = 0, field = '', state = 'true' } = filters
 
     const qb = this.functionaryRepository.createQueryBuilder('functionaries')
 
     qb.where(
       '( (:state :: BOOLEAN) IS NULL OR functionaries.isActive = (:state :: BOOLEAN) )',
       {
-        state: filters.state,
+        state,
       },
     ).andWhere(
       "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', functionaries.firstName, functionaries.secondName, functionaries.firstLastName, functionaries.secondLastName) ILIKE :term OR functionaries.dni ILIKE :term )",
       {
-        term: filters.field && `%${filters.field.trim()}%`,
+        term: field ? `%${field.trim()}%` : null,
       },
     )
 

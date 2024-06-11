@@ -21,7 +21,9 @@ export class CouncilEntity extends BaseAppEntity implements ICouncil {
     description: 'Fecha del consejo',
     example: '"2024-01-09T16:16:33.591Z"',
   })
-  @Column()
+  @Column({
+    type: 'timestamptz',
+  })
   date: Date
 
   @ApiProperty({

@@ -19,6 +19,7 @@ import { CouncilFiltersDto } from './dto/council-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { Auth } from '../auth/decorators/auth-decorator'
 import { RolesType } from '../auth/decorators/roles-decorator'
+import { NotifyMembersDTO } from './dto/notify-members.dto'
 
 @ApiTags('Councils')
 @Controller('councils')
@@ -56,7 +57,7 @@ export class CouncilsController {
   }
 
   @Auth(RolesType.ADMIN, RolesType.WRITER, RolesType.API, RolesType.READER)
-  @Get('filter')
+  @Get('filter/f')
   async findByFilters(@Query() filters: CouncilFiltersDto) {
     return this.councilsService.findByFilters(filters)
   }
@@ -77,7 +78,7 @@ export class CouncilsController {
   @Post(':id/notify-members')
   async notifyMembers(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: number[],
+    @Body() body: NotifyMembersDTO[],
   ) {
     return new ApiResponseDto(
       'Notificación enviada exitosamente',

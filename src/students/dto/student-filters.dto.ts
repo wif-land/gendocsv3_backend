@@ -1,9 +1,4 @@
-import {
-  IsOptional,
-  IsBooleanString,
-  IsString,
-  MinLength,
-} from 'class-validator'
+import { IsOptional, IsBooleanString, IsString } from 'class-validator'
 import { PaginationDto } from '../../shared/dtos/pagination.dto'
 
 export class StudentFiltersDto extends PaginationDto {
@@ -13,6 +8,5 @@ export class StudentFiltersDto extends PaginationDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(1)
   field?: string
 }

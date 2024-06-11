@@ -13,8 +13,8 @@ export class DefaultMembersContext {
     private readonly moduleId: number,
   ) {}
 
-  execute() {
-    return this.strategy.execute()
+  execute(members?: CouncilAttendanceEntity[]) {
+    return this.strategy.execute(members)
   }
 
   setStrategy(strategy: DefaultMemberStrategy) {
