@@ -81,7 +81,9 @@ export class CertificateBulkService {
     this.logger.log('Creando certificados de grado en lote...')
     const rootNotification = await this.notificationsService.create({
       isMain: true,
-      name: `Carga de actas de grado -l${createCertificatesDtos.length}`,
+      name: `${isRetry ? 'Reitento-' : ''}Carga de actas de grado -l${
+        createCertificatesDtos.length
+      }`,
       createdBy: userId,
       isRetry,
       scope: {
@@ -170,14 +172,52 @@ export class CertificateBulkService {
   > {
     this.logger.log('Creando un certificado de grado...')
 
-    const childNotification = await this.notificationsService.create({
-      createdBy: notification.createdBy.id,
-      name: `Acta de grado -${createCertificateDto.studentDni}`,
-      type: 'createDegreeCertificate',
-      status: NotificationStatus.IN_PROGRESS,
-      data: JSON.stringify(createCertificateDto),
-      parentId: notification.id,
-    })
+    let prev: NotificationEntity
+    let childNotification: NotificationEntity
+
+    if (notification.isRetry) {
+      prev = await NotificationEntity.findOne({
+        where: {
+          name: `Acta de grado -${createCertificateDto.studentDni}`,
+          type: 'createDegreeCertificate',
+          isRetry: false,
+        },
+        order: { createdAt: 'DESC' },
+      })
+
+      if (prev) {
+        childNotification = await this.notificationsService.create({
+          createdBy: notification.createdBy.id,
+          name: `${
+            prev.status === NotificationStatus.COMPLETED
+              ? 'Completa_Anterior-'
+              : prev.status === NotificationStatus.WITH_ERRORS
+              ? 'Actualizando-'
+              : 'Reintentando-'
+          }Acta de grado -${createCertificateDto.studentDni}`,
+          type: 'createDegreeCertificate',
+          status:
+            prev.status === NotificationStatus.COMPLETED
+              ? NotificationStatus.COMPLETED
+              : NotificationStatus.IN_PROGRESS,
+          data: JSON.stringify(createCertificateDto),
+          parentId: prev.id,
+        })
+
+        if (childNotification.status === NotificationStatus.COMPLETED) {
+          return { errors: [] }
+        }
+      }
+    } else {
+      childNotification = await this.notificationsService.create({
+        createdBy: notification.createdBy.id,
+        name: `Acta de grado -${createCertificateDto.studentDni}`,
+        type: 'createDegreeCertificate',
+        status: NotificationStatus.IN_PROGRESS,
+        data: JSON.stringify(createCertificateDto),
+        parentId: notification.id,
+      })
+    }
 
     if (!childNotification) {
       throw Error('No se pudo crear la notificación')
