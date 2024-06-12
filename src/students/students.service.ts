@@ -165,9 +165,15 @@ export class StudentsService {
   }
 
   async findOne(id: number) {
-    const student = await this.studentRepository.findOneBy({ id })
+    const student = await this.studentRepository
+      .createQueryBuilder('student')
+      .leftJoinAndSelect('student.career', 'career')
+      .leftJoinAndSelect('student.canton', 'canton')
+      .leftJoinAndSelect('canton.province', 'province')
+      .where('student.id = :id', { id })
+      .getOne()
 
-    if (!student) {
+    if (!student || student == null) {
       throw new StudentNotFoundError(`Estudiante con id ${id} no encontrado`)
     }
 
