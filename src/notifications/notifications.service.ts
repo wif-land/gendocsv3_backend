@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { NotificationEntity } from './entities/notification.entity'
@@ -17,7 +17,6 @@ export class NotificationsService {
     notification: CreateNotificationDto,
   ): Promise<NotificationEntity> {
     try {
-      console.log('notificationModel', notification)
       const notificationModel = await this.notificationRepository.create({
         ...notification,
         createdBy: { id: notification.createdBy },
@@ -25,7 +24,7 @@ export class NotificationsService {
 
       return await this.notificationRepository.save(notificationModel)
     } catch (error) {
-      console.error(error)
+      Logger.error(error)
     }
   }
 
@@ -33,15 +32,10 @@ export class NotificationsService {
     return await this.notificationRepository.find()
   }
 
-  async notificationsCompletedByParent(
-    parentId: number,
-  ): Promise<NotificationEntity[]> {
+  async notificationsByParent(parentId: number): Promise<NotificationEntity[]> {
     return await this.notificationRepository
       .createQueryBuilder('notifications')
       .where('notifications.parentId = :parentId', { parentId })
-      .andWhere('notifications.status = :status', {
-        status: NotificationStatus.COMPLETED,
-      })
       .getMany()
   }
 

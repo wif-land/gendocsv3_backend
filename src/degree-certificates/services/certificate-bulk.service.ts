@@ -98,8 +98,8 @@ export class CertificateBulkService {
 
     this.notificationsGateway.handleSendNotification(rootNotification)
 
-    createCertificatesDtos.forEach(async (dto) => {
-      await this.certificateQueue.add(
+    const promises = createCertificatesDtos.map(async (dto) => {
+      const job = await this.certificateQueue.add(
         'createCertificate',
         { notification: rootNotification, dto },
         {
@@ -110,14 +110,24 @@ export class CertificateBulkService {
           },
         },
       )
+
+      return job.finished()
     })
+
+    await Promise.all(promises)
 
     await this.certificateQueue.whenCurrentJobsFinished()
 
-    const completedWithoutErrors =
-      await this.notificationsService.notificationsCompletedByParent(
-        rootNotification.id,
-      )
+    this.logger.debug(await this.certificateQueue.getJobCounts())
+
+    const notifications = await this.notificationsService.notificationsByParent(
+      rootNotification.id,
+    )
+
+    const completedWithoutErrors = notifications.filter(
+      (notification) => notification.status === NotificationStatus.COMPLETED,
+    )
+
     let savedRootNotification: NotificationEntity
 
     if (completedWithoutErrors.length === createCertificatesDtos.length) {
@@ -139,7 +149,7 @@ export class CertificateBulkService {
 
     await this.notificationsGateway.handleSendNotification({
       notification: savedRootNotification,
-      chids: completedWithoutErrors,
+      chids: notifications,
     })
   }
 
@@ -170,7 +180,6 @@ export class CertificateBulkService {
     })
 
     if (!childNotification) {
-      console.log('childNotification', childNotification)
       throw Error('No se pudo crear la notificación')
     }
 
@@ -289,6 +298,9 @@ export class CertificateBulkService {
       if (error.code && error.code === HttpStatus.TOO_MANY_REQUESTS) {
         throw new Error('Temporary Google API error, retrying...')
       }
+      this.logger.log(
+        'Error al crear el certificado de grado asdjflajsdlkfja l;djslk',
+      )
       this.logger.error(error)
       errors.push(
         new ErrorsBulkCertificate(
@@ -393,13 +405,11 @@ export class CertificateBulkService {
         )
       }
 
-      await this.degreeCertificateService.checkStudent(
-        students.students[0],
-        errors,
-      )
+      await this.degreeCertificateService.checkStudent(students.students[0])
 
       return students
     } catch (error) {
+      this.logger.debug(`skdfjasdlf ${error.message}`)
       const msg =
         error.message.message ||
         error.message.detail ||
@@ -408,6 +418,7 @@ export class CertificateBulkService {
         `No se pudo obtener el estudiante con cédula ${studentDni}`
 
       errors.push(new ErrorsBulkCertificate(msg, error.stack))
+      this.logger.debug(`mesnasf ${msg}`)
     }
   }
 

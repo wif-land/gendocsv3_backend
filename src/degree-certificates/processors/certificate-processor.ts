@@ -10,6 +10,7 @@ import { Job } from 'bull'
 import { CertificateBulkService } from '../services/certificate-bulk.service'
 import { Logger } from '@nestjs/common/services/logger.service'
 import { CertificateBulkCreation } from '../constants'
+import { HttpException } from '@nestjs/common'
 
 @Processor('certificateQueue')
 export class CertificateProcessor {
@@ -31,19 +32,30 @@ export class CertificateProcessor {
 
       return result
     } catch (error) {
-      this.logger.error(
-        `Error al procesar el trabajo ${job.id}: ${error.message}`,
-        error.stack,
-      )
-      if (error.isRecoverable) {
-        throw new Error('Temporary Google API error, retrying...') // Bull reintentará
-      } else {
-        // Loguea el error y lo envía al cliente sin reintentar
+      console.info('Error HTTP:', error.message)
+      if (error instanceof HttpException) {
+        // es normal que ocurran errores HTTP el servicio se encarga de manejarlos, por lo que no es necesario capturarlos
+
         this.logger.error(
-          `Error irrecuperable en el trabajo ${job.id}: ${error.message}`,
+          `Error al procesar el trabajo ${job.id}: ${error.message}`,
         )
-        // Aquí podrías emitir un evento o guardar el error en una base de datos para que el cliente pueda recuperarlo
+      } else {
+        this.logger.error(
+          `Error al procesar el trabajo ${job.id}: ${error.message}`,
+          error.stack,
+        )
+        if (error.isRecoverable) {
+          throw new Error('Temporary Google API error, retrying...') // Bull reintentará
+        } else {
+          // Loguea el error y lo envía al cliente sin reintentar
+          this.logger.error(
+            `Error irrecuperable en el trabajo ${job.id}: ${error.message}`,
+          )
+          // Aquí podrías emitir un evento o guardar el error en una base de datos para que el cliente pueda recuperarlo
+        }
       }
+
+      return
     }
   }
 
