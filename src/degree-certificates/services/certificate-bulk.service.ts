@@ -38,6 +38,7 @@ import { NotificationsGateway } from '../../notifications/notifications.gateway'
 import { RolesType } from '../../auth/decorators/roles-decorator'
 import { NotificationStatus } from '../../shared/enums/notification-status'
 import { NotificationEntity } from '../../notifications/entities/notification.entity'
+import { CertificateNumerationService } from './certificate-numeration.service'
 
 @Injectable()
 export class CertificateBulkService {
@@ -51,23 +52,15 @@ export class CertificateBulkService {
     @InjectQueue(CERTIFICATE_QUEUE_NAME)
     private certificateQueue: Queue<CertificateBulkCreation>,
     private readonly degreeCertificateService: DegreeCertificatesService,
-
     private readonly studentsService: StudentsService,
-
     private readonly certiticateTypeService: CertificateTypeService,
-
     private readonly functionariesService: FunctionariesService,
-
     private readonly certificateStatusService: CertificateStatusService,
-
     private readonly degreeModalitiesService: DegreeModalitiesService,
-
     private readonly degreeCertificateAttendanceService: DegreeCertificateAttendanceService,
-
     private readonly gradesSheetService: GradesSheetService,
-
     private readonly notificationsService: NotificationsService,
-
+    private readonly certificateNumerationService: CertificateNumerationService,
     private readonly notificationsGateway: NotificationsGateway,
 
     @Inject('DegreeCertificateRepository')
@@ -585,7 +578,7 @@ export class CertificateBulkService {
       auxNumber:
         degreeCertificate !== null && degreeCertificate !== undefined
           ? degreeCertificate.auxNumber
-          : await this.degreeCertificateService.getLastNumberToRegister(
+          : await this.certificateNumerationService.getLastNumberToRegister(
               careerId,
             ),
       topic: createCertificateDto.topic,

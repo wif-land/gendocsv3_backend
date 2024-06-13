@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { IsNull, Not, Repository } from 'typeorm'
+import { IsNull, Repository } from 'typeorm'
 import { CreateDegreeCertificateDto } from './dto/create-degree-certificate.dto'
 import { UpdateDegreeCertificateDto } from './dto/update-degree-certificate.dto'
 import { CertificateTypeEntity } from './entities/certificate-type.entity'
@@ -24,6 +24,7 @@ import { DegreeCertificateRepository } from './repositories/degree-certificate-r
 import { addMinutesToDate } from '../shared/utils/date'
 import { DEGREE_CERTIFICATE } from './constants'
 import { DegreeCertificateError } from './errors/degree-certificate-error'
+import { CertificateNumerationService } from './services/certificate-numeration.service'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -35,6 +36,7 @@ export class DegreeCertificatesService {
     private readonly degreeCertificateAttendanceService: DegreeCertificateAttendanceService,
     private readonly gradesSheetService: GradesSheetService,
     private readonly certificateStatusService: CertificateStatusService,
+    private readonly certificateNumerationService: CertificateNumerationService,
 
     @Inject(DEGREE_CERTIFICATE.REPOSITORY)
     private readonly degreeCertificateRepository: DegreeCertificateRepository,
@@ -167,7 +169,10 @@ export class DegreeCertificatesService {
     const degreeCertificate = await this.degreeCertificateRepository.create({
       ...dto,
       user: { id: dto.userId },
-      auxNumber: await this.getLastNumberToRegister(student.career.id),
+      auxNumber:
+        await this.certificateNumerationService.getLastNumberToRegister(
+          student.career.id,
+        ),
       student: { id: dto.studentId },
       certificateType: { id: dto.certificateTypeId },
       certificateStatus: { id: dto.certificateStatusId },
@@ -231,61 +236,6 @@ export class DegreeCertificatesService {
     return degreeCertificates
   }
 
-  async getLastNumberToRegister(carrerId: number): Promise<number> {
-    const systemYear = await this.yearModuleService.getCurrentSystemYear()
-
-    const submoduleYearModule =
-      await this.yearModuleService.findSubmoduleYearModuleByModule(
-        DEGREE_MODULES.MODULE_CODE,
-        systemYear,
-        DEGREE_MODULES.SUBMODULE_NAME,
-      )
-
-    const enqueuedNumbers = await this.getNumerationEnqueued(carrerId)
-
-    if (enqueuedNumbers.length > 0) {
-      return enqueuedNumbers[0]
-    }
-
-    const lastDegreeCertificate =
-      await this.degreeCertificateRepository.findOneFor({
-        where: {
-          submoduleYearModule: { id: submoduleYearModule.id },
-          career: { id: carrerId },
-        },
-        order: { auxNumber: 'DESC' },
-      })
-
-    const number = lastDegreeCertificate
-      ? lastDegreeCertificate.auxNumber + 1
-      : 1
-
-    return number
-  }
-
-  async getLastNumberGenerated(
-    careerId: number,
-    submoduleYearModuleId: number,
-  ) {
-    const degreeCertificate = await this.degreeCertificateRepository.findOneFor(
-      {
-        where: {
-          career: { id: careerId },
-          submoduleYearModule: { id: submoduleYearModuleId },
-          number: Not(IsNull()),
-          deletedAt: null,
-        },
-        order: { number: 'DESC' },
-      },
-    )
-
-    if (!degreeCertificate) {
-      return 0
-    }
-
-    return degreeCertificate.number
-  }
-
   async getCurrentDegreeSubmoduleYearModule() {
     const systemYear = await this.yearModuleService.getCurrentSystemYear()
 
@@ -294,67 +244,6 @@ export class DegreeCertificatesService {
       systemYear,
       DEGREE_MODULES.SUBMODULE_NAME,
     )
-  }
-
-  async getNumerationEnqueued(careerId: number): Promise<number[]> {
-    const submoduleYearModule = await this.getCurrentDegreeSubmoduleYearModule()
-
-    const removedDegreeCertificates =
-      await this.degreeCertificateRepository.findManyFor({
-        where: {
-          career: { id: careerId },
-          submoduleYearModule: { id: submoduleYearModule.id },
-          number: Not(IsNull()),
-          deletedAt: Not(IsNull()),
-        },
-        order: { number: 'ASC' },
-      })
-
-    const numbers: number[] = []
-
-    if (removedDegreeCertificates) {
-      removedDegreeCertificates.forEach((degreeCertificate) => {
-        numbers.push(degreeCertificate.number)
-      })
-    }
-
-    return numbers
-  }
-
-  async generateNumeration(careerId: number) {
-    const submoduleYearModule = await this.getCurrentDegreeSubmoduleYearModule()
-
-    const degreeCertificates = await this.getCertificatesToGenerate(
-      careerId,
-      submoduleYearModule.id,
-    )
-
-    if (!degreeCertificates) {
-      throw new DegreeCertificateNotFoundError(
-        'No se encontraron certificados para generar la numeración',
-      )
-    }
-
-    const lastNumber = await this.getLastNumberGenerated(
-      careerId,
-      submoduleYearModule.id,
-    )
-
-    let number = lastNumber
-
-    for (const degreeCertificate of degreeCertificates) {
-      number += 1
-
-      await this.degreeCertificateRepository.save({
-        ...degreeCertificate,
-        number,
-      })
-    }
-
-    return new ApiResponseDto('Numeración generada correctamente', {
-      firstGenerated: lastNumber + 1,
-      lastGenerated: number,
-    })
   }
 
   async generateDocument(id: number) {
