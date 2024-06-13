@@ -28,8 +28,38 @@ export class NotificationsService {
     }
   }
 
-  async findAll(): Promise<NotificationEntity[]> {
-    return await this.notificationRepository.find()
+  async findAll(
+    filters?: Partial<NotificationEntity>,
+    limit?: number,
+  ): Promise<
+    { notification: NotificationEntity; childs: NotificationEntity[] }[]
+  > {
+    const query = this.notificationRepository
+      .createQueryBuilder('notifications')
+      .leftJoinAndSelect('notifications.createdBy', 'createdBy')
+
+    // Apply filters
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        query.andWhere(`notifications.${key} = :${key}`, { [key]: value })
+      })
+    }
+
+    // Apply limit
+
+    query.orderBy('notifications.createdAt', 'DESC').take(limit)
+
+    const notifications = await query.getMany()
+
+    const responses = notifications.map((notification) => {
+      const childs = notifications.filter((n) => n.parentId === notification.id)
+      return {
+        notification,
+        childs,
+      }
+    })
+
+    return responses
   }
 
   async notificationsByParent(parentId: number): Promise<NotificationEntity[]> {
@@ -49,10 +79,15 @@ export class NotificationsService {
     })
   }
 
-  async updateFailureMsg(id: number, errors: string[]) {
+  async updateFailureMsg(
+    id: number,
+    errors: string[],
+    data?: string,
+  ): Promise<void> {
     await this.update(id, {
       messages: errors,
       status: NotificationStatus.FAILURE,
+      data,
     })
   }
 

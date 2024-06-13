@@ -102,12 +102,6 @@ export class DegreeCertificateAttendanceService {
         where: { degreeCertificate: { id: degreeCertificateId } },
       })
 
-    if (!degreeCertificateAttendance) {
-      throw new DegreeCertificateBadRequestError(
-        `No se encontró la asistencia al acta de grado con id ${degreeCertificateId}`,
-      )
-    }
-
     return new ApiResponseDto(
       'Asistencia al acta de grado encontrada con éxito',
       degreeCertificateAttendance,

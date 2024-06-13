@@ -34,8 +34,8 @@ export class NotificationEntity extends BaseAppEntity {
   @Column({ name: 'is_main', type: 'bool', default: false })
   isMain: boolean
 
-  @Column({ name: 'is_retry', type: 'boolean', nullable: true, default: false })
-  isRetry?: boolean
+  @Column({ name: 'retry_id', type: 'int', nullable: true, default: null })
+  retryId?: number
 
   @Column({ name: 'parent_id', type: 'bigint', nullable: true })
   parentId?: number

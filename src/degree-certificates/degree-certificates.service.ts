@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { IsNull, Not, Repository } from 'typeorm'
 import { CreateDegreeCertificateDto } from './dto/create-degree-certificate.dto'
@@ -68,6 +68,7 @@ export class DegreeCertificatesService {
 
     return number
   }
+
   async findAll(
     paginationDto: PaginationDto,
     carrerId: number,
@@ -105,10 +106,6 @@ export class DegreeCertificatesService {
       await this.degreeCertificateRepository.findApprovedByStudent(student.id)
 
     if (hasApproved != null && hasApproved !== undefined) {
-      console.info(
-        'hasApproved',
-        new DegreeCertificateAlreadyExists('hsdoj') instanceof HttpException,
-      )
       throw new DegreeCertificateAlreadyExists(
         `El estudiante con id ${student.id} ya cuenta con un certificado de grado aprobado`,
       )
@@ -390,6 +387,12 @@ export class DegreeCertificatesService {
         degreeCertificate.id,
       )
 
+    if (!attendance || attendance.length === 0) {
+      throw new DegreeCertificateBadRequestError(
+        'No se encontró la asistencia al acta de grado',
+      )
+    }
+
     const { data: driveId } =
       await this.filesService.createDocumentByParentIdAndCopy(
         `${degreeCertificate.number} - ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code} - ${degreeCertificate.certificateStatus.code}`,
@@ -473,7 +476,10 @@ export class DegreeCertificatesService {
       degreeCertificatePreloaded,
     )
 
-    if (dto.certificateTypeId) {
+    if (
+      dto.certificateTypeId &&
+      degreeCertificate.certificateType.id !== dto.certificateTypeId
+    ) {
       const certificateType = await this.certificateTypeRepository.findOneBy({
         id: dto.certificateTypeId,
       })
@@ -508,6 +514,48 @@ export class DegreeCertificatesService {
     return new ApiResponseDto(
       'Certificado actualizado correctamente',
       certificateUpdated,
+    )
+  }
+
+  async remove(id: number) {
+    const degreeCertificate = await this.degreeCertificateRepository.findOneFor(
+      {
+        where: { id },
+      },
+    )
+
+    if (!degreeCertificate) {
+      throw new DegreeCertificateNotFoundError(
+        `El certificado con id ${id} no existe`,
+      )
+    }
+
+    const degreeCertificateUpdated =
+      await this.degreeCertificateRepository.save({
+        ...degreeCertificate,
+        number: null,
+        gradesSheetDriveId: null,
+        deletedAt: new Date(),
+      })
+
+    const { data: attendance } =
+      await this.degreeCertificateAttendanceService.findByDegreeCertificate(
+        degreeCertificate.id,
+      )
+
+    if (attendance) {
+      await this.degreeCertificateAttendanceService.removeAllAttendanceByDegreeCertificateId(
+        degreeCertificate.id,
+      )
+    }
+
+    if (degreeCertificate.certificateDriveId) {
+      await this.filesService.remove(degreeCertificate.certificateDriveId)
+    }
+
+    return new ApiResponseDto(
+      'Certificado eliminado correctamente',
+      degreeCertificateUpdated,
     )
   }
 }

@@ -13,4 +13,5 @@ export enum DEGREE_MODALITY {
 export interface CertificateBulkCreation {
   notification: NotificationEntity
   dto: CreateDegreeCertificateBulkDto
+  retries?: NotificationEntity[]
 }

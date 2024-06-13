@@ -61,7 +61,7 @@ export class CreateNotificationDto {
 
   parentId?: number
 
-  isRetry?: boolean
+  retryId?: number
 
   createdBy: number
 }

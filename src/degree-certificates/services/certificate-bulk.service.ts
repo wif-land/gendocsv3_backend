@@ -76,16 +76,16 @@ export class CertificateBulkService {
   async createBulkCertificates(
     createCertificatesDtos: CreateDegreeCertificateBulkDto[],
     userId: number,
-    isRetry?: boolean,
+    retryId?: number,
   ) {
     this.logger.log('Creando certificados de grado en lote...')
     const rootNotification = await this.notificationsService.create({
       isMain: true,
-      name: `${isRetry ? 'Reitento-' : ''}Carga de actas de grado -l${
+      name: `${retryId ? 'Reitento-' : ''}Carga de actas de grado -l${
         createCertificatesDtos.length
       }`,
       createdBy: userId,
-      isRetry,
+      retryId,
       scope: {
         modules: [this.degreeCertificatesModuleId],
         roles: [RolesType.ADMIN, RolesType.WRITER],
@@ -100,10 +100,14 @@ export class CertificateBulkService {
 
     this.notificationsGateway.handleSendNotification(rootNotification)
 
+    const childs = retryId
+      ? await this.notificationsService.notificationsByParent(retryId)
+      : undefined
+
     const promises = createCertificatesDtos.map(async (dto) => {
       const job = await this.certificateQueue.add(
         'createCertificate',
-        { notification: rootNotification, dto },
+        { notification: rootNotification, dto, retries: childs },
         {
           attempts: 2,
           backoff: {
@@ -158,6 +162,7 @@ export class CertificateBulkService {
   async createDegreeCertificate(
     createCertificateDto: CreateDegreeCertificateBulkDto,
     notification: NotificationEntity,
+    retries?: NotificationEntity[],
   ): Promise<
     | {
         degreeCertificate: DegreeCertificateEntity
@@ -172,18 +177,13 @@ export class CertificateBulkService {
   > {
     this.logger.log('Creando un certificado de grado...')
 
+    const notificationBaseName = `Acta de grado -${createCertificateDto.studentDni}`
+
     let prev: NotificationEntity
     let childNotification: NotificationEntity
 
-    if (notification.isRetry) {
-      prev = await NotificationEntity.findOne({
-        where: {
-          name: `Acta de grado -${createCertificateDto.studentDni}`,
-          type: 'createDegreeCertificate',
-          isRetry: false,
-        },
-        order: { createdAt: 'DESC' },
-      })
+    if (notification.retryId) {
+      prev = retries.find((r) => r.name.includes(notificationBaseName))
 
       if (prev) {
         childNotification = await this.notificationsService.create({
@@ -194,27 +194,40 @@ export class CertificateBulkService {
               : prev.status === NotificationStatus.WITH_ERRORS
               ? 'Actualizando-'
               : 'Reintentando-'
-          }Acta de grado -${createCertificateDto.studentDni}`,
+          }${notificationBaseName}`,
           type: 'createDegreeCertificate',
           status:
             prev.status === NotificationStatus.COMPLETED
               ? NotificationStatus.COMPLETED
               : NotificationStatus.IN_PROGRESS,
-          data: JSON.stringify(createCertificateDto),
-          parentId: prev.id,
+          data: JSON.stringify({ dto: createCertificateDto }),
+          parentId: notification.id,
         })
 
         if (childNotification.status === NotificationStatus.COMPLETED) {
           return { errors: [] }
         }
+
+        const prevData = JSON.parse(prev.data)
+
+        if (prevData.entities.degreeCertificate) {
+          const degreeCertificate =
+            await this.degreeCertificateRepository.findOne(
+              prevData.entities.degreeCertificate.id,
+            )
+
+          if (degreeCertificate) {
+            await this.degreeCertificateService.remove(degreeCertificate.id)
+          }
+        }
       }
     } else {
       childNotification = await this.notificationsService.create({
         createdBy: notification.createdBy.id,
-        name: `Acta de grado -${createCertificateDto.studentDni}`,
+        name: notificationBaseName,
         type: 'createDegreeCertificate',
         status: NotificationStatus.IN_PROGRESS,
-        data: JSON.stringify(createCertificateDto),
+        data: JSON.stringify({ dto: createCertificateDto }),
         parentId: notification.id,
       })
     }
@@ -312,6 +325,13 @@ export class CertificateBulkService {
         await this.notificationsService.update(childNotification.id, {
           messages,
           status: NotificationStatus.WITH_ERRORS,
+          data: JSON.stringify({
+            dto: createCertificateDto,
+            entities: {
+              degreeCertificate,
+              attendance,
+            },
+          }),
         })
         return { degreeCertificate, attendance, errors }
       }
@@ -375,8 +395,6 @@ export class CertificateBulkService {
     degreeCertificate = await this.degreeCertificateRepository.findReplicate(
       student.id,
     )
-
-    console.log(degreeCertificate)
 
     const degreeCertificateData = await this.getDegreeCertificateData({
       createCertificateDto,

@@ -27,6 +27,7 @@ export class CertificateProcessor {
       const result = await this.certificateService.createDegreeCertificate(
         job.data.dto,
         job.data.notification,
+        job.data.retries,
       )
       this.logger.log(`Trabajo ${job.id} completado exitosamente`)
 
