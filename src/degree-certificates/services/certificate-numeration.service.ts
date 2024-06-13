@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { DEGREE_CERTIFICATE } from '../constants'
 import { DegreeCertificateRepository } from '../repositories/degree-certificate-repository'
-import { DegreeCertificatesService } from '../degree-certificates.service'
+import { DegreeCertificatesService } from './degree-certificates.service'
 import { YearModuleService } from '../../year-module/year-module.service'
 import { DEGREE_MODULES } from '../../shared/enums/degree-certificates'
 import { Not, IsNull } from 'typeorm'
@@ -11,9 +11,10 @@ import { DegreeCertificateNotFoundError } from '../errors/degree-certificate-not
 @Injectable()
 export class CertificateNumerationService {
   constructor(
+    @Inject(forwardRef(() => DegreeCertificatesService))
+    private readonly degreeCertificatesService: DegreeCertificatesService,
     @Inject(DEGREE_CERTIFICATE.REPOSITORY)
     private readonly degreeCertificateRepository: DegreeCertificateRepository,
-    private readonly degreeCertificatesService: DegreeCertificatesService,
     private readonly yearModuleService: YearModuleService,
   ) {}
 

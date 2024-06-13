@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common'
 import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
-import { DegreeCertificatesService } from '../degree-certificates.service'
+import { DegreeCertificatesService } from './degree-certificates.service'
 import { StudentsService } from '../../students/students.service'
 import { CertificateTypeService } from './certificate-type.service'
 import { FunctionariesService } from '../../functionaries/functionaries.service'
