@@ -18,6 +18,7 @@ import { DegreeCertificatesService } from '../degree-certificates.service'
 import { CertificateBulkService } from '../services/certificate-bulk.service'
 import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
 import { ApiTags } from '@nestjs/swagger'
+import { CertificateNumerationService } from '../services/certificate-numeration.service'
 
 @ApiTags('degree-certificates')
 @Controller('degree-certificates')
@@ -25,6 +26,7 @@ export class DegreeCertificatesController {
   constructor(
     private readonly degreeCertificatesService: DegreeCertificatesService,
     private readonly certificateBulkService: CertificateBulkService,
+    private readonly certificateNumerationService: CertificateNumerationService,
   ) {}
 
   // #region DegreeCertificates
@@ -55,16 +57,15 @@ export class DegreeCertificatesController {
   @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
   @Patch('numeration/generate/:careerId')
   async generateNumeration(@Param('careerId', ParseIntPipe) careerId: number) {
-    return await this.degreeCertificatesService.generateNumeration(careerId)
+    return await this.certificateNumerationService.generateNumeration(careerId)
   }
 
   @Get('numeration/last-number-to-register/:careerId')
   async getLastNumberToRegister(
     @Param('careerId', ParseIntPipe) careerId: number,
   ) {
-    const number = await this.degreeCertificatesService.getLastNumberToRegister(
-      careerId,
-    )
+    const number =
+      await this.certificateNumerationService.getLastNumberToRegister(careerId)
 
     return new ApiResponseDto('Siguiente número de registro encontrado', number)
   }
@@ -73,9 +74,8 @@ export class DegreeCertificatesController {
   async getNumerationEnqueued(
     @Param('careerId', ParseIntPipe) careerId: number,
   ) {
-    const number = await this.degreeCertificatesService.getNumerationEnqueued(
-      careerId,
-    )
+    const number =
+      await this.certificateNumerationService.getNumerationEnqueued(careerId)
 
     return new ApiResponseDto('Siguiente número de registro encolado', number)
   }
