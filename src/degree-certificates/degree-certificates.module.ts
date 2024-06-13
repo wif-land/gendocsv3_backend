@@ -32,6 +32,7 @@ import { BullModule } from '@nestjs/bull'
 import { CertificateProcessor } from './processors/certificate-processor'
 import { NotificationsModule } from '../notifications/notifications.module'
 import { CERTIFICATE_QUEUE_NAME, DEGREE_CERTIFICATE } from './constants'
+import { CertificateNumerationService } from './services/certificate-numeration.service'
 
 @Module({
   controllers: [
@@ -51,6 +52,7 @@ import { CERTIFICATE_QUEUE_NAME, DEGREE_CERTIFICATE } from './constants'
     RoomsService,
     CertificateBulkService,
     CertificateProcessor,
+    CertificateNumerationService,
     {
       provide: DEGREE_CERTIFICATE.REPOSITORY,
       useClass: DegreeCertificateRepository,
