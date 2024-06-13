@@ -61,11 +61,11 @@ export class CreateUserDTO {
   password: string
 
   @IsNotEmpty({
-    message: 'roles is required',
+    message: 'role is required',
   })
   @IsEnum(RolesType, {
     message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.isEnum, {
-      '{field}': 'roles',
+      '{field}': 'role',
     }),
   })
   role: RolesType

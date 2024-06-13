@@ -30,6 +30,18 @@ export class FunctionaryForTest1704621645707 implements MigrationInterface {
         femaleTitle: 'Licenciada',
         degreeLevel: '3',
       },
+      {
+        abbreviation: 'Mgtr.',
+        maleTitle: 'Master',
+        femaleTitle: 'Master',
+        degreeLevel: '4',
+      },
+      {
+        abbreviation: 'Doc.',
+        maleTitle: 'Doctor',
+        femaleTitle: 'Doctora',
+        degreeLevel: '3',
+      },
     ]
 
     await degreeRepository.save(degreesForTest)

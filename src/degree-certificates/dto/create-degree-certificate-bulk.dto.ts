@@ -21,6 +21,14 @@ export class CreateDegreeCertificateBulkDto {
   @Type(() => Date)
   presentationDate: Date
 
+  @IsOptional()
+  @IsInt()
+  roomId: number
+
+  @IsOptional()
+  @IsInt()
+  duration: number
+
   @IsNumberString()
   studentDni: string
 
@@ -60,7 +68,4 @@ export class CreateDegreeCertificateBulkDto {
   @IsOptional()
   @IsString()
   gradesDetails: string
-
-  @IsInt()
-  userId: number
 }

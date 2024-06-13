@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { CreateYearModuleDto } from './dto/create-year-module.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { YearModuleEntity } from './entities/year-module.entity'
-import { IsNull, Not, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { GcpService } from '../gcp/gcp.service'
 import { SubmoduleYearModuleEntity } from './entities/submodule-year-module.entity'
 import { SystemYearEntity } from './entities/system-year.entity'
@@ -47,12 +47,11 @@ export class YearModuleService {
   }
 
   async getCurrentSystemYear() {
-    const systemYear = await this.systemYearRepository.findOne({
-      where: {
-        currentYear: Not(IsNull()),
-      },
-      order: { currentYear: 'DESC' },
-    })
+    const systemYear = await this.systemYearRepository
+      .createQueryBuilder('systemYear')
+      .select('systemYear.currentYear')
+      .orderBy('systemYear.currentYear', 'DESC')
+      .getOne()
 
     if (!systemYear) {
       throw new YearModuleNotFound('Año del sistema no encontrado')
@@ -66,16 +65,14 @@ export class YearModuleService {
     year: number,
     submoduleName: string,
   ) {
-    const submoduleYearModule =
-      await this.submoduleYearModuleRepository.findOneBy({
-        name: submoduleName,
-        yearModule: {
-          module: {
-            code: moduleCode,
-          },
-          year,
-        },
-      })
+    const submoduleYearModule = await this.submoduleYearModuleRepository
+      .createQueryBuilder('submoduleYearModule')
+      .leftJoin('submoduleYearModule.yearModule', 'yearModule')
+      .leftJoin('yearModule.module', 'module')
+      .where('module.code = :moduleCode', { moduleCode })
+      .andWhere('yearModule.year = :year', { year })
+      .andWhere('submoduleYearModule.name = :submoduleName', { submoduleName })
+      .getOne()
 
     if (!submoduleYearModule) {
       throw new YearModuleNotFound(

@@ -14,7 +14,9 @@ const buildOptions = () =>
     .build()
 
 const bootstrap = async () => {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug'],
+  })
   const logger = new Logger('Bootstrap')
 
   app.setGlobalPrefix('api')

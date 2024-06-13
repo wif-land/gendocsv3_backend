@@ -41,6 +41,8 @@ import { FileSystemModule } from './files/modules/file-system.module'
 import { DocxModule } from './files/modules/docx.module'
 import { EmailService } from './email/email.service'
 import { EmailModule } from './email/email.module'
+import { BullModule } from '@nestjs/bull'
+import { NotificationsModule } from './notifications/notifications.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -77,6 +79,12 @@ export default connectionSource
         options: '-c timezone=GMT-5',
       },
     } as TypeOrmModuleOptions),
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST,
+        port: +process.env.REDIS_PORT,
+      },
+    }),
     LogModule,
     TerminusModule,
     HttpModule,
@@ -107,6 +115,7 @@ export default connectionSource
     CouncilsAttendanceModule,
     DegreeCertificateAttendanceModule,
     EmailModule,
+    NotificationsModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService, EmailService],
