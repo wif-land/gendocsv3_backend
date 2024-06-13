@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { NotificationEntity } from './entities/notification.entity'
 import { CreateNotificationDto } from './dtos/create-notification.dto'
 import { UpdateNotificationDto } from './dtos/update-notification.dto'
 import { NotificationStatus } from '../shared/enums/notification-status'
+import { UserEntity } from '../users/entities/users.entity'
 
 @Injectable()
 export class NotificationsService {
@@ -37,6 +38,7 @@ export class NotificationsService {
     const query = this.notificationRepository
       .createQueryBuilder('notifications')
       .leftJoinAndSelect('notifications.createdBy', 'createdBy')
+      .where('notifications.is_main = true')
 
     // Apply filters
     if (filters) {
@@ -51,15 +53,78 @@ export class NotificationsService {
 
     const notifications = await query.getMany()
 
-    const responses = notifications.map((notification) => {
-      const childs = notifications.filter((n) => n.parentId === notification.id)
+    const responses = notifications.map(async (notification) => {
+      const childs = await this.notificationsByParent(notification.id)
       return {
         notification,
         childs,
       }
     })
 
-    return responses
+    return await Promise.all(responses)
+  }
+
+  async findAllAvailableForUser(
+    userId: number,
+    limit?: number,
+  ): Promise<
+    { notification: NotificationEntity; childs: NotificationEntity[] }[]
+  > {
+    const user = await UserEntity.findOneBy({ id: userId })
+
+    if (!user) {
+      throw new NotFoundException('Student not found')
+    }
+
+    const userModules = user.accessModules.map((module) => module.id)
+
+    const query = this.notificationRepository
+      .createQueryBuilder('notifications')
+      .leftJoinAndSelect('notifications.createdBy', 'createdBy')
+      .where('notifications.is_main = true')
+
+    const mainNotifications = await query.getMany()
+
+    const notifications = mainNotifications.filter((notification) => {
+      let isAvailable = true
+
+      if (!notification.scope) {
+        return true
+      }
+
+      if (notification.scope.modules) {
+        isAvailable = notification.scope.modules.some((module) =>
+          userModules.includes(module),
+        )
+      }
+
+      if (notification.scope.roles) {
+        isAvailable =
+          isAvailable && notification.scope.roles.includes(user.role)
+      }
+
+      if (notification.scope.id) {
+        isAvailable = isAvailable && notification.scope.id === userId
+      }
+
+      return isAvailable
+    })
+
+    // Apply limit
+    const limitedNotifications =
+      notifications.length > limit
+        ? notifications.slice(0, limit)
+        : notifications
+
+    const responses = limitedNotifications.map(async (notification) => {
+      const childs = await this.notificationsByParent(notification.id)
+      return {
+        notification,
+        childs,
+      }
+    })
+
+    return await Promise.all(responses)
   }
 
   async notificationsByParent(parentId: number): Promise<NotificationEntity[]> {

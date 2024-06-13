@@ -14,7 +14,11 @@ import { CertificateStatusService } from './certificate-status.service'
 import { DegreeModalitiesService } from './degree-modalities.service'
 import { getSTATUS_CODE_BY_CERT_STATUS } from '../../shared/enums/genders'
 import { DegreeCertificateRepository } from '../repositories/degree-certificate-repository'
-import { CertificateBulkCreation, DEGREE_MODALITY } from '../constants'
+import {
+  CERTIFICATE_QUEUE_NAME,
+  CertificateBulkCreation,
+  DEGREE_MODALITY,
+} from '../constants'
 import { CertificateTypeEntity } from '../entities/certificate-type.entity'
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 import { InjectDataSource } from '@nestjs/typeorm'
@@ -44,7 +48,7 @@ export class CertificateBulkService {
   private readonly degreeCertificatesModuleId = 1
 
   constructor(
-    @InjectQueue('certificateQueue')
+    @InjectQueue(CERTIFICATE_QUEUE_NAME)
     private certificateQueue: Queue<CertificateBulkCreation>,
     private readonly degreeCertificateService: DegreeCertificatesService,
 
@@ -277,20 +281,18 @@ export class CertificateBulkService {
       )
       return { errors }
     }
-    // start transaction
-    const queryRunner = this.dataSource.manager.connection.createQueryRunner()
 
-    await queryRunner.startTransaction()
     try {
       const { degreeCertificate, errors: degreeCertificateErrors } =
-        await this.validateCertificate(
+        await this.validateCertificate({
           createCertificateDto,
-          students.students[0],
+          student: students.students[0],
           certificateType,
           certificateStatus,
           degreeModalityEntity,
+          userId: notification.createdBy.id,
           errors,
-        )
+        })
 
       if (degreeCertificateErrors.length > 0) {
         const messages = errors.map((e) => e.detail)
@@ -301,6 +303,11 @@ export class CertificateBulkService {
         )
         return { errors }
       }
+
+      // change student ends studies date
+      await this.studentsService.update(students.students[0].id, {
+        endStudiesDate: createCertificateDto.presentationDate,
+      })
 
       // generate grades sheet
       await this.generateGradesSheet(
@@ -316,7 +323,6 @@ export class CertificateBulkService {
         errors,
       )
 
-      await queryRunner.commitTransaction()
       this.logger.log({ degreeCertificate, attendance, errors })
 
       if (errors.length > 0) {
@@ -354,7 +360,6 @@ export class CertificateBulkService {
       // TODO: Al notificar a los docentes de la asistencia a actas de grado, realizar el control de asistencia mencionado en el punto anterior
       // INFO: Existen 3 etapas de inicio, 1. Inicio de proyecto en producción(Corre migraciones y ejecuta endpoint para crear las carpetas en el drive de cada módulo y submódulo), 2. Reinicio Anual (Cambia el año del sistema en la tabla de la bd, y ejecuta endpoint para crear los modulos y submódulos por año y las carpetas en el drive de cada módulo y submódulo de ese año), 3. Creación de una carrera y por ende un módulo ( Ejecuta endpoint para crear los submódulos y años y módulos y las carpetas en el drive de cada módulo y submódulo de ese año para la carrera creada y copia las plantillas generales para tipos de acta de grado y consejos y plantillas en base al últimos módulo creado)
     } catch (error) {
-      await queryRunner.rollbackTransaction()
       if (error.code && error.code === HttpStatus.TOO_MANY_REQUESTS) {
         throw new Error('Temporary Google API error, retrying...')
       }
@@ -379,14 +384,23 @@ export class CertificateBulkService {
     }
   }
 
-  async validateCertificate(
-    createCertificateDto: CreateDegreeCertificateBulkDto,
-    student: StudentEntity,
-    certificateType: CertificateTypeEntity,
-    certificateStatus: CertificateStatusEntity,
-    degreeModalityEntity: DegreeModalityEntity,
-    errors: ErrorsBulkCertificate[],
-  ): Promise<{
+  async validateCertificate({
+    createCertificateDto,
+    student,
+    certificateType,
+    certificateStatus,
+    degreeModalityEntity,
+    userId,
+    errors,
+  }: {
+    createCertificateDto: CreateDegreeCertificateBulkDto
+    student: StudentEntity
+    certificateType: CertificateTypeEntity
+    certificateStatus: CertificateStatusEntity
+    degreeModalityEntity: DegreeModalityEntity
+    userId: number
+    errors: ErrorsBulkCertificate[]
+  }): Promise<{
     degreeCertificate?: DegreeCertificateEntity
     errors: ErrorsBulkCertificate[]
   }> {
@@ -403,7 +417,7 @@ export class CertificateBulkService {
       certificateTypeId: certificateType.id,
       degreeModalityId: degreeModalityEntity.id,
       certificateStatusId: certificateStatus.id,
-      userId: createCertificateDto.userId,
+      userId,
       degreeCertificate,
     })
 
@@ -565,7 +579,7 @@ export class CertificateBulkService {
     degreeModalityId: number
     certificateStatusId: number
     userId: number
-    degreeCertificate: DegreeCertificateEntity | undefined
+    degreeCertificate?: DegreeCertificateEntity | undefined
   }) {
     return {
       auxNumber:

@@ -69,6 +69,17 @@ export class DegreeCertificatesController {
     return new ApiResponseDto('Siguiente número de registro encontrado', number)
   }
 
+  @Get('numeration/enqueued/:careerId')
+  async getNumerationEnqueued(
+    @Param('careerId', ParseIntPipe) careerId: number,
+  ) {
+    const number = await this.degreeCertificatesService.getNumerationEnqueued(
+      careerId,
+    )
+
+    return new ApiResponseDto('Siguiente número de registro encolado', number)
+  }
+
   @Patch('generate-document/:id')
   async generateDocument(@Param('id', ParseIntPipe) id: number) {
     return await this.degreeCertificatesService.generateDocument(id)
@@ -78,13 +89,13 @@ export class DegreeCertificatesController {
   async loadBulk(
     @Body() createCertificatesDtos: CreateDegreeCertificateBulkDto[],
     @Param('userId', ParseIntPipe) userId: number,
-    @Query('retry-id', ParseIntPipe) retryId?: number,
+    @Query('retry-id') retryId?: number,
   ) {
     const certificates =
       await this.certificateBulkService.createBulkCertificates(
         createCertificatesDtos,
         userId,
-        retryId,
+        retryId ? +retryId : undefined,
       )
 
     return new ApiResponseDto('Certificados cargados', certificates)

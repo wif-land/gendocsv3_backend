@@ -9,10 +9,10 @@ import {
 import { Job } from 'bull'
 import { CertificateBulkService } from '../services/certificate-bulk.service'
 import { Logger } from '@nestjs/common/services/logger.service'
-import { CertificateBulkCreation } from '../constants'
+import { CERTIFICATE_QUEUE_NAME, CertificateBulkCreation } from '../constants'
 import { HttpException } from '@nestjs/common'
 
-@Processor('certificateQueue')
+@Processor(CERTIFICATE_QUEUE_NAME)
 export class CertificateProcessor {
   private readonly logger = new Logger(CertificateProcessor.name)
 
@@ -33,7 +33,7 @@ export class CertificateProcessor {
 
       return result
     } catch (error) {
-      console.info('Error HTTP:', error.message)
+      Logger.error('Error HTTP:', error.message)
       if (error instanceof HttpException) {
         // es normal que ocurran errores HTTP el servicio se encarga de manejarlos, por lo que no es necesario capturarlos
 

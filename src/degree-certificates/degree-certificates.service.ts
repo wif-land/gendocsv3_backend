@@ -22,7 +22,8 @@ import { GradesSheetService } from './services/grades-sheet.service'
 import { CertificateStatusService } from './services/certificate-status.service'
 import { DegreeCertificateRepository } from './repositories/degree-certificate-repository'
 import { addMinutesToDate } from '../shared/utils/date'
-import { RoomsService } from './services/rooms.service'
+import { DEGREE_CERTIFICATE } from './constants'
+import { DegreeCertificateError } from './errors/degree-certificate-error'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -30,44 +31,17 @@ export class DegreeCertificatesService {
     private readonly yearModuleService: YearModuleService,
     private readonly filesService: FilesService,
     private readonly studentService: StudentsService,
-    private readonly roomsService: RoomsService,
     private readonly variablesService: VariablesService,
     private readonly degreeCertificateAttendanceService: DegreeCertificateAttendanceService,
     private readonly gradesSheetService: GradesSheetService,
     private readonly certificateStatusService: CertificateStatusService,
 
-    @Inject('DegreeCertificateRepository')
+    @Inject(DEGREE_CERTIFICATE.REPOSITORY)
     private readonly degreeCertificateRepository: DegreeCertificateRepository,
 
     @InjectRepository(CertificateTypeEntity)
     private readonly certificateTypeRepository: Repository<CertificateTypeEntity>,
   ) {}
-
-  async getLastNumberToRegister(carrerId: number): Promise<number> {
-    const systemYear = await this.yearModuleService.getCurrentSystemYear()
-
-    const submoduleYearModule =
-      await this.yearModuleService.findSubmoduleYearModuleByModule(
-        DEGREE_MODULES.MODULE_CODE,
-        systemYear,
-        DEGREE_MODULES.SUBMODULE_NAME,
-      )
-
-    const lastDegreeCertificate =
-      await this.degreeCertificateRepository.findOne({
-        where: {
-          submoduleYearModule: { id: submoduleYearModule.id },
-          student: { career: { id: carrerId } },
-        },
-        order: { auxNumber: 'DESC' },
-      })
-
-    const number = lastDegreeCertificate
-      ? lastDegreeCertificate.auxNumber + 1
-      : 1
-
-    return number
-  }
 
   async findAll(
     paginationDto: PaginationDto,
@@ -87,6 +61,7 @@ export class DegreeCertificatesService {
           career: { id: carrerId },
           deletedAt: IsNull(),
         },
+        order: { auxNumber: 'ASC' },
         take: limit,
         skip: offset,
       })
@@ -107,7 +82,7 @@ export class DegreeCertificatesService {
 
     if (hasApproved != null && hasApproved !== undefined) {
       throw new DegreeCertificateAlreadyExists(
-        `El estudiante con id ${student.id} ya cuenta con un certificado de grado aprobado`,
+        `El estudiante con dni ${student.dni} ya cuenta con un certificado de grado aprobado`,
       )
     }
 
@@ -224,6 +199,10 @@ export class DegreeCertificatesService {
     const { data: createdDegreeCertificate } =
       await this.gradesSheetService.generateGradeSheet(relationshipCertificate)
 
+    await this.studentService.update(student.id, {
+      endStudiesDate: dto.presentationDate,
+    })
+
     return new ApiResponseDto(
       'Certificado creado correctamente',
       createdDegreeCertificate,
@@ -234,25 +213,16 @@ export class DegreeCertificatesService {
     careerId: number,
     submoduleYearModuleId: number,
   ) {
-    const degreeCertificates = await this.degreeCertificateRepository.find({
-      where: {
-        submoduleYearModule: { id: submoduleYearModuleId },
-        career: { id: careerId },
-        deletedAt: IsNull(),
-        number: IsNull(),
-      },
-      order: { createdAt: 'ASC' },
-      relationLoadStrategy: 'join',
-      relations: {
-        student: true,
-        career: true,
-        certificateType: true,
-        certificateStatus: true,
-        degreeModality: true,
-        room: true,
-        submoduleYearModule: true,
-      },
-    })
+    const degreeCertificates =
+      await this.degreeCertificateRepository.findManyFor({
+        where: {
+          submoduleYearModule: { id: submoduleYearModuleId },
+          career: { id: careerId },
+          deletedAt: IsNull(),
+          number: IsNull(),
+        },
+        order: { createdAt: 'ASC' },
+      })
 
     if (!degreeCertificates || degreeCertificates.length === 0) {
       return undefined
@@ -261,19 +231,53 @@ export class DegreeCertificatesService {
     return degreeCertificates
   }
 
+  async getLastNumberToRegister(carrerId: number): Promise<number> {
+    const systemYear = await this.yearModuleService.getCurrentSystemYear()
+
+    const submoduleYearModule =
+      await this.yearModuleService.findSubmoduleYearModuleByModule(
+        DEGREE_MODULES.MODULE_CODE,
+        systemYear,
+        DEGREE_MODULES.SUBMODULE_NAME,
+      )
+
+    const enqueuedNumbers = await this.getNumerationEnqueued(carrerId)
+
+    if (enqueuedNumbers.length > 0) {
+      return enqueuedNumbers[0]
+    }
+
+    const lastDegreeCertificate =
+      await this.degreeCertificateRepository.findOneFor({
+        where: {
+          submoduleYearModule: { id: submoduleYearModule.id },
+          career: { id: carrerId },
+        },
+        order: { auxNumber: 'DESC' },
+      })
+
+    const number = lastDegreeCertificate
+      ? lastDegreeCertificate.auxNumber + 1
+      : 1
+
+    return number
+  }
+
   async getLastNumberGenerated(
     careerId: number,
     submoduleYearModuleId: number,
   ) {
-    const degreeCertificate = await this.degreeCertificateRepository.findOne({
-      where: {
-        career: { id: careerId },
-        submoduleYearModule: { id: submoduleYearModuleId },
-        number: Not(IsNull()),
-        deletedAt: null,
+    const degreeCertificate = await this.degreeCertificateRepository.findOneFor(
+      {
+        where: {
+          career: { id: careerId },
+          submoduleYearModule: { id: submoduleYearModuleId },
+          number: Not(IsNull()),
+          deletedAt: null,
+        },
+        order: { number: 'DESC' },
       },
-      order: { number: 'DESC' },
-    })
+    )
 
     if (!degreeCertificate) {
       return 0
@@ -290,6 +294,31 @@ export class DegreeCertificatesService {
       systemYear,
       DEGREE_MODULES.SUBMODULE_NAME,
     )
+  }
+
+  async getNumerationEnqueued(careerId: number): Promise<number[]> {
+    const submoduleYearModule = await this.getCurrentDegreeSubmoduleYearModule()
+
+    const removedDegreeCertificates =
+      await this.degreeCertificateRepository.findManyFor({
+        where: {
+          career: { id: careerId },
+          submoduleYearModule: { id: submoduleYearModule.id },
+          number: Not(IsNull()),
+          deletedAt: Not(IsNull()),
+        },
+        order: { number: 'ASC' },
+      })
+
+    const numbers: number[] = []
+
+    if (removedDegreeCertificates) {
+      removedDegreeCertificates.forEach((degreeCertificate) => {
+        numbers.push(degreeCertificate.number)
+      })
+    }
+
+    return numbers
   }
 
   async generateNumeration(careerId: number) {
@@ -454,67 +483,110 @@ export class DegreeCertificatesService {
         `El certificado con id ${id} no existe`,
       )
     }
+    const qr =
+      this.degreeCertificateRepository.manager.connection.createQueryRunner()
 
-    const degreeCertificatePreloaded =
-      await this.degreeCertificateRepository.merge(degreeCertificate, {
-        ...dto,
-        student: { id: dto.studentId },
-        certificateType: { id: dto.certificateTypeId },
-        certificateStatus: { id: dto.certificateStatusId },
-        degreeModality: { id: dto.degreeModalityId },
-        room: { id: dto.roomId },
-        link: dto.degreeModalityId === 1 ? dto.link : null,
-      })
+    try {
+      await qr.connect()
 
-    if (!degreeCertificatePreloaded) {
-      throw new DegreeCertificateBadRequestError(
-        'Los datos del certificado son incorrectos',
-      )
-    }
+      await qr.startTransaction()
 
-    const certificateUpdated = await this.degreeCertificateRepository.save(
-      degreeCertificatePreloaded,
-    )
-
-    if (
-      dto.certificateTypeId &&
-      degreeCertificate.certificateType.id !== dto.certificateTypeId
-    ) {
-      const certificateType = await this.certificateTypeRepository.findOneBy({
-        id: dto.certificateTypeId,
-      })
-
-      if (!certificateType) {
-        throw new DegreeCertificateNotFoundError(
-          `El tipo de certificado con id ${dto.certificateTypeId} no existe`,
-        )
-      }
-
-      // eslint-disable-next-line no-extra-parens
       if (
-        // eslint-disable-next-line no-extra-parens
-        !(await this.gradesSheetService.revokeGradeSheet(certificateUpdated))
+        dto.presentationDate &&
+        dto.presentationDate !== degreeCertificate.presentationDate
       ) {
-        throw new DegreeCertificateConflict(
-          'No se pudo anular la hoja de notas anterior del certificado',
+        await this.checkPresentationDate(
+          dto.presentationDate,
+          dto.duration,
+          dto.roomId,
         )
       }
 
-      const { data: UpdatedCertificatedGradeSheet } =
+      const degreeCertificatePreloaded = await qr.manager
+        .getRepository(DegreeCertificateEntity)
+        .merge(degreeCertificate, {
+          ...dto,
+          student: { id: dto.studentId },
+          certificateType: { id: dto.certificateTypeId },
+          certificateStatus: { id: dto.certificateStatusId },
+          degreeModality: { id: dto.degreeModalityId },
+          room: { id: dto.roomId },
+          link: dto.degreeModalityId === 1 ? dto.link : null,
+        })
+
+      if (!degreeCertificatePreloaded) {
+        throw new DegreeCertificateBadRequestError(
+          'Los datos del certificado son incorrectos',
+        )
+      }
+
+      const certificateUpdated = await qr.manager.save(
+        degreeCertificatePreloaded,
+      )
+
+      if (
+        dto.certificateTypeId &&
+        degreeCertificate.certificateType.id !== dto.certificateTypeId
+      ) {
+        const certificateType = await this.certificateTypeRepository.findOneBy({
+          id: dto.certificateTypeId,
+        })
+
+        if (!certificateType) {
+          throw new DegreeCertificateNotFoundError(
+            `El tipo de certificado con id ${dto.certificateTypeId} no existe`,
+          )
+        }
+
+        // eslint-disable-next-line no-extra-parens
+        if (
+          // eslint-disable-next-line no-extra-parens
+          !(await this.gradesSheetService.revokeGradeSheet(certificateUpdated))
+        ) {
+          throw new DegreeCertificateConflict(
+            'No se pudo anular la hoja de notas anterior del certificado',
+          )
+        }
+
         await this.gradesSheetService.generateGradeSheet(
           degreeCertificatePreloaded,
         )
+      }
+
+      if (
+        dto.presentationDate &&
+        dto.presentationDate !== degreeCertificate.presentationDate
+      ) {
+        if (degreeCertificate.certificateDriveId) {
+          await this.filesService.remove(degreeCertificate.certificateDriveId)
+
+          await this.generateDocument(certificateUpdated.id)
+        }
+
+        await this.studentService.update(certificateUpdated.student.id, {
+          endStudiesDate: dto.presentationDate,
+        })
+      }
+
+      await qr.commitTransaction()
 
       return new ApiResponseDto(
         'Certificado actualizado correctamente',
-        UpdatedCertificatedGradeSheet,
+        certificateUpdated,
       )
-    }
+    } catch (error) {
+      await qr.rollbackTransaction()
 
-    return new ApiResponseDto(
-      'Certificado actualizado correctamente',
-      certificateUpdated,
-    )
+      if (error instanceof DegreeCertificateError) {
+        throw error
+      }
+
+      throw new DegreeCertificateBadRequestError(
+        'Error al actualizar el certificado',
+      )
+    } finally {
+      await qr.release()
+    }
   }
 
   async remove(id: number) {
@@ -533,7 +605,6 @@ export class DegreeCertificatesService {
     const degreeCertificateUpdated =
       await this.degreeCertificateRepository.save({
         ...degreeCertificate,
-        number: null,
         gradesSheetDriveId: null,
         deletedAt: new Date(),
       })

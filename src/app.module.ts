@@ -73,7 +73,7 @@ export default connectionSource
     TypeOrmModule.forRoot({
       ...config,
       dropSchema: process.env.DROP_SCHEMA === 'true',
-      logging: false,
+      logging: true,
       extra: {
         application_name: 'your_app_name',
         options: '-c timezone=GMT-5',
@@ -81,8 +81,8 @@ export default connectionSource
     } as TypeOrmModuleOptions),
     BullModule.forRoot({
       redis: {
-        host: 'localhost',
-        port: 6379,
+        host: process.env.REDIS_HOST,
+        port: +process.env.REDIS_PORT,
       },
     }),
     LogModule,

@@ -31,6 +31,7 @@ import { DegreeCertificateRepository } from './repositories/degree-certificate-r
 import { BullModule } from '@nestjs/bull'
 import { CertificateProcessor } from './processors/certificate-processor'
 import { NotificationsModule } from '../notifications/notifications.module'
+import { CERTIFICATE_QUEUE_NAME, DEGREE_CERTIFICATE } from './constants'
 
 @Module({
   controllers: [
@@ -51,13 +52,13 @@ import { NotificationsModule } from '../notifications/notifications.module'
     CertificateBulkService,
     CertificateProcessor,
     {
-      provide: 'DegreeCertificateRepository',
+      provide: DEGREE_CERTIFICATE.REPOSITORY,
       useClass: DegreeCertificateRepository,
     },
   ],
   imports: [
     BullModule.registerQueue({
-      name: 'certificateQueue',
+      name: CERTIFICATE_QUEUE_NAME,
     }),
     TypeOrmModule.forFeature([
       CertificateStatusEntity,

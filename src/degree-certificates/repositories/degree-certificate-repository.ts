@@ -41,7 +41,7 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
   async findOneFor(
     options: FindOneOptions<DegreeCertificateEntity>,
   ): Promise<DegreeCertificateEntity> {
-    return this.qb
+    const query = this.qb
       .leftJoinAndSelect('degreeCertificate.student', 'student')
       .leftJoinAndSelect('student.career', 'studentCareer')
       .leftJoinAndSelect('degreeCertificate.certificateType', 'certificateType')
@@ -58,13 +58,20 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .leftJoinAndSelect('degreeCertificate.room', 'room')
       .leftJoinAndSelect('degreeCertificate.user', 'user')
       .where(options.where)
-      .getOne()
+
+    if (options.order) {
+      query.setFindOptions({
+        order: options.order,
+      })
+    }
+
+    return query.getOne()
   }
 
   async findManyFor(
     options: FindManyOptions<DegreeCertificateEntity>,
   ): Promise<DegreeCertificateEntity[]> {
-    return this.qb
+    const query = this.qb
       .leftJoinAndSelect('degreeCertificate.student', 'student')
       .leftJoinAndSelect('student.career', 'studentCareer')
       .leftJoinAndSelect('degreeCertificate.certificateType', 'certificateType')
@@ -81,9 +88,18 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .leftJoinAndSelect('degreeCertificate.room', 'room')
       .leftJoinAndSelect('degreeCertificate.user', 'user')
       .where(options.where)
-      .take(options.take)
-      .skip(options.skip)
-      .getMany()
+
+    if (options.order) {
+      query.setFindOptions({
+        order: options.order,
+      })
+    }
+
+    if (options.take && options.skip) {
+      query.take(options.take)
+      query.skip(options.skip)
+    }
+    return query.getMany()
   }
 
   async findStrictReplicate(

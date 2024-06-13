@@ -68,7 +68,4 @@ export class CreateDegreeCertificateBulkDto {
   @IsOptional()
   @IsString()
   gradesDetails: string
-
-  @IsInt()
-  userId: number
 }

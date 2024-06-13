@@ -10,6 +10,8 @@ export enum DEGREE_MODALITY {
   PRESENCIAL = 'PRE',
 }
 
+export const CERTIFICATE_QUEUE_NAME = 'CERTIFICATE_QUEUE'
+
 export interface CertificateBulkCreation {
   notification: NotificationEntity
   dto: CreateDegreeCertificateBulkDto

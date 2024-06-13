@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Get, Param, Put, Query } from '@nestjs/common'
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Put,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { CreateNotificationDto } from '../dtos/create-notification.dto'
 import { UpdateNotificationDto } from '../dtos/update-notification.dto'
@@ -44,9 +53,17 @@ export class NotificationsController {
     )
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<NotificationEntity> {
-    return await this.notificationsService.findOne(+id)
+  @Get(':userId')
+  async findOne(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('limit') limit?: number,
+  ): Promise<
+    { notification: NotificationEntity; childs: NotificationEntity[] }[]
+  > {
+    return await this.notificationsService.findAllAvailableForUser(
+      userId,
+      limit,
+    )
   }
 
   @Get('parent/:parentId')
