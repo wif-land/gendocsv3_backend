@@ -1,14 +1,39 @@
+import { BadRequestException } from '@nestjs/common/exceptions/bad-request.exception'
+import { CouncilAttendanceEntity } from '../../../councils/entities/council-attendance.entity'
 import { DefaultMemberStrategy } from './default-members-strategy'
 
 export class CreateDefaultMemberStrategy extends DefaultMemberStrategy {
-  execute() {
+  execute(members?: CouncilAttendanceEntity[]) {
     return this.params.map(async (item) => {
       const memberProps = {}
       if (!item.isStudent) {
+        if (members && members.length > 0) {
+          const alreadyExist = members.find(
+            (member) => member.functionary?.id === item.member,
+          )
+
+          if (alreadyExist) {
+            throw new BadRequestException(
+              'El funcionario ya se encuentra en la lista',
+            )
+          }
+        }
         memberProps['functionary'] = {
           id: item.member,
         }
       } else {
+        if (members && members.length > 0) {
+          const alreadyExist = members.find(
+            (member) => member.student?.id === item.member,
+          )
+
+          if (alreadyExist) {
+            throw new BadRequestException(
+              'El estudiante ya se encuentra en la lista',
+            )
+          }
+        }
+
         memberProps['student'] = {
           id: item.member,
         }

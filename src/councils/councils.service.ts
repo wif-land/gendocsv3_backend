@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { CreateCouncilDto } from './dto/create-council.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CouncilEntity } from './entities/council.entity'
@@ -84,6 +89,29 @@ export class CouncilsService {
           submoduleYearModule: { id: submoduleYearModule.id },
         })
         .save()
+    }
+
+    const studentMembers = data.members.filter((member) => member.isStudent)
+
+    const functionaryMembers = data.members.filter(
+      (member) => !member.isStudent,
+    )
+
+    const studentsSet = new Set(studentMembers.map((member) => member.member))
+    const functionariesSet = new Set(
+      functionaryMembers.map((member) => member.member),
+    )
+
+    if (studentsSet.size !== studentMembers.length) {
+      throw new BadRequestException(
+        'Estudiantes duplicados en la lista, verifique los estudiantes',
+      )
+    }
+
+    if (functionariesSet.size !== functionaryMembers.length) {
+      throw new BadRequestException(
+        'Funcionarios duplicados en la lista, verifique los funcionarios',
+      )
     }
 
     const councilMembers = data.members.map(async (item) => {
@@ -263,64 +291,83 @@ export class CouncilsService {
       await this.filesService.renameAsset(driveId, updateCouncilDto.name)
     }
 
-    const councilMembers = updateCouncilDto.members.map(async (item) => {
-      let memberParam = {}
+    if (updateCouncilDto.members && updateCouncilDto.members.length > 0) {
+      const councilMembers = updateCouncilDto.members.map(async (item) => {
+        let memberParam = {}
 
-      if (item.isStudent) {
-        const student = await this.studentRepository.findOne({
-          where: { id: Number(item.member) },
+        if (item.isStudent) {
+          const student = await this.studentRepository.findOne({
+            where: { id: Number(item.member) },
+          })
+
+          if (!student) {
+            throw new NotFoundException(
+              `Student not found with dni ${item.member}`,
+            )
+          }
+
+          memberParam = {
+            student: { id: student.id },
+          }
+        } else {
+          const functionary = await this.functionaryRepository.findOne({
+            where: { id: Number(item.member) },
+          })
+
+          if (!functionary) {
+            throw new NotFoundException(
+              `Functionary not found with dni ${item.member}`,
+            )
+          }
+
+          memberParam = {
+            functionary: { id: functionary.id },
+          }
+        }
+
+        const attendance = await this.councilAttendanceRepository.findOne({
+          where: {
+            council: { id },
+            positionName: item.positionName,
+            positionOrder: item.positionOrder,
+          },
         })
 
-        if (!student) {
+        if (!attendance) {
           throw new NotFoundException(
-            `Student not found with dni ${item.member}`,
+            `Attendance not found with positionName ${item.positionName} and positionOrder ${item.positionOrder}`,
           )
         }
 
-        memberParam = {
-          student: { id: student.id },
-        }
-      } else {
-        const functionary = await this.functionaryRepository.findOne({
-          where: { id: Number(item.member) },
-        })
+        const updatedAttendance =
+          await this.councilAttendanceRepository.preload({
+            ...attendance,
+            ...item,
+            ...memberParam,
+          })
 
-        if (!functionary) {
-          throw new NotFoundException(
-            `Functionary not found with dni ${item.member}`,
-          )
-        }
-
-        memberParam = {
-          functionary: { id: functionary.id },
-        }
-      }
-
-      const attendance = await this.councilAttendanceRepository.findOne({
-        where: {
+        return this.councilAttendanceRepository.save({
+          ...updatedAttendance,
           council: { id },
-          positionName: item.positionName,
-          positionOrder: item.positionOrder,
-        },
+        })
       })
 
-      if (!attendance) {
-        throw new NotFoundException(
-          `Attendance not found with positionName ${item.positionName} and positionOrder ${item.positionOrder}`,
-        )
+      const updatedCouncil = await this.councilRepository.preload({
+        ...updateCouncilDto,
+        id,
+      })
+
+      if (!updatedCouncil) {
+        throw new NotFoundException(`Council not found with id ${id}`)
       }
 
-      const updatedAttendance = await this.councilAttendanceRepository.preload({
-        ...attendance,
-        ...item,
-        ...memberParam,
-      })
+      const councilUpdated = await this.councilRepository.save(updatedCouncil)
 
-      return this.councilAttendanceRepository.save({
-        ...updatedAttendance,
-        council: { id },
-      })
-    })
+      return {
+        ...councilUpdated,
+        members: await Promise.all(councilMembers),
+      }
+    }
 
     const updatedCouncil = await this.councilRepository.preload({
       ...updateCouncilDto,
@@ -335,7 +382,6 @@ export class CouncilsService {
 
     return {
       ...councilUpdated,
-      members: await Promise.all(councilMembers),
     }
   }
 

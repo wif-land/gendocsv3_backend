@@ -392,6 +392,40 @@ export class DocumentsService {
     }
   }
 
+  async findAllByStudent(id: number) {
+    const documents = await this.documentsRepository
+      .createQueryBuilder('document')
+      .select([
+        'document.id',
+        'document.createdAt',
+        'document.driveId',
+        'document.description',
+      ])
+      .leftJoinAndSelect('document.numerationDocument', 'numerationDocument')
+      .leftJoinAndSelect('numerationDocument.council', 'council')
+      .leftJoinAndSelect('council.module', 'module')
+      .leftJoinAndSelect('council.submoduleYearModule', 'submoduleYearModule')
+      .leftJoinAndSelect('submoduleYearModule.yearModule', 'yearModule')
+      .leftJoinAndSelect('council.attendance', 'attendance')
+      .leftJoinAndSelect('attendance.functionary', 'functionary')
+      .leftJoinAndSelect('document.user', 'user')
+      .leftJoinAndSelect('document.student', 'student')
+      .leftJoinAndSelect('student.career', 'career')
+      .leftJoinAndSelect('student.canton', 'canton')
+      .leftJoinAndSelect('document.templateProcess', 'templateProcess')
+      .leftJoinAndSelect(
+        'document.documentFunctionaries',
+        'documentFunctionaries',
+      )
+      .leftJoinAndSelect('documentFunctionaries.functionary', 'functionarys')
+      .where('document.student.id = :id', { id })
+      .getMany()
+
+    return new ApiResponseDto('Lista de documentos', {
+      documents: documents.map((document) => new ResponseDocumentDto(document)),
+    })
+  }
+
   async remove(id: number) {
     try {
       const document = await this.documentsRepository.findOne({

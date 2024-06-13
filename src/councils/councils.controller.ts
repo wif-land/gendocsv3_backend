@@ -57,7 +57,7 @@ export class CouncilsController {
   }
 
   @Auth(RolesType.ADMIN, RolesType.WRITER, RolesType.API, RolesType.READER)
-  @Get('filter')
+  @Get('filter/f')
   async findByFilters(@Query() filters: CouncilFiltersDto) {
     return this.councilsService.findByFilters(filters)
   }

@@ -165,9 +165,15 @@ export class StudentsService {
   }
 
   async findOne(id: number) {
-    const student = await this.studentRepository.findOneBy({ id })
+    const student = await this.studentRepository
+      .createQueryBuilder('student')
+      .leftJoinAndSelect('student.career', 'career')
+      .leftJoinAndSelect('student.canton', 'canton')
+      .leftJoinAndSelect('canton.province', 'province')
+      .where('student.id = :id', { id })
+      .getOne()
 
-    if (!student) {
+    if (!student || student == null) {
       throw new StudentNotFoundError(`Estudiante con id ${id} no encontrado`)
     }
 
@@ -176,20 +182,20 @@ export class StudentsService {
 
   async findByFilters(filters: StudentFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = filters
+    const { limit = 5, offset = 0, field = '', state = 'true' } = filters
 
     const qb = this.studentRepository.createQueryBuilder('students')
 
     qb.where(
       '( (:state :: BOOLEAN) IS NULL OR students.isActive = (:state :: BOOLEAN) )',
       {
-        state: filters.state,
+        state,
       },
     )
       .andWhere(
         "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', students.firstName, students.secondName, students.firstLastName, students.secondLastName) ILIKE :term OR students.dni ILIKE :term )",
         {
-          term: filters.field && `%${filters.field.trim()}%`,
+          term: field ? `%${field.trim()}%` : null,
         },
       )
       .orderBy('students.id', 'ASC')

@@ -39,6 +39,11 @@ export class DocumentsController {
     return await this.documentsService.findOne(+id)
   }
 
+  @Get('student/:studentId')
+  async findAllByStudent(@Param('studentId', ParseIntPipe) studentId: number) {
+    return await this.documentsService.findAllByStudent(studentId)
+  }
+
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.documentsService.remove(+id)
