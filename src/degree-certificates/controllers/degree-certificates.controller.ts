@@ -78,7 +78,7 @@ export class DegreeCertificatesController {
   async loadBulk(
     @Body() createCertificatesDtos: CreateDegreeCertificateBulkDto[],
     @Param('userId', ParseIntPipe) userId: number,
-    @Query('retry-id', ParseIntPipe) retryId: number,
+    @Query('retry-id', ParseIntPipe) retryId?: number,
   ) {
     const certificates =
       await this.certificateBulkService.createBulkCertificates(
