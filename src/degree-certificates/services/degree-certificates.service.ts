@@ -520,4 +520,20 @@ export class DegreeCertificatesService {
       degreeCertificateUpdated,
     )
   }
+
+  async findById(id: number) {
+    const degreeCertificate = await this.degreeCertificateRepository.findOneFor(
+      {
+        where: { id },
+      },
+    )
+
+    if (!degreeCertificate) {
+      throw new DegreeCertificateNotFoundError(
+        `El certificado con id ${id} no existe`,
+      )
+    }
+
+    return degreeCertificate
+  }
 }
