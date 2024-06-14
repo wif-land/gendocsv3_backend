@@ -46,7 +46,7 @@ export class CertificateBulkService {
 
   // Si se cambia el id del módulo de comunes que tiene a las actas de grado
   // cambiar esta variable, se evita hacer la consulta a la bd por optimizar tiempos
-  private readonly degreeCertificatesModuleId = 1
+  private readonly degreeCertificatesModuleId = 11
 
   constructor(
     @InjectQueue(CERTIFICATE_QUEUE_NAME)

@@ -17,12 +17,11 @@ import { StudentEntity } from '../../students/entities/student.entity'
 import { VariablesService } from '../../variables/variables.service'
 import { DegreeCertificateAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
 import { DegreeCertificateConflict } from '../errors/degree-certificate-conflict'
-import { PaginationDto } from '../../shared/dtos/pagination.dto'
 import { GradesSheetService } from './grades-sheet.service'
 import { CertificateStatusService } from './certificate-status.service'
 import { DegreeCertificateRepository } from '../repositories/degree-certificate-repository'
 import { addMinutesToDate } from '../../shared/utils/date'
-import { DEGREE_CERTIFICATE } from '../constants'
+import { DEGREE_CERTIFICATE, IDegreeCertificateFilters } from '../constants'
 import { DegreeCertificateError } from '../errors/degree-certificate-error'
 import { CertificateNumerationService } from './certificate-numeration.service'
 
@@ -46,7 +45,7 @@ export class DegreeCertificatesService {
   ) {}
 
   async findAll(
-    paginationDto: PaginationDto,
+    paginationDto: IDegreeCertificateFilters,
     carrerId: number,
   ): Promise<
     ApiResponseDto<{
@@ -57,20 +56,19 @@ export class DegreeCertificatesService {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 10, offset = 0 } = paginationDto
 
-    const degreeCertificates =
-      await this.degreeCertificateRepository.findManyFor({
-        where: {
-          career: { id: carrerId },
-          deletedAt: IsNull(),
+    const { degreeCertificates, count } =
+      await this.degreeCertificateRepository.findManyFor(
+        {
+          where: {
+            career: { id: carrerId },
+            deletedAt: IsNull(),
+          },
+          order: { auxNumber: 'ASC' },
+          take: limit,
+          skip: offset,
         },
-        order: { auxNumber: 'ASC' },
-        take: limit,
-        skip: offset,
-      })
-
-    const countQueryBuilder =
-      this.degreeCertificateRepository.createQueryBuilder('degreeCertificates')
-    const count = await countQueryBuilder.getCount()
+        paginationDto.field,
+      )
 
     return new ApiResponseDto('Certificados de grado encontrados', {
       count,
@@ -222,7 +220,7 @@ export class DegreeCertificatesService {
     careerId: number,
     submoduleYearModuleId: number,
   ) {
-    const degreeCertificates =
+    const { degreeCertificates } =
       await this.degreeCertificateRepository.findManyFor({
         where: {
           submoduleYearModule: { id: submoduleYearModuleId },

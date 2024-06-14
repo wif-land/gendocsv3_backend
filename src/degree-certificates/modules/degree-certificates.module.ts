@@ -33,6 +33,8 @@ import { CertificateProcessor } from '../processors/certificate-processor'
 import { NotificationsModule } from '../../notifications/notifications.module'
 import { CERTIFICATE_QUEUE_NAME, DEGREE_CERTIFICATE } from '../constants'
 import { CertificateNumerationService } from '../services/certificate-numeration.service'
+import { CertificateReportsController } from '../controllers/certificate-report.controller'
+import { CertificateReportsService } from '../services/certificate-reports.service'
 
 @Module({
   controllers: [
@@ -42,6 +44,7 @@ import { CertificateNumerationService } from '../services/certificate-numeration
     GradeCellsController,
     DegreeModalitiesController,
     RoomsController,
+    CertificateReportsController,
   ],
   providers: [
     DegreeCertificatesService,
@@ -57,6 +60,7 @@ import { CertificateNumerationService } from '../services/certificate-numeration
       useClass: DegreeCertificateRepository,
     },
     CertificateNumerationService,
+    CertificateReportsService,
   ],
   imports: [
     BullModule.registerQueue({

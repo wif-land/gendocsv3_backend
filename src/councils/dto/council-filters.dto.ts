@@ -13,6 +13,7 @@ import { PaginationDto } from '../../shared/dtos/pagination.dto'
 export enum DATE_TYPES {
   EJECUTION = 'EJECUTION',
   CREATION = 'CREATION',
+  PRESENTATION = 'PRESENTATION',
 }
 
 export class CouncilFiltersDto extends PaginationDto {

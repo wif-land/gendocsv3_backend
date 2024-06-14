@@ -11,6 +11,9 @@ export const TIMES = {
 export const formatDate = (date: Date): string =>
   format(date, 'dd/mm/yyyy', { locale: es })
 
+export const formatTime = (date: Date): string =>
+  format(date, 'HH:mm', { locale: es })
+
 export const formatDateText = (
   date: Date | string,
   formatStr = "d 'de' MMMM 'de' yyyy",
