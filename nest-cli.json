@@ -4,9 +4,6 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "watchAssets": true,
-    "assets": [
-      "mails/templates/**/*"
-    ],
     "plugins": [{
       "name": "@nestjs/swagger",
       "options": {
