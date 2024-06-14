@@ -39,4 +39,4 @@ export const formatHourMinutesText = (date: Date): string => {
 }
 
 export const addMinutesToDate = (date: Date, minutes: number): Date =>
-  new Date(date.getTime() + minutes * 60000)
+  new Date(new Date(new Date(date).setUTCHours(-8)).getTime() + minutes * 60000)

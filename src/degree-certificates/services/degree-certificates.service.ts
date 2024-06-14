@@ -106,16 +106,20 @@ export class DegreeCertificatesService {
       student.internshipHours < student.career.internshipHours
     ) {
       throw new DegreeCertificateBadRequestError(
-        `El estudiante no cumple con los requisitos para obtener el certificado de grado. Créditos aprobados: ${student.approvedCredits}, Horas de vinculación: ${student.vinculationHours}, Horas de pasantías: ${student.internshipHours}`,
+        `El estudiante no cumple con los requisitos para obtener el certificado de grado. Créditos necesarios: ${student.career.credits}, Horas de vinculación necesarias: ${student.career.vinculationHours}, Horas de pasantías necesarias: ${student.career.internshipHours}`,
       )
     }
   }
 
-  async checkPresentationDate(
-    presentationDate?: Date,
-    duration?: number,
-    roomId?: number,
-  ) {
+  async checkPresentationDate({
+    presentationDate,
+    duration,
+    roomId,
+  }: {
+    presentationDate?: Date
+    duration?: number
+    roomId?: number
+  } = {}): Promise<void> {
     if (
       roomId &&
       roomId !== null &&
@@ -145,11 +149,11 @@ export class DegreeCertificatesService {
     ).data
 
     await this.checkStudent(student)
-    await this.checkPresentationDate(
-      dto.presentationDate,
-      dto.duration,
-      dto.roomId,
-    )
+    await this.checkPresentationDate({
+      presentationDate: dto.presentationDate,
+      duration: dto.duration,
+      roomId: dto.roomId,
+    })
 
     const certificateStatusType =
       await this.certificateStatusService.findCertificateStatusType(
@@ -384,11 +388,11 @@ export class DegreeCertificatesService {
         dto.presentationDate &&
         dto.presentationDate !== degreeCertificate.presentationDate
       ) {
-        await this.checkPresentationDate(
-          dto.presentationDate,
-          dto.duration,
-          dto.roomId,
-        )
+        await this.checkPresentationDate({
+          presentationDate: dto.presentationDate,
+          duration: dto.duration,
+          roomId: dto.roomId,
+        })
       }
 
       const degreeCertificatePreloaded = await qr.manager

@@ -33,8 +33,8 @@ export class DegreeCertificateEntity extends BaseAppEntity {
 
   @Column({
     name: 'presentation_date',
-    type: 'date',
     nullable: true,
+    type: 'timestamptz',
   })
   presentationDate?: Date
 

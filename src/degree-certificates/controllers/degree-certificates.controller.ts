@@ -100,4 +100,24 @@ export class DegreeCertificatesController {
 
     return new ApiResponseDto('Certificados cargados', certificates)
   }
+
+  @Get('check-presentation-date')
+  async checkPresentationDate(
+    @Body()
+    {
+      presentationDate,
+      duration,
+      roomId,
+    }: {
+      presentationDate?: Date
+      duration?: number
+      roomId?: number
+    },
+  ) {
+    await this.degreeCertificatesService.checkPresentationDate({
+      presentationDate,
+      duration,
+      roomId,
+    })
+  }
 }
