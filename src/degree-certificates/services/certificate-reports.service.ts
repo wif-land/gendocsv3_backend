@@ -40,7 +40,10 @@ export class CertificateReportsService {
         submoduleYearModule: { id: subModuleYearModule.id },
         createdAt:
           dateType === DATE_TYPES.CREATION
-            ? Between(startDate, new Date(endDate.setHours(23, 59, 59, 999)))
+            ? Between(
+                startDate,
+                new Date(new Date(endDate).setHours(23, 59, 59, 999)),
+              )
             : Not(IsNull()),
       },
       order: { createdAt: 'ASC' },
