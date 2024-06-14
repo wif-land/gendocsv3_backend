@@ -100,4 +100,13 @@ export class DegreeCertificatesController {
 
     return new ApiResponseDto('Certificados cargados', certificates)
   }
+
+  @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
+  @Get(':id')
+  async getCertificate(@Param('id', ParseIntPipe) id: number) {
+    return new ApiResponseDto(
+      'Certificado encontrado',
+      await this.degreeCertificatesService.findById(id),
+    )
+  }
 }
