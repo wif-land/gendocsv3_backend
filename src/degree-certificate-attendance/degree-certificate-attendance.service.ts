@@ -98,9 +98,22 @@ export class DegreeCertificateAttendanceService {
     degreeCertificateId: number,
   ): Promise<ApiResponseDto<DegreeCertificateAttendanceEntity[]>> {
     const degreeCertificateAttendance =
-      await this.degreeCertificateAttendanceRepository.find({
-        where: { degreeCertificate: { id: degreeCertificateId } },
-      })
+      await this.degreeCertificateAttendanceRepository
+        .createQueryBuilder('degreeCertificateAttendance')
+        .leftJoinAndSelect(
+          'degreeCertificateAttendance.functionary',
+          'functionary',
+        )
+        .leftJoinAndSelect('functionary.thirdLevelDegree', 'thirdLevelDegree')
+        .leftJoinAndSelect('functionary.fourthLevelDegree', 'fourthLevelDegree')
+        .leftJoinAndSelect(
+          'degreeCertificateAttendance.degreeCertificate',
+          'degreeCertificate',
+        )
+        .where('degreeCertificate.id = :degreeCertificateId', {
+          degreeCertificateId,
+        })
+        .getMany()
 
     return new ApiResponseDto(
       'Asistencia al acta de grado encontrada con éxito',
