@@ -68,9 +68,7 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
     return query.getOne()
   }
 
-  async findManyFor(
-    options: FindManyOptions<DegreeCertificateEntity>,
-  ): Promise<DegreeCertificateEntity[]> {
+  async findManyFor(options: FindManyOptions<DegreeCertificateEntity>) {
     const query = this.qb
       .leftJoinAndSelect('degreeCertificate.student', 'student')
       .leftJoinAndSelect('student.career', 'studentCareer')
@@ -89,6 +87,8 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .leftJoinAndSelect('degreeCertificate.user', 'user')
       .where(options.where)
 
+    const countQuery = await query.getCount()
+
     if (options.order) {
       query.setFindOptions({
         order: options.order,
@@ -99,7 +99,11 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       query.take(options.take)
       query.skip(options.skip)
     }
-    return query.getMany()
+
+    return {
+      degreeCertificates: await query.getMany(),
+      count: countQuery,
+    }
   }
 
   async findStrictReplicate(

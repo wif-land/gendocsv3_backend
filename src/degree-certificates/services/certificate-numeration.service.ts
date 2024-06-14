@@ -60,7 +60,7 @@ export class CertificateNumerationService {
           career: { id: careerId },
           submoduleYearModule: { id: submoduleYearModuleId },
           number: Not(IsNull()),
-          deletedAt: null,
+          deletedAt: IsNull(),
         },
         order: { number: 'DESC' },
       },
@@ -77,7 +77,7 @@ export class CertificateNumerationService {
     const submoduleYearModule =
       await this.degreeCertificatesService.getCurrentDegreeSubmoduleYearModule()
 
-    const removedDegreeCertificates =
+    const { degreeCertificates: removedDegreeCertificates } =
       await this.degreeCertificateRepository.findManyFor({
         where: {
           career: { id: careerId },

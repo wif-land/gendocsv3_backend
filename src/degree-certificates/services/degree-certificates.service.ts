@@ -57,7 +57,7 @@ export class DegreeCertificatesService {
     // eslint-disable-next-line no-magic-numbers
     const { limit = 10, offset = 0 } = paginationDto
 
-    const degreeCertificates =
+    const { degreeCertificates, count } =
       await this.degreeCertificateRepository.findManyFor({
         where: {
           career: { id: carrerId },
@@ -67,10 +67,6 @@ export class DegreeCertificatesService {
         take: limit,
         skip: offset,
       })
-
-    const countQueryBuilder =
-      this.degreeCertificateRepository.createQueryBuilder('degreeCertificates')
-    const count = await countQueryBuilder.getCount()
 
     return new ApiResponseDto('Certificados de grado encontrados', {
       count,
@@ -218,7 +214,7 @@ export class DegreeCertificatesService {
     careerId: number,
     submoduleYearModuleId: number,
   ) {
-    const degreeCertificates =
+    const { degreeCertificates } =
       await this.degreeCertificateRepository.findManyFor({
         where: {
           submoduleYearModule: { id: submoduleYearModuleId },
