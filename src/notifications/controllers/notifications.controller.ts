@@ -54,7 +54,7 @@ export class NotificationsController {
   }
 
   @Get(':userId')
-  async findOne(
+  async findAllAvailableForUser(
     @Param('userId', ParseIntPipe) userId: number,
     @Query('limit') limit?: number,
   ): Promise<

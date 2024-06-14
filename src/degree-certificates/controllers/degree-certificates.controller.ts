@@ -91,13 +91,32 @@ export class DegreeCertificatesController {
     @Param('userId', ParseIntPipe) userId: number,
     @Query('retry-id') retryId?: number,
   ) {
-    const certificates =
-      await this.certificateBulkService.createBulkCertificates(
-        createCertificatesDtos,
-        userId,
-        retryId ? +retryId : undefined,
-      )
+    this.certificateBulkService.createBulkCertificates(
+      createCertificatesDtos,
+      userId,
+      retryId ? +retryId : undefined,
+    )
 
-    return new ApiResponseDto('Certificados cargados', certificates)
+    return new ApiResponseDto('Proceso de carga en ejecución', true)
+  }
+
+  @Get('check-presentation-date')
+  async checkPresentationDate(
+    @Body()
+    {
+      presentationDate,
+      duration,
+      roomId,
+    }: {
+      presentationDate?: Date
+      duration?: number
+      roomId?: number
+    },
+  ) {
+    await this.degreeCertificatesService.checkPresentationDate({
+      presentationDate,
+      duration,
+      roomId,
+    })
   }
 }
