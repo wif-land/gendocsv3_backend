@@ -4,7 +4,7 @@ export class AddReportTemplate1717741101554 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       UPDATE modules
-        SET report_template_drive_id = '1k1u6vFfZzg7zr4C2vX2p1E3bGyJ6lC5'
+        SET report_template_drive_id = '19YNc7_uGgSvbiKE5X7aA9LWNouAlXsCjEGosWBsJuLI'
         WHERE code = 'COMM'
     `)
   }

@@ -67,8 +67,8 @@ export class YearModuleService {
   ) {
     const submoduleYearModule = await this.submoduleYearModuleRepository
       .createQueryBuilder('submoduleYearModule')
-      .leftJoin('submoduleYearModule.yearModule', 'yearModule')
-      .leftJoin('yearModule.module', 'module')
+      .leftJoinAndSelect('submoduleYearModule.yearModule', 'yearModule')
+      .leftJoinAndSelect('yearModule.module', 'module')
       .where('module.code = :moduleCode', { moduleCode })
       .andWhere('yearModule.year = :year', { year })
       .andWhere('submoduleYearModule.name = :submoduleName', { submoduleName })

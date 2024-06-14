@@ -11,3 +11,5 @@ export const getYearModulePath = (yearModule: YearModuleEntity) =>
   `${projectPath}/storage/recopilations/${yearModule.module.name}/${yearModule.year}`
 
 export const getProjectPath = () => projectPath
+
+export const getTempProjectPath = () => `${projectPath}/storage/temp`
