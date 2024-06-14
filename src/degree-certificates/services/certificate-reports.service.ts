@@ -28,12 +28,6 @@ export class CertificateReportsService {
   ) {
     const { careerId, startDate, endDate, dateType } = degreeCertificateFilters
 
-    console.log(
-      dateType === DATE_TYPES.CREATION
-        ? Between(startDate, endDate)
-        : undefined,
-    )
-
     const subModuleYearModule =
       await this.degreeCertificateService.getCurrentDegreeSubmoduleYearModule()
     const certificates = await this.degreeCertificateRepository.findManyFor({
