@@ -70,10 +70,13 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
 
   async findManyFor(
     options: FindManyOptions<DegreeCertificateEntity>,
-  ): Promise<DegreeCertificateEntity[]> {
+    field?: string,
+  ) {
     const query = this.qb
       .leftJoinAndSelect('degreeCertificate.student', 'student')
       .leftJoinAndSelect('student.career', 'studentCareer')
+      .leftJoinAndSelect('student.canton', 'canton')
+      .leftJoinAndSelect('canton.province', 'province')
       .leftJoinAndSelect('degreeCertificate.certificateType', 'certificateType')
       .leftJoinAndSelect('degreeCertificate.degreeModality', 'degreeModality')
       .leftJoinAndSelect(
@@ -89,6 +92,17 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .leftJoinAndSelect('degreeCertificate.user', 'user')
       .where(options.where)
 
+    if (field) {
+      query.andWhere(
+        "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', student.firstName, student.secondName, student.firstLastName, student.secondLastName) ILIKE :term OR student.dni ILIKE :term )",
+        {
+          term: field ? `%${field.trim()}%` : null,
+        },
+      )
+    }
+
+    const countQuery = await query.getCount()
+
     if (options.order) {
       query.setFindOptions({
         order: options.order,
@@ -99,7 +113,11 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       query.take(options.take)
       query.skip(options.skip)
     }
-    return query.getMany()
+
+    return {
+      degreeCertificates: await query.getMany(),
+      count: countQuery,
+    }
   }
 
   async findStrictReplicate(
