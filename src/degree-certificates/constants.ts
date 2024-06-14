@@ -26,4 +26,5 @@ export interface IDegreeCertificateFilters {
   dateType?: DATE_TYPES
   limit?: number
   offset?: number
+  field?: string
 }

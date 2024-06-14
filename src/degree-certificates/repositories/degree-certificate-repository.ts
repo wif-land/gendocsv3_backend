@@ -68,7 +68,10 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
     return query.getOne()
   }
 
-  async findManyFor(options: FindManyOptions<DegreeCertificateEntity>) {
+  async findManyFor(
+    options: FindManyOptions<DegreeCertificateEntity>,
+    field?: string,
+  ) {
     const query = this.qb
       .leftJoinAndSelect('degreeCertificate.student', 'student')
       .leftJoinAndSelect('student.career', 'studentCareer')
@@ -86,6 +89,15 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .leftJoinAndSelect('degreeCertificate.room', 'room')
       .leftJoinAndSelect('degreeCertificate.user', 'user')
       .where(options.where)
+
+    if (field) {
+      query.andWhere(
+        "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', student.firstName, student.secondName, student.firstLastName, student.secondLastName) ILIKE :term OR student.dni ILIKE :term )",
+        {
+          term: field ? `%${field.trim()}%` : null,
+        },
+      )
+    }
 
     const countQuery = await query.getCount()
 
