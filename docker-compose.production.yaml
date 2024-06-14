@@ -21,12 +21,8 @@ services:
     container_name: gendocsv3_backend
     image: ${BACKEND_DOCKER_IMAGE}
     restart: always
-    environment:
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=${DATABASE_PORT}
-      - DATABASE_NAME=${DATABASE_NAME}
-      - DATABASE_USERNAME=${DATABASE_USERNAME}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+    env_file:
+      - .env.production
     ports:
       - ${APP_PORT}:${APP_PORT}
     depends_on:
@@ -42,9 +38,21 @@ services:
       - 8000:3000
     networks:
       - gendocs-network
+  
+  bull_redis:
+    container_name: gendocsv3_bull_redis
+    image: redis:7.4-rc1-alpine
+    restart: always
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    volumes:
+      - bull-redis-data:/data
+    networks:
+      - gendocs-network
 
 volumes:
   postgres-data:
+  bull-redis-data:
 
 networks:
   gendocs-network:
