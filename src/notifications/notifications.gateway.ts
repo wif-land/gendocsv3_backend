@@ -1,5 +1,6 @@
 import {
   MessageBody,
+  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
   WsException,
@@ -7,6 +8,7 @@ import {
 import { Server } from 'socket.io'
 import { Catch, HttpException, Logger, UseFilters } from '@nestjs/common'
 import { NotificationEntity } from './entities/notification.entity'
+import { NotificationsService } from './notifications.service'
 
 @Catch(WsException, HttpException)
 class WsAndHttpExceptionFilter {
@@ -23,6 +25,8 @@ class WsAndHttpExceptionFilter {
   },
 })
 export class NotificationsGateway {
+  constructor(private readonly notificationsService: NotificationsService) {}
+
   @WebSocketServer()
   server: Server
 
@@ -31,8 +35,22 @@ export class NotificationsGateway {
     @MessageBody()
     data:
       | NotificationEntity
-      | { notification: NotificationEntity; chids: NotificationEntity[] },
+      | { notification: NotificationEntity; childs: NotificationEntity[] },
   ): void {
+    if (data instanceof NotificationEntity) {
+      this.server.emit('notification', {
+        notification: data,
+        childs: [],
+      })
+      return
+    }
     this.server.emit('notification', data)
+  }
+
+  @SubscribeMessage('user-notifications')
+  async handleUserNotifications(@MessageBody() { userId }: { userId: number }) {
+    const notifications =
+      await this.notificationsService.findAllAvailableForUser(userId)
+    this.server.emit('user-notifications', notifications)
   }
 }

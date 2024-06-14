@@ -20,7 +20,10 @@ export class CertificateReportsController {
     const certificates =
       await this.certificateReportsService.getCertificatesReport(filters)
 
-    return new ApiResponseDto('Reporte inicial encontrado', certificates)
+    return new ApiResponseDto(
+      `Reporte de certificados ${filters.endDate ? 'final' : 'inicial'}`,
+      certificates,
+    )
   }
 
   @Get('generate')
