@@ -1,16 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { DEGREE_CERTIFICATE } from '../constants'
+import { DEGREE_CERTIFICATE, IDegreeCertificateFilters } from '../constants'
 import { DegreeCertificateRepository } from '../repositories/degree-certificate-repository'
-import { Not, IsNull } from 'typeorm'
+import { Not, IsNull, Between } from 'typeorm'
 import { DegreeCertificatesService } from './degree-certificates.service'
 import { FilesService } from '../../files/services/files.service'
 import { MIMETYPES } from '../../shared/constants/mime-types'
-import { getProjectPath } from '../../shared/helpers/path-helper'
+import { getTempProjectPath } from '../../shared/helpers/path-helper'
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 import { getFullName, getFullNameWithTitles } from '../../shared/utils/string'
 import { DegreeCertificateAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
 import { DEGREE_ATTENDANCE_ROLES } from '../../shared/enums/degree-certificates'
 import { formatDate, formatTime } from '../../shared/utils/date'
+import { DATE_TYPES } from '../../councils/dto/council-filters.dto'
 
 @Injectable()
 export class CertificateReportsService {
@@ -22,29 +23,49 @@ export class CertificateReportsService {
     private readonly certificateAttendanceService: DegreeCertificateAttendanceService,
   ) {}
 
-  async getCertificatesReport(careerId: number, isEnd?: boolean) {
+  async getCertificatesReport(
+    degreeCertificateFilters: IDegreeCertificateFilters,
+  ) {
+    const { careerId, startDate, endDate, dateType } = degreeCertificateFilters
+
+    console.log(
+      dateType === DATE_TYPES.CREATION
+        ? Between(startDate, endDate)
+        : undefined,
+    )
+
     const subModuleYearModule =
       await this.degreeCertificateService.getCurrentDegreeSubmoduleYearModule()
     const certificates = await this.degreeCertificateRepository.findManyFor({
       where: {
-        career: { id: careerId },
-        presentationDate: isEnd ? Not(IsNull()) : IsNull(),
+        career: { id: +careerId },
+        presentationDate:
+          dateType === DATE_TYPES.CREATION ? Not(IsNull()) : IsNull(),
         isClosed: false,
         deletedAt: IsNull(),
         submoduleYearModule: { id: subModuleYearModule.id },
+        createdAt:
+          dateType === DATE_TYPES.CREATION
+            ? Between(startDate, endDate)
+            : Not(IsNull()),
       },
+      order: { createdAt: 'ASC' },
     })
 
     return certificates
   }
 
-  async generateCertificateReport(careerId: number, isEnd?: boolean) {
+  async generateCertificateReport(
+    degreeCertificateFilters: IDegreeCertificateFilters,
+  ) {
     const submoduleYearModule =
       await this.degreeCertificateService.getCurrentDegreeSubmoduleYearModule()
     const reportTemplateId =
       submoduleYearModule.yearModule.module.reportTemplateDriveId
 
-    const certificatesPromise = this.getCertificatesReport(careerId, isEnd)
+    const certificatesPromise = this.getCertificatesReport(
+      degreeCertificateFilters,
+    )
 
     const reportTemplate = this.filesService.exportAsset(
       reportTemplateId,
@@ -52,12 +73,14 @@ export class CertificateReportsService {
     )
 
     const tempPath = await this.filesService.resolveDirectory(
-      `${getProjectPath()}/temp`,
+      getTempProjectPath(),
     )
 
     const reportTemplateDownloaded =
       await this.filesService.saveDownloadedDocument(
-        `Reporte-${isEnd ? 'final' : 'inicial'}.xlsx`,
+        `Reporte-${
+          degreeCertificateFilters.endDate ? 'final' : 'inicial'
+        }.xlsx`,
         tempPath,
         await reportTemplate,
       )

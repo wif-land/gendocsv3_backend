@@ -37,6 +37,7 @@ export class ExcelService {
 
       worksheet.getRow(startRow + index).eachCell((cell) => {
         cell.style = worksheet.getCell(startRow, startColumn).style
+        cell.alignment = worksheet.getCell(startRow, startColumn).alignment
       })
 
       // Ajustar el alto  y ancho de la fila en base a la fila de inicio
@@ -45,11 +46,6 @@ export class ExcelService {
 
       worksheet.getRow(startRow + index).outlineLevel =
         worksheet.getRow(startRow).outlineLevel
-
-      // ajustar el contenido al tamaño de la celda
-      worksheet.getRow(startRow + index).eachCell((cell) => {
-        cell.alignment = worksheet.getCell(startRow, startColumn).alignment
-      })
     })
 
     await workbook.xlsx.writeFile(templateDir)

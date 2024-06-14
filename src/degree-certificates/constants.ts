@@ -1,3 +1,4 @@
+import { DATE_TYPES } from '../councils/dto/council-filters.dto'
 import { NotificationEntity } from '../notifications/entities/notification.entity'
 import { CreateDegreeCertificateBulkDto } from './dto/create-degree-certificate-bulk.dto'
 
@@ -16,4 +17,13 @@ export interface CertificateBulkCreation {
   notification: NotificationEntity
   dto: CreateDegreeCertificateBulkDto
   retries?: NotificationEntity[]
+}
+
+export interface IDegreeCertificateFilters {
+  careerId?: number
+  startDate?: Date
+  endDate?: Date
+  dateType?: DATE_TYPES
+  limit?: number
+  offset?: number
 }
