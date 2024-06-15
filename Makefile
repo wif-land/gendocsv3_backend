@@ -75,10 +75,8 @@ generate_ssh_key:
 
 install_cron:
 	@echo "Instalando el cronjob..."
-	@crontab -l > gendocsv3_backup_script 2>/dev/null || true
-	@echo "$(CRON_SCHEDULE) $(BACKUP_SCRIPT)" >> gendocsv3_backup_script
-	@crontab gendocsv3_backup_script
-	@rm gendocsv3_backup_script
+	scp $(BACKUP_SCRIPT) $(VM_USER)@$(VM_IP):$(REMOTE_DIR)/
+	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && echo '$(CRON_SCHEDULE) $(BACKUP_SCRIPT)' > gendocsv3_backup_script && crontab -l | { cat; echo '$(CRON_SCHEDULE) $(REMOTE_DIR)/gendocsv3_backup_script'; } | crontab -"
 	@echo "Cronjob instalado correctamente."
 
 # Objetivo para desinstalar el cronjob
