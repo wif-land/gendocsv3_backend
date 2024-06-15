@@ -41,9 +41,9 @@ copy_files:
 deploy_backend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@echo "Deploying backend to production..."
 	@ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && \
-														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down backend && \
+														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down backend bull_redis && \
 														docker rmi ${BACKEND_DOCKER_IMAGE} | true && \
-														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d backend"
+														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d backend bull_redis"
 
 deploy_frontend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@echo "Deploying frontend to production..."
@@ -60,6 +60,7 @@ deploy_db_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 
 deploy_all_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@make prepare_production
+	@make deploy_db_production
 	@make deploy_backend_production
 	@make deploy_frontend_production
 	@echo "Deployed successfully!"

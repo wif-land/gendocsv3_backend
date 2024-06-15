@@ -11,9 +11,11 @@ Ten en cuenta que este paso a paso está diseñado para hacerse manualmente, por
 
 **Nota:** Recomendamos fervientemente que se maneje un versionado semántico para las releases.
 
-## Antes de comenzar
+## Requisitos antes de comenzar
 
-Debe tener a la mano el archivo .env.production. Puedes pedirle a un compañero que te pase el archivo con las variables de entorno.
+- Tener instalado `docker` y `docker-compose` en tu computadora.
+- Tener acceso al servidor de producción.
+- Es mejor utilizar una máquina linux para hacer el deploy.
 
 ## Seguridad
 
@@ -23,7 +25,7 @@ Genera una llave ssh en el servidor de producción y copia la llave pública a t
 make generate_ssh_key VM_IP=<ip del servidor>
 ```
 
-Este comando generará una llave ssh en el servidor y copiará la llave pública a tu computadora y así evitar que te pida la contraseña cada vez que hagas un push al servidor.
+Este comando generará una llave ssh en el servidor y copiará la llave pública a tu computadora y así evitar que te pida la contraseña cada vez que hagas un push/login al servidor.
 
 Llena el archivo `.env.production` con las variables de entorno necesarias para el proyecto. Puedes pedirle a un compañero que te pase el archivo con las variables de entorno.
 
@@ -32,7 +34,7 @@ Llena el archivo `.env.production` con las variables de entorno necesarias para 
 Ejecuta el comando:
 
 ```bash
-make deploy_production VM_IP=<ip del servidor>
+make deploy_all_production VM_IP=<ip del servidor>
 ```
 
 Este comando ejecutará los siguientes pasos:
