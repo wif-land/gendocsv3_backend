@@ -4,11 +4,12 @@ import { FilesService } from '../services/files.service'
 import { GcpModule } from '../../gcp/gcp.module'
 import { FileSystemModule } from './file-system.module'
 import { DocxModule } from './docx.module'
+import { ExcelService } from '../services/excel.service'
 
 @Module({
   controllers: [FilesController],
-  providers: [FilesService],
+  providers: [FilesService, ExcelService],
   imports: [GcpModule, FileSystemModule, DocxModule],
-  exports: [FilesService],
+  exports: [FilesService, ExcelService],
 })
 export class FilesModule {}

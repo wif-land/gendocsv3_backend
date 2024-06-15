@@ -413,3 +413,5 @@ temp-assets/
 recopilations/
 storage/recopilations/
 storage/temp/
+
+*.http

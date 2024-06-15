@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, IsNull, Repository } from 'typeorm'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
 import { CreateEditDefaultMemberDTO } from './dto/create-edit-default-member.dto'
 import { GetDefaultMembers } from './dto/default-members-get.dto'
@@ -24,7 +24,7 @@ export class AttendanceService {
     const defaultAttendance = await this.councilAttendanceRepository.find({
       where: {
         council: {
-          id: null,
+          id: IsNull(),
         },
         module: {
           id: moduleId,

@@ -98,15 +98,22 @@ export class DegreeCertificateAttendanceService {
     degreeCertificateId: number,
   ): Promise<ApiResponseDto<DegreeCertificateAttendanceEntity[]>> {
     const degreeCertificateAttendance =
-      await this.degreeCertificateAttendanceRepository.find({
-        where: { degreeCertificate: { id: degreeCertificateId } },
-      })
-
-    if (!degreeCertificateAttendance) {
-      throw new DegreeCertificateBadRequestError(
-        `No se encontró la asistencia al acta de grado con id ${degreeCertificateId}`,
-      )
-    }
+      await this.degreeCertificateAttendanceRepository
+        .createQueryBuilder('degreeCertificateAttendance')
+        .leftJoinAndSelect(
+          'degreeCertificateAttendance.functionary',
+          'functionary',
+        )
+        .leftJoinAndSelect('functionary.thirdLevelDegree', 'thirdLevelDegree')
+        .leftJoinAndSelect('functionary.fourthLevelDegree', 'fourthLevelDegree')
+        .leftJoinAndSelect(
+          'degreeCertificateAttendance.degreeCertificate',
+          'degreeCertificate',
+        )
+        .where('degreeCertificate.id = :degreeCertificateId', {
+          degreeCertificateId,
+        })
+        .getMany()
 
     return new ApiResponseDto(
       'Asistencia al acta de grado encontrada con éxito',
@@ -130,8 +137,9 @@ export class DegreeCertificateAttendanceService {
     }
 
     if (
-      degreeCertificateAttendance.hasAttended ||
-      degreeCertificateAttendance.hasBeenNotified
+      (degreeCertificateAttendance.hasAttended ||
+        degreeCertificateAttendance.hasBeenNotified) &&
+      updateDegreeCertificateAttendanceDto.hasAttended === false
     ) {
       throw new DegreeCertificateBadRequestError(
         `No se puede actualizar la asistencia al acta de grado con id ${id} porque ya ha sido notificado o ha asistido`,

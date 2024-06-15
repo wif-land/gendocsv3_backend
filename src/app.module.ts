@@ -34,13 +34,15 @@ import { DocumentsModule } from './documents/documents.module'
 import { PositionsModule } from './positions/positions.module'
 import { DegreesModule } from './degrees/degrees.module'
 import { CitiesModule } from './cities/cities.module'
-import { DegreeCertificatesModule } from './degree-certificates/degree-certificates.module'
+import { DegreeCertificatesModule } from './degree-certificates/modules/degree-certificates.module'
 import { CouncilsAttendanceModule } from './council-attendance/module'
 import { DegreeCertificateAttendanceModule } from './degree-certificate-attendance/degree-certificate-attendance.module'
 import { FileSystemModule } from './files/modules/file-system.module'
 import { DocxModule } from './files/modules/docx.module'
 import { EmailService } from './email/email.service'
 import { EmailModule } from './email/email.module'
+import { BullModule } from '@nestjs/bull'
+import { NotificationsModule } from './notifications/notifications.module'
 
 dotenvConfig({ path: '.env' })
 
@@ -72,11 +74,13 @@ export default connectionSource
       ...config,
       dropSchema: process.env.DROP_SCHEMA === 'true',
       logging: true,
-      extra: {
-        application_name: 'your_app_name',
-        options: '-c timezone=GMT-5',
-      },
     } as TypeOrmModuleOptions),
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST,
+        port: +process.env.REDIS_PORT,
+      },
+    }),
     LogModule,
     TerminusModule,
     HttpModule,
@@ -107,6 +111,7 @@ export default connectionSource
     CouncilsAttendanceModule,
     DegreeCertificateAttendanceModule,
     EmailModule,
+    NotificationsModule,
   ],
   controllers: [AppController, FilesController],
   providers: [AppService, LoggerMiddleware, FilesService, EmailService],

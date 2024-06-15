@@ -50,7 +50,7 @@ export const numeroALetras = (num: number) => {
   else return Millones(data.enteros) + data.letrasDecimales
 }
 
-const Unidades = (num: number) => {
+const Unidades = (num: number, priSegDec?: boolean) => {
   const aLetras = {
     1: 'UNO',
     2: 'DOS',
@@ -62,6 +62,20 @@ const Unidades = (num: number) => {
     8: 'OCHO',
     9: 'NUEVE',
   }
+
+  const aLetras2 = {
+    1: 'UNO',
+    2: 'DÓS',
+    3: 'TRÉS',
+    4: 'CUATRO',
+    5: 'CINCO',
+    6: 'SÉIS',
+    7: 'SIETE',
+    8: 'OCHO',
+    9: 'NUEVE',
+  }
+
+  if (priSegDec) return aLetras2[num] || ''
 
   return aLetras[num] || ''
 } // Unidades()
@@ -82,9 +96,9 @@ const Decenas = (num: number) => {
         4: 'CATORCE',
         5: 'QUINCE',
       }
-      return aLetra[unidad] || `DIECI${Unidades(unidad)}`
+      return aLetra[unidad] || `DIECI${Unidades(unidad, true)}`
     })(),
-    2: unidad === 0 ? 'VEINTE' : `VEINTI${Unidades(unidad)}`,
+    2: unidad === 0 ? 'VEINTE' : `VEINTI${Unidades(unidad, true)}`,
     3: DecenasY('TREINTA', unidad),
     4: DecenasY('CUARENTA', unidad),
     5: DecenasY('CINCUENTA', unidad),

@@ -5,6 +5,7 @@ import { DEFAULT_VARIABLE } from '../../shared/enums/default-variable'
 import { DocxService } from './docx.service'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 import { IReplaceText } from '../../shared/interfaces/replace-text'
+import { ExcelService } from './excel.service'
 // eslint-disable-next-line import/no-unresolved
 // import * as fs from 'fs/promises'
 // // import * as DocxMerger from '@scholarcy/docx-merger'
@@ -17,6 +18,7 @@ export class FilesService {
     private readonly gcpService: GcpService,
     private readonly fileSystemService: FileSystemService,
     private readonly docxService: DocxService,
+    private readonly excelService: ExcelService,
   ) {}
 
   async mergeDocuments(
@@ -314,5 +316,26 @@ export class FilesService {
     }
 
     return buffer
+  }
+
+  async createExcelReportFromTemplate(
+    data: { [key: string]: string }[],
+    templatePath: string,
+    replaceValues?: { [key: string]: string },
+  ) {
+    const reportPath = await this.excelService.createExcelReportFromTemplate(
+      data,
+      templatePath,
+      replaceValues,
+    )
+
+    if (!reportPath) {
+      throw new HttpException(
+        'Error creando reporte de Excel desde plantilla',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    return reportPath
   }
 }

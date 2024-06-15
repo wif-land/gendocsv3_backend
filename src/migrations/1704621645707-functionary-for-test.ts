@@ -30,6 +30,18 @@ export class FunctionaryForTest1704621645707 implements MigrationInterface {
         femaleTitle: 'Licenciada',
         degreeLevel: '3',
       },
+      {
+        abbreviation: 'Mgtr.',
+        maleTitle: 'Master',
+        femaleTitle: 'Master',
+        degreeLevel: '4',
+      },
+      {
+        abbreviation: 'Doc.',
+        maleTitle: 'Doctor',
+        femaleTitle: 'Doctora',
+        degreeLevel: '3',
+      },
     ]
 
     await degreeRepository.save(degreesForTest)
@@ -40,9 +52,9 @@ export class FunctionaryForTest1704621645707 implements MigrationInterface {
     const functionaryForTest = [
       {
         firstName: 'Lenin',
-        secondName: 'Lenin',
-        firstLastName: 'LEnin',
-        secondLastName: 'Lenin',
+        secondName: 'Esteban',
+        firstLastName: 'Mazabanda',
+        secondLastName: 'Lopez',
         outlookEmail: 'lenin@uta.edu.ec',
         personalEmail: 'lenin@gmail.com',
         phoneNumber: '0979424062',
@@ -54,9 +66,9 @@ export class FunctionaryForTest1704621645707 implements MigrationInterface {
       },
       {
         firstName: 'Pablo',
-        secondName: 'Pablo',
-        firstLastName: 'LEnin',
-        secondLastName: 'Pablo',
+        secondName: 'Martin',
+        firstLastName: 'Villacres',
+        secondLastName: 'Cedeño',
         outlookEmail: 'pablo@uta.edu.ec',
         personalEmail: 'pablo@yahoo.com',
         phoneNumber: '0979424063',
@@ -82,9 +94,9 @@ export class FunctionaryForTest1704621645707 implements MigrationInterface {
       },
       {
         firstName: 'Juan',
-        secondName: 'Juan',
-        firstLastName: 'Juan',
-        secondLastName: 'Juan',
+        secondName: 'Alfonso',
+        firstLastName: 'Perez',
+        secondLastName: 'Perez',
         outlookEmail: 'juan@uta.edu.ec',
         personalEmail: 'juan@gmail.com',
         phoneNumber: '0979424065',
@@ -95,9 +107,9 @@ export class FunctionaryForTest1704621645707 implements MigrationInterface {
       },
       {
         firstName: 'Carlos',
-        secondName: 'Carlos',
-        firstLastName: 'Carlos',
-        secondLastName: 'Carlos',
+        secondName: 'Oswaldo',
+        firstLastName: 'Iza',
+        secondLastName: 'Aguirre',
         outlookEmail: 'carlos@uta.edu.ec',
         personalEmail: 'carlos@gmail.com',
         phoneNumber: '0979424066',
@@ -108,9 +120,9 @@ export class FunctionaryForTest1704621645707 implements MigrationInterface {
       },
       {
         firstName: 'Luis',
-        secondName: 'Luis',
-        firstLastName: 'Luis',
-        secondLastName: 'Luis',
+        secondName: 'Ismael',
+        firstLastName: 'Urrutia',
+        secondLastName: 'Quispe',
         outlookEmail: 'luis@uta.edu.ec',
         personalEmail: 'luis@gmail.com',
         phoneNumber: '0979424067',
@@ -121,9 +133,9 @@ export class FunctionaryForTest1704621645707 implements MigrationInterface {
       },
       {
         firstName: 'Jose',
-        secondName: 'Jose',
-        firstLastName: 'Jose',
-        secondLastName: 'Jose',
+        secondName: 'Hugo',
+        firstLastName: 'Ramos',
+        secondLastName: 'Villacres',
         outlookEmail: 'jose@uta.edu.ec',
         personalEmail: 'jose@gmail.com',
         phoneNumber: '0979424068',

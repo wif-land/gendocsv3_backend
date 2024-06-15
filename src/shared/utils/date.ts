@@ -11,6 +11,9 @@ export const TIMES = {
 export const formatDate = (date: Date): string =>
   format(date, 'dd/mm/yyyy', { locale: es })
 
+export const formatTime = (date: Date): string =>
+  format(date, 'HH:mm', { locale: es })
+
 export const formatDateText = (
   date: Date | string,
   formatStr = "d 'de' MMMM 'de' yyyy",
@@ -37,3 +40,6 @@ export const formatHourMinutesText = (date: Date): string => {
     minutes === 1 ? 'minuto' : 'minutos'
   }`
 }
+
+export const addMinutesToDate = (date: Date, minutes: number): Date =>
+  new Date(new Date(new Date(date).setUTCHours(-8)).getTime() + minutes * 60000)

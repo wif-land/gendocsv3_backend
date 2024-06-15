@@ -5,4 +5,5 @@ export enum MIMETYPES {
   ZIP = 'application/zip',
   DRIVE_DOC = 'application/vnd.google-apps.document',
   DRIVE_SHEET = 'application/vnd.google-apps.spreadsheet',
+  MS_XLSX = 'application/vnd.ms-excel',
 }
