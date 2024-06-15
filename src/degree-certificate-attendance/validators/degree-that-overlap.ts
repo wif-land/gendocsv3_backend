@@ -45,26 +45,25 @@ export class DegreeCertificateThatOverlapValidator extends Validator<number> {
     const degreeCertificateAlreadyMarked = await this.dataSource.manager
       .createQueryBuilder(DegreeCertificateEntity, 'dc')
       .innerJoin('dc.attendances', 'dca')
+      .innerJoin('dca.functionary', 'functionary')
       .where('dc.presentationDate between :start and :end', {
         start: degreeCertificateData.presentationDate,
-        end:
+        end: new Date(
           new Date(degreeCertificateData.presentationDate).getTime() +
-          degreeCertificateData.duration * 60 * 1000,
+            degreeCertificateData.duration * 60 * 1000,
+        ),
       })
-      .andWhere('dca.functionaryId = :functionaryId', {
+      .andWhere('functionary.id = :functionaryId', {
         functionaryId: degreeCertificateAttendance.functionary.id,
+      })
+      .andWhere('dc.id != :dcId', {
+        dcId: degreeCertificateData.id,
       })
       .getOne()
 
     if (degreeCertificateAlreadyMarked) {
       throw new DegreeCertificateBadRequestError(
         'Ya existe una asistencia al acta de grado para este funcionario en otra acta de grado en la misma franja horaria',
-      )
-    }
-
-    if (degreeCertificateData) {
-      throw new DegreeCertificateBadRequestError(
-        'Ya existe una asistencia al acta de grado para este funcionario en otra acta de grado en la misma fecha',
       )
     }
   }
