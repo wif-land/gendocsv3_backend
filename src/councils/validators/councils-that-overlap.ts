@@ -3,9 +3,9 @@ import { CouncilEntity } from '../entities/council.entity'
 import { TIMES } from '../../shared/utils/date'
 import { CreateCouncilDto } from '../dto/create-council.dto'
 import { HttpException, HttpStatus } from '@nestjs/common'
-import { Validator } from './validator'
+import { Validator } from '../../core/validator'
 
-export class CouncilsThatOverlapValidator extends Validator {
+export class CouncilsThatOverlapValidator extends Validator<CreateCouncilDto> {
   constructor(dataSource: DataSource) {
     super(
       'Uno o más miembros del consejo se encuentran en otro consejo en la misma fecha. Por favor, verifique los datos e intente nuevamente.',
