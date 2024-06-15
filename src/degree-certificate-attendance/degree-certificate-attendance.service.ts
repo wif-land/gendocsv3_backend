@@ -184,6 +184,7 @@ export class DegreeCertificateAttendanceService {
       updatedDegreeCertificateAttendance,
     )
   }
+
   async remove(id: number) {
     const degreeCertificateAttendance =
       await this.degreeCertificateAttendanceRepository.findOne({
