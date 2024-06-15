@@ -41,7 +41,7 @@ export class CertificateReportsService {
         createdAt:
           dateType === DATE_TYPES.CREATION
             ? Between(
-                startDate,
+                new Date(new Date(startDate).setHours(0, 0, 0, 0)),
                 new Date(new Date(endDate).setHours(23, 59, 59, 999)),
               )
             : Not(IsNull()),
