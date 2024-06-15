@@ -57,6 +57,10 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       )
       .leftJoinAndSelect('degreeCertificate.room', 'room')
       .leftJoinAndSelect('degreeCertificate.user', 'user')
+      .leftJoinAndSelect('degreeCertificate.attendances', 'dca')
+      .leftJoinAndSelect('dca.functionary', 'functionary')
+      .leftJoinAndSelect('functionary.thirdLevelDegree', 'thirdLevelDegree')
+      .leftJoinAndSelect('functionary.fourthLevelDegree', 'fourthLevelDegree')
       .where(options.where)
 
     if (options.order) {
@@ -172,7 +176,6 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
   }
 
   async findApprovedByStudent(studentId: number) {
-    console.log('studentId', studentId)
     return await this.qb
       .leftJoinAndSelect('degreeCertificate.student', 'student')
       .leftJoinAndSelect('student.career', 'studentCareer')

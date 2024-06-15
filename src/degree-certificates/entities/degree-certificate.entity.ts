@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { StudentEntity } from '../../students/entities/student.entity'
 import { CareerEntity } from '../../careers/entites/careers.entity'
@@ -8,6 +8,7 @@ import { DegreeModalityEntity } from './degree-modality.entity'
 import { RoomEntity } from './room.entity'
 import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
 import { UserEntity } from '../../users/entities/users.entity'
+import { DegreeCertificateAttendanceEntity } from '../../degree-certificate-attendance/entities/degree-certificate-attendance.entity'
 
 @Entity('degree_certificates')
 export class DegreeCertificateEntity extends BaseAppEntity {
@@ -153,4 +154,10 @@ export class DegreeCertificateEntity extends BaseAppEntity {
     name: 'created_by',
   })
   user: UserEntity
+
+  @OneToMany(
+    () => DegreeCertificateAttendanceEntity,
+    (attendance) => attendance.degreeCertificate,
+  )
+  attendances: DegreeCertificateAttendanceEntity[]
 }
