@@ -3,10 +3,8 @@ import { CouncilAttendanceEntity } from '../../../councils/entities/council-atte
 import { DefaultMemberStrategy } from './default-members-strategy'
 
 export class UpdateDefaultMemberStrategy extends DefaultMemberStrategy {
-  execute(defaultMembers: CouncilAttendanceEntity[]) {
-    if (!defaultMembers.length) {
-      throw new Error('No existen representantes por defecto para este módulo')
-    }
+  execute(defaultMembers?: CouncilAttendanceEntity[]) {
+    if (this.params.length === 0) return []
 
     return this.params.map(async (item) => {
       if (!item.id) {
@@ -47,7 +45,7 @@ export class UpdateDefaultMemberStrategy extends DefaultMemberStrategy {
         }
 
         if (!item.isStudent && prevItem.student?.id) {
-          const alreadyExists = defaultMembers.find(
+          const alreadyExists = defaultMembers?.find(
             (member) => member.functionary?.id === item.member,
           )
 
