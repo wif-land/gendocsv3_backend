@@ -19,6 +19,9 @@ DATABASE_PASSWORD=1fsd815
 DATABASE_NAME=gendocsv3
 BACKEND_DOCKER_IMAGE=leninner/gendocsv3:latest
 FRONTEND_DOCKER_IMAGE=leninner/gendocsv3-frontend:latest
+REDIS_PORT=6379
+DATABASE_HOST=postgres
+REDIS_HOST=bull_redis
 ```
 
 ## Proceso de Despliegue
