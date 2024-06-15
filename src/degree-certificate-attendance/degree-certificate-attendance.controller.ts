@@ -10,6 +10,7 @@ import {
 import { DegreeCertificateAttendanceService } from './degree-certificate-attendance.service'
 import { CreateDegreeCertificateAttendanceDto } from './dto/create-degree-certificate-attendance.dto'
 import { UpdateDegreeCertificateAttendanceDto } from './dto/update-degree-certificate-attendance.dto'
+import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 
 @Controller('degree-certificate-attendance')
 export class DegreeCertificateAttendanceController {
@@ -69,7 +70,12 @@ export class DegreeCertificateAttendanceController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.degreeCertificateAttendanceService.remove(+id)
+  async remove(@Param('id') id: string) {
+    await this.degreeCertificateAttendanceService.remove(+id)
+
+    return new ApiResponseDto(
+      'Asistencia al acta de grado eliminada con éxito',
+      null,
+    )
   }
 }

@@ -4,6 +4,8 @@ import { DefaultMemberStrategy } from './default-members-strategy'
 
 export class CreateDefaultMemberStrategy extends DefaultMemberStrategy {
   execute(members?: CouncilAttendanceEntity[]) {
+    if (this.params.length === 0) return []
+
     return this.params.map(async (item) => {
       const memberProps = {}
       if (!item.isStudent) {

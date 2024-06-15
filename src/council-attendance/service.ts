@@ -64,18 +64,22 @@ export class AttendanceService {
       this.councilAttendanceRepository,
       moduleId,
     )
+
+    // To delete members
     const toDelete = body.filter((item) => item.action === 'delete')
     councilAttendanceCommands
       .setStrategy(new DeleteDefaultMemberStrategy())
       .setParams(toDelete)
     const deletePromises = councilAttendanceCommands.execute()
 
+    // To update members
     const toUpdate = body.filter((item) => item.action === 'update')
     councilAttendanceCommands
       .setStrategy(new UpdateDefaultMemberStrategy())
       .setParams(toUpdate)
     const updatePromises = councilAttendanceCommands.execute(defaultMembers)
 
+    // To create members
     const toCreate = body.filter((item) => item.action === 'create')
     councilAttendanceCommands
       .setStrategy(new CreateDefaultMemberStrategy())

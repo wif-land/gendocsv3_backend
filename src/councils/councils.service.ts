@@ -458,7 +458,7 @@ export class CouncilsService {
     // o debo consultar todos los miembros y generar un solo archivo con todos los miembros?
     await this.emailService.sendTestEmail(
       members.map((val) => val.email),
-      'Test email from Lenin',
+      'Notificación de Consejo',
     )
     return true
   }
