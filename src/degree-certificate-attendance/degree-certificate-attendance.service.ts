@@ -137,8 +137,9 @@ export class DegreeCertificateAttendanceService {
     }
 
     if (
-      degreeCertificateAttendance.hasAttended ||
-      degreeCertificateAttendance.hasBeenNotified
+      (degreeCertificateAttendance.hasAttended ||
+        degreeCertificateAttendance.hasBeenNotified) &&
+      updateDegreeCertificateAttendanceDto.hasAttended === false
     ) {
       throw new DegreeCertificateBadRequestError(
         `No se puede actualizar la asistencia al acta de grado con id ${id} porque ya ha sido notificado o ha asistido`,
