@@ -73,7 +73,7 @@ export class NotificationsService {
     const user = await UserEntity.findOneBy({ id: userId })
 
     if (!user) {
-      throw new NotFoundException('Student not found')
+      throw new NotFoundException('User not found')
     }
 
     const userModules = user.accessModules.map((module) => module.id)
@@ -82,6 +82,7 @@ export class NotificationsService {
       .createQueryBuilder('notifications')
       .leftJoinAndSelect('notifications.createdBy', 'createdBy')
       .where('notifications.is_main = true')
+      .orderBy('notifications.createdAt', 'DESC')
 
     const mainNotifications = await query.getMany()
 
