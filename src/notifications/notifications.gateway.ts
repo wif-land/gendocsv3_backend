@@ -48,9 +48,11 @@ export class NotificationsGateway {
   }
 
   @SubscribeMessage('user-notifications')
-  async handleUserNotifications(@MessageBody() { userId }: { userId: number }) {
+  async handleUserNotifications(
+    @MessageBody() { userId, limit = 10 }: { userId: number; limit?: number },
+  ) {
     const notifications =
-      await this.notificationsService.findAllAvailableForUser(userId)
+      await this.notificationsService.findAllAvailableForUser(userId, limit)
     this.server.emit('user-notifications', notifications)
   }
 }

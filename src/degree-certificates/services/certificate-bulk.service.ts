@@ -39,7 +39,7 @@ import { RolesType } from '../../auth/decorators/roles-decorator'
 import { NotificationStatus } from '../../shared/enums/notification-status'
 import { NotificationEntity } from '../../notifications/entities/notification.entity'
 import { CertificateNumerationService } from './certificate-numeration.service'
-import { formatDate } from '../../shared/utils/date'
+import { formatDateTime } from '../../shared/utils/date'
 
 @Injectable()
 export class CertificateBulkService {
@@ -79,9 +79,11 @@ export class CertificateBulkService {
     this.logger.log('Creando certificados de grado en lote...')
     const rootNotification = await this.notificationsService.create({
       isMain: true,
-      name: `${retryId ? 'Reitento-' : ''}Carga de actas de grado ${formatDate(
+      name: `${
+        retryId ? 'Reitento-' : ''
+      }Carga de actas de grado ${formatDateTime(
         new Date(Date.now()),
-      ).toLocaleString()} -l${createCertificatesDtos.length}`,
+      ).toString()}`,
       createdBy: userId,
       retryId,
       scope: {
@@ -103,6 +105,9 @@ export class CertificateBulkService {
       : undefined
 
     const promises = createCertificatesDtos.map(async (dto) => {
+      // esperar 2 segundos para no saturar el servidor
+      await new Promise((resolve) => setTimeout(resolve, 5000))
+
       const job = await this.certificateQueue.add(
         'createCertificate',
         { notification: rootNotification, dto, retries: childs },
