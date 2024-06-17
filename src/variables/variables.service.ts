@@ -41,6 +41,7 @@ import { DegreeCertificateAttendanceEntity } from '../degree-certificate-attenda
 import { ADJECTIVES } from '../shared/enums/adjectives'
 import { CouncilEntity } from '../councils/entities/council.entity'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
+import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 
 @Injectable()
 export class VariablesService {
@@ -528,6 +529,10 @@ export class VariablesService {
       document.student,
     )
 
+    const coordinator = {
+      ...document.student.career.coordinator,
+    } as FunctionaryEntity
+
     const variables = {
       ...genderVariations,
       [DEFAULT_VARIABLE.ESTUDIANTE]: fullName,
@@ -559,7 +564,7 @@ export class VariablesService {
         ? formatDateText(document.student.endStudiesDate)
         : '*NO POSEE FECHA DE FIN DE ESTUDIOS',
 
-      [DEFAULT_VARIABLE.COORDINADOR]: getFullName(document.career.coordinator),
+      [DEFAULT_VARIABLE.COORDINADOR]: getFullName(coordinator),
       [DEFAULT_VARIABLE.CANTON]: document.student.canton.name,
       [DEFAULT_VARIABLE.PROVINCE]: document.student.canton.province.name,
       [STUDENT_DEGREE_CERTIFICATE.CREDITS_TEXT]: transformNumberToWords(
@@ -714,8 +719,6 @@ export class VariablesService {
       (member) => member.role === DEGREE_ATTENDANCE_ROLES.PRESIDENT,
     )
 
-    console.log(president, membersAttended, membersHasntAttended)
-
     if (president) {
       presidentData[DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT] =
         getFullName(president.functionary)
@@ -741,7 +744,7 @@ export class VariablesService {
       ] = getFullName(tribunalMembers[0].functionary)
       membersData[
         DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_DEGREE_CERTIFICATE
-      ] = getFullName(tribunalMembers[-1].functionary)
+      ] = getFullName(tribunalMembers[tribunalMembers.length - 1].functionary)
       membersData[DEFAULT_VARIABLE.ASISTIERON] =
         this.formatMembersNames(membersAttended)
       membersData[DEFAULT_VARIABLE.NO_ASISTIERON] =

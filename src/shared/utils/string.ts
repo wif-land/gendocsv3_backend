@@ -14,8 +14,6 @@ export const getFullName = (
   const firstLastName = clonedObject.firstLastName
   const secondLastName = clonedObject.secondLastName
 
-  console.log(firstName, secondName, firstLastName, secondLastName)
-
   return `${toFirstUpperCase(firstName)} ${
     secondName ? toFirstUpperCase(secondName) : ''
   } ${toFirstUpperCase(firstLastName)} ${
@@ -46,6 +44,8 @@ export const formatNumeration = (numeration: number, length = 4): string =>
   numeration.toString().padStart(length, '0')
 
 export const concatNames = (names: string[]): string => {
+  console.log(names)
+  if (names.length === 0) return ''
   if (names.length === 1) return names[0]
 
   const last = names.pop()
