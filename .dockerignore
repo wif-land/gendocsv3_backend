@@ -11,4 +11,3 @@ Makefile
 .husky
 postgres-data/
 docs/
-scripts/

@@ -40,10 +40,12 @@ copy_files:
 
 deploy_backend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@echo "Deploying backend to production..."
-	@ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && \
-														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down backend bull_redis && \
-														docker rmi ${BACKEND_DOCKER_IMAGE} | true && \
-														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d backend bull_redis"
+	@ssh $(VM_USER)@$(VM_IP) 'cd $(REMOTE_DIR) && \
+														if [ $$(docker ps -q -f name=gendocsv3_backend) ] || [ $$(docker ps -q -f name=gendocsv3_bull_redis) ]; then \
+															docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down backend bull_redis; \
+														fi && \
+														docker rmi ${BACKEND_DOCKER_IMAGE} || true && \
+														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d backend bull_redis'
 
 deploy_frontend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@echo "Deploying frontend to production..."

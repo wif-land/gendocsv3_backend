@@ -16,6 +16,10 @@ COPY . .
 
 RUN npm run build
 
+COPY ./scripts/start.sh /app/start.sh
+
+RUN chmod +x /app/start.sh
+
 EXPOSE 3001
 
-CMD npm run migration:run && npm run start:prod
+CMD ["/app/start.sh"]
