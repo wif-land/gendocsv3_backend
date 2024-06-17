@@ -44,6 +44,9 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
     const query = this.qb
       .leftJoinAndSelect('degreeCertificate.student', 'student')
       .leftJoinAndSelect('student.career', 'studentCareer')
+      .leftJoinAndSelect('student.canton', 'canton')
+      .leftJoinAndSelect('canton.province', 'province')
+      .leftJoinAndSelect('studentCareer.coordinator', 'coordinator')
       .leftJoinAndSelect('degreeCertificate.certificateType', 'certificateType')
       .leftJoinAndSelect('degreeCertificate.degreeModality', 'degreeModality')
       .leftJoinAndSelect(

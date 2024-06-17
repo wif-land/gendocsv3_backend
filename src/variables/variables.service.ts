@@ -714,6 +714,8 @@ export class VariablesService {
       (member) => member.role === DEGREE_ATTENDANCE_ROLES.PRESIDENT,
     )
 
+    console.log(president, membersAttended, membersHasntAttended)
+
     if (president) {
       presidentData[DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT] =
         getFullName(president.functionary)

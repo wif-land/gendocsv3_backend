@@ -394,7 +394,7 @@ export class DegreeCertificatesService {
       await qr.connect()
 
       await qr.startTransaction()
-
+      const currentPresentationDate = degreeCertificate.presentationDate
       if (dto.studentId && dto.studentId !== degreeCertificate.student.id) {
         const student = await this.studentService.findOne(dto.studentId)
 
@@ -470,10 +470,10 @@ export class DegreeCertificatesService {
           degreeCertificatePreloaded,
         )
       }
-
       if (
-        dto.presentationDate &&
-        dto.presentationDate !== degreeCertificate.presentationDate
+        dto.presentationDate !== undefined &&
+        // eslint-disable-next-line eqeqeq
+        dto.presentationDate != currentPresentationDate
       ) {
         if (degreeCertificate.certificateDriveId) {
           await this.filesService.remove(degreeCertificate.certificateDriveId)

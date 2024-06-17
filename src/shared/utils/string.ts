@@ -7,8 +7,15 @@ export const toFirstUpperCase = (text: string): string =>
 export const getFullName = (
   entity: FunctionaryEntity | StudentEntity,
 ): string => {
-  const entityNames = entity as FunctionaryEntity | StudentEntity
-  const { firstName, secondName, firstLastName, secondLastName } = entityNames
+  const clonedObject = { ...entity }
+  // const { firstName, secondName, firstLastName, secondLastName } = entity
+  const firstName = clonedObject.firstName
+  const secondName = clonedObject.secondName
+  const firstLastName = clonedObject.firstLastName
+  const secondLastName = clonedObject.secondLastName
+
+  console.log(firstName, secondName, firstLastName, secondLastName)
+
   return `${toFirstUpperCase(firstName)} ${
     secondName ? toFirstUpperCase(secondName) : ''
   } ${toFirstUpperCase(firstLastName)} ${
