@@ -382,6 +382,20 @@ export class DegreeCertificatesService {
 
       await qr.startTransaction()
 
+      if (dto.studentId && dto.studentId !== degreeCertificate.student.id) {
+        const student = await this.studentService.findOne(dto.studentId)
+
+        await this.checkStudent(student.data)
+
+        await this.studentService.update(student.data.id, {
+          endStudiesDate: dto.presentationDate,
+        })
+
+        Object.defineProperty(dto, 'career', {
+          value: { id: student.data.career.id },
+        })
+      }
+
       if (
         dto.presentationDate &&
         dto.presentationDate !== degreeCertificate.presentationDate
