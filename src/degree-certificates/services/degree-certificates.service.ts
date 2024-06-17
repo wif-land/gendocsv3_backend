@@ -9,7 +9,10 @@ import { DegreeCertificateBadRequestError } from '../errors/degree-certificate-b
 import { DegreeCertificateAlreadyExists } from '../errors/degree-certificate-already-exists'
 import { DegreeCertificateNotFoundError } from '../errors/degree-certificate-not-found'
 import { YearModuleService } from '../../year-module/year-module.service'
-import { DEGREE_MODULES } from '../../shared/enums/degree-certificates'
+import {
+  DEGREE_ATTENDANCE_ROLES,
+  DEGREE_MODULES,
+} from '../../shared/enums/degree-certificates'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { FilesService } from '../../files/services/files.service'
 import { StudentsService } from '../../students/students.service'
@@ -313,6 +316,16 @@ export class DegreeCertificatesService {
       )
     }
 
+    const representan = attendance.find(
+      (a) => a.role === DEGREE_ATTENDANCE_ROLES.PRESIDENT,
+    )
+
+    if (!representan) {
+      throw new DegreeCertificateBadRequestError(
+        'No se encontró el representante de la mesa directiva en la asistencia al acta de grado',
+      )
+    }
+
     const { data: driveId } =
       await this.filesService.createDocumentByParentIdAndCopy(
         `${degreeCertificate.number} - ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code} - ${degreeCertificate.certificateStatus.code}`,
@@ -381,6 +394,20 @@ export class DegreeCertificatesService {
       await qr.connect()
 
       await qr.startTransaction()
+      const currentPresentationDate = degreeCertificate.presentationDate
+      if (dto.studentId && dto.studentId !== degreeCertificate.student.id) {
+        const student = await this.studentService.findOne(dto.studentId)
+
+        await this.checkStudent(student.data)
+
+        await this.studentService.update(student.data.id, {
+          endStudiesDate: dto.presentationDate,
+        })
+
+        Object.defineProperty(dto, 'career', {
+          value: { id: student.data.career.id },
+        })
+      }
 
       if (
         dto.presentationDate &&
@@ -443,10 +470,10 @@ export class DegreeCertificatesService {
           degreeCertificatePreloaded,
         )
       }
-
       if (
-        dto.presentationDate &&
-        dto.presentationDate !== degreeCertificate.presentationDate
+        dto.presentationDate !== undefined &&
+        // eslint-disable-next-line eqeqeq
+        dto.presentationDate != currentPresentationDate
       ) {
         if (degreeCertificate.certificateDriveId) {
           await this.filesService.remove(degreeCertificate.certificateDriveId)

@@ -7,8 +7,13 @@ export const toFirstUpperCase = (text: string): string =>
 export const getFullName = (
   entity: FunctionaryEntity | StudentEntity,
 ): string => {
-  const entityNames = entity as FunctionaryEntity | StudentEntity
-  const { firstName, secondName, firstLastName, secondLastName } = entityNames
+  const clonedObject = { ...entity }
+  // const { firstName, secondName, firstLastName, secondLastName } = entity
+  const firstName = clonedObject.firstName
+  const secondName = clonedObject.secondName
+  const firstLastName = clonedObject.firstLastName
+  const secondLastName = clonedObject.secondLastName
+
   return `${toFirstUpperCase(firstName)} ${
     secondName ? toFirstUpperCase(secondName) : ''
   } ${toFirstUpperCase(firstLastName)} ${
@@ -39,6 +44,8 @@ export const formatNumeration = (numeration: number, length = 4): string =>
   numeration.toString().padStart(length, '0')
 
 export const concatNames = (names: string[]): string => {
+  console.log(names)
+  if (names.length === 0) return ''
   if (names.length === 1) return names[0]
 
   const last = names.pop()

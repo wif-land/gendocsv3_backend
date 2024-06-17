@@ -82,10 +82,11 @@ export class ModulesService {
         throw new ModulesNotFound('No se encontraron módulos con documentos')
       }
 
-      let folderId
-
       for (const module of modules) {
-        folderId = await this.gcpService.createFolder(module.name)
+        const { data: folderId } = await this.gcpService.createFolderByParentId(
+          module.name,
+          `${process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID_PRODUCTION}`,
+        )
 
         if (module.hasDocuments) {
           if (!folderId) {
@@ -107,7 +108,7 @@ export class ModulesService {
           }
 
           await this.yearModuleService.create({
-            year: 2023,
+            year: 2024,
             module: auxModule,
           })
         }

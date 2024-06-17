@@ -86,6 +86,7 @@ export class StudentEntity extends BasePerson {
   @Column({
     name: 'approved_credits',
     type: 'smallint',
+    nullable: true,
   })
   approvedCredits: number
 

@@ -106,7 +106,7 @@ export class CertificateBulkService {
 
     const promises = createCertificatesDtos.map(async (dto) => {
       // esperar 2 segundos para no saturar el servidor
-      await new Promise((resolve) => setTimeout(resolve, 5000))
+      // await new Promise((resolve) => setTimeout(resolve, 5000))
 
       const job = await this.certificateQueue.add(
         'createCertificate',
