@@ -12,6 +12,7 @@ import { StudentNotFoundError } from './errors/student-not-found'
 import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
 import { StudentFiltersDto } from './dto/student-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { getEnumGender } from '../shared/enums/genders'
 
 @Injectable()
 export class StudentsService {
@@ -84,6 +85,13 @@ export class StudentsService {
               canton: { id: student.canton },
             }
           }
+
+          if (student.gender) {
+            studentDataToUpdate = {
+              ...studentDataToUpdate,
+              gender: getEnumGender(student.gender),
+            }
+          }
           const updated = await this.studentRepository.update(
             studentEntity.id,
             studentDataToUpdate as unknown as Partial<StudentEntity>,
@@ -98,6 +106,7 @@ export class StudentsService {
         } else {
           const saved = await this.studentRepository.save({
             ...student,
+            gender: student.gender ? getEnumGender(student.gender) : undefined,
             career: { id: student.career ?? undefined },
             canton: { id: student.canton ?? undefined },
           })
@@ -230,6 +239,10 @@ export class StudentsService {
         career: { id: updateStudentDto.career },
         canton: { id: updateStudentDto.canton },
       })
+
+      if (student.gender) {
+        student['gender'] = getEnumGender(student.gender)
+      }
 
       if (!student) {
         throw new StudentNotFoundError('Estudiante no encontrado')
