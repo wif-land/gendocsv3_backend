@@ -6,6 +6,7 @@ import { UsersController } from './users.controller'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { UserAccessModulesModule } from '../users-access-modules/users-access-modules.module'
+import { FilesModule } from '../files/modules/files.module'
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserAccessModulesModule } from '../users-access-modules/users-access-mo
       inject: [ConfigService],
     }),
     UserAccessModulesModule,
+    FilesModule,
   ],
   providers: [UsersService],
   exports: [UsersService],
