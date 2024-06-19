@@ -6,6 +6,7 @@ import { DocxService } from './docx.service'
 import { MIMETYPES } from '../../shared/constants/mime-types'
 import { IReplaceText } from '../../shared/interfaces/replace-text'
 import { ExcelService } from './excel.service'
+import { ReturnMethodDto } from '../../shared/dtos/return-method.dto'
 // eslint-disable-next-line import/no-unresolved
 // import * as fs from 'fs/promises'
 // // import * as DocxMerger from '@scholarcy/docx-merger'
@@ -93,11 +94,30 @@ export class FilesService {
     return document
   }
 
-  async shareAsset(driveId: string, email: string) {
-    const result = await this.gcpService.shareAsset(driveId, email)
+  async shareAsset(
+    driveId: string,
+    email: string,
+  ): Promise<ReturnMethodDto<boolean>> {
+    const { error, data: result } = await this.gcpService.shareAsset(
+      driveId,
+      email,
+    )
+
+    if (!result || error) {
+      return new ReturnMethodDto(
+        null,
+        new HttpException('Error sharing asset', HttpStatus.CONFLICT),
+      )
+    }
+
+    return new ReturnMethodDto(result)
+  }
+
+  async unshareAsset(driveId: string, email: string) {
+    const result = await this.gcpService.unshareAsset(driveId, email)
 
     if (!result) {
-      throw new HttpException('Error sharing asset', HttpStatus.CONFLICT)
+      throw new HttpException('Error unsharing asset', HttpStatus.CONFLICT)
     }
 
     return result
