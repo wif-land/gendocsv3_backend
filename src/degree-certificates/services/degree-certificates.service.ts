@@ -206,8 +206,13 @@ export class DegreeCertificatesService {
         where: { id: newCertificate.id },
       })
 
-    const { data: createdDegreeCertificate } =
+    const { data: createdDegreeCertificate, error } =
       await this.gradesSheetService.generateGradeSheet(relationshipCertificate)
+
+    if (error) {
+      await this.degreeCertificateRepository.remove(relationshipCertificate)
+      throw new DegreeCertificateBadRequestError(error.message)
+    }
 
     await this.studentService.update(student.id, {
       endStudiesDate: dto.presentationDate,
@@ -394,8 +399,11 @@ export class DegreeCertificatesService {
       await qr.connect()
 
       await qr.startTransaction()
-      const currentPresentationDate = degreeCertificate.presentationDate
-      if (dto.studentId && dto.studentId !== degreeCertificate.student.id) {
+      const currentDegreeCertigicate = { ...degreeCertificate }
+      if (
+        dto.studentId &&
+        dto.studentId !== currentDegreeCertigicate.student.id
+      ) {
         const student = await this.studentService.findOne(dto.studentId)
 
         await this.checkStudent(student.data)
@@ -411,7 +419,7 @@ export class DegreeCertificatesService {
 
       if (
         dto.presentationDate &&
-        dto.presentationDate !== degreeCertificate.presentationDate
+        dto.presentationDate !== currentDegreeCertigicate.presentationDate
       ) {
         await this.checkPresentationDate({
           presentationDate: dto.presentationDate,
@@ -444,7 +452,7 @@ export class DegreeCertificatesService {
 
       if (
         dto.certificateTypeId &&
-        degreeCertificate.certificateType.id !== dto.certificateTypeId
+        currentDegreeCertigicate.certificateType.id !== dto.certificateTypeId
       ) {
         const certificateType = await this.certificateTypeRepository.findOneBy({
           id: dto.certificateTypeId,
@@ -466,16 +474,20 @@ export class DegreeCertificatesService {
           )
         }
 
-        await this.gradesSheetService.generateGradeSheet(
+        const { error } = await this.gradesSheetService.generateGradeSheet(
           degreeCertificatePreloaded,
         )
+
+        if (error) {
+          throw new DegreeCertificateBadRequestError(error.message)
+        }
       }
       if (
         dto.presentationDate !== undefined &&
         // eslint-disable-next-line eqeqeq
-        dto.presentationDate != currentPresentationDate
+        dto.presentationDate != currentDegreeCertigicate.presentationDate
       ) {
-        if (degreeCertificate.certificateDriveId) {
+        if (currentDegreeCertigicate.certificateDriveId) {
           await this.filesService.remove(degreeCertificate.certificateDriveId)
 
           await this.generateDocument(certificateUpdated.id)

@@ -12,6 +12,7 @@ import { CreateCellGradeDegreeCertificateTypeDto } from '../dto/create-cells-gra
 import { UpdateCellGradeDegreeCertificateTypeDto } from '../dto/update-cells-grade-degree-certificate-type.dto'
 import { DegreeCertificateAlreadyExists } from '../errors/degree-certificate-already-exists'
 import { DegreeCertificateNotFoundError } from '../errors/degree-certificate-not-found'
+import { ReturnMethodDto } from '../../shared/dtos/return-method.dto'
 
 @Injectable()
 export class GradesSheetService {
@@ -25,7 +26,9 @@ export class GradesSheetService {
     private readonly cellsGradeDegreeCertificateTypeRepository: Repository<CellsGradeDegreeCertificateTypeEntity>,
   ) {}
 
-  async generateGradeSheet(degreeCertificate: DegreeCertificateEntity) {
+  async generateGradeSheet(
+    degreeCertificate: DegreeCertificateEntity,
+  ): Promise<ReturnMethodDto<DegreeCertificateEntity>> {
     const gradeSheet = await this.filesService.createDocumentByParentIdAndCopy(
       `GR ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code} - ${degreeCertificate.certificateStatus.code}`,
       degreeCertificate.submoduleYearModule.driveId,
@@ -33,8 +36,11 @@ export class GradesSheetService {
     )
 
     if (!gradeSheet) {
-      throw new DegreeCertificateBadRequestError(
-        'Error al generar la hoja de calificaciones en Google Drive',
+      return new ReturnMethodDto(
+        null,
+        new DegreeCertificateBadRequestError(
+          'Error al generar la hoja de calificaciones en Google Drive, intente nuevamente',
+        ),
       )
     }
 
@@ -44,10 +50,7 @@ export class GradesSheetService {
         gradesSheetDriveId: gradeSheet.data,
       })
 
-    return new ApiResponseDto(
-      'Hoja de calificaciones generada correctamente',
-      degreeCertificateUpdated,
-    )
+    return new ReturnMethodDto(degreeCertificateUpdated)
   }
 
   async revokeGradeSheet(degreeCertificate: DegreeCertificateEntity) {
