@@ -9,7 +9,6 @@ import { DegreeCertificateBadRequestError } from '../errors/degree-certificate-b
 import { UpdateCertificateTypeDto } from '../dto/update-certificate-type.dto'
 import { DegreeCertificateNotFoundError } from '../errors/degree-certificate-not-found'
 import { CertificateTypeCareerEntity } from '../entities/certicate-type-career.entity'
-import { DegreeCertificateTypeNotFoundError } from '../errors/degree-certificate-type-not-found'
 
 @Injectable()
 export class CertificateTypeService {
@@ -29,18 +28,22 @@ export class CertificateTypeService {
     )
   }
 
-  async findCertificateTypeByName(name: string) {
-    const certificateType = this.certificateTypeRepository.findOneBy({
-      name,
-    })
+  async findCertificateTypeByNameAndCareer(name: string, careerId: number) {
+    const certificateTypesCareers =
+      await this.getCertificateTypesCarrerByCarrer(careerId)
 
-    if (!certificateType) {
+    const foundCertificateTypeCareer = certificateTypesCareers.find(
+      (certificateTypeCareer) =>
+        certificateTypeCareer.certificateType.name === name,
+    )
+
+    if (!foundCertificateTypeCareer) {
       throw new DegreeCertificateNotFoundError(
         `El tipo de certificado con nombre ${name} no existe`,
       )
     }
 
-    return certificateType
+    return foundCertificateTypeCareer.certificateType
   }
 
   async createCertificateType(dto: CreateCertificateTypeDto) {
@@ -152,12 +155,6 @@ export class CertificateTypeService {
         certificateType: true,
       },
     })
-
-    if (!certificateTypes || certificateTypes.length === 0) {
-      return new DegreeCertificateTypeNotFoundError(
-        `No se han encontrado modalidades de grado para la carrera con id ${carrerId}`,
-      )
-    }
 
     return certificateTypes
   }

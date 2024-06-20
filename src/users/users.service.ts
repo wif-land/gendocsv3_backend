@@ -14,13 +14,15 @@ import { UserAccessModulesService } from '../users-access-modules/users-access-m
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UserFiltersDto } from './dto/user-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { FilesService } from '../files/services/files.service'
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
-    private jwtService: JwtService,
+    private readonly userRepository: Repository<UserEntity>,
+    private readonly jwtService: JwtService,
+    private readonly filesService: FilesService,
 
     private readonly userAccessModulesService: UserAccessModulesService,
 
@@ -50,61 +52,81 @@ export class UsersService {
   }
 
   async create(user: CreateUserDTO) {
-    try {
-      const password = await this.generateSaltPassword(user.password)
+    const alreadyExists = await this.userRepository.findOne({
+      where: {
+        outlookEmail: user.outlookEmail,
+      },
+    })
 
-      if (!password) {
-        throw new HttpException(
-          'No se pudo crear el usuario',
-          HttpStatus.CONFLICT,
-        )
-      }
-
-      const userEntity = await this.userRepository.create({
-        ...user,
-        accessModules: [],
-        password,
-      })
-
-      if (!userEntity) {
-        throw new HttpException(
-          'No se pudo crear el usuario',
-          HttpStatus.CONFLICT,
-        )
-      }
-
-      let userSaved = await this.userRepository.save(userEntity)
-
-      const { data } = await this.userAccessModulesService.create({
-        userId: userSaved.id,
-        modulesIds: user.accessModules,
-      })
-
-      if (data.modules.length === 0) {
-        throw new HttpException(
-          'No se pudo crear asignar los modulos al usuario',
-          HttpStatus.CONFLICT,
-        )
-      }
-
-      userEntity.accessModules = data.modules
-
-      userSaved = await this.userRepository.save(userEntity)
-
-      if (!userSaved) {
-        throw new HttpException(
-          'No se pudo crear el usuario',
-          HttpStatus.CONFLICT,
-        )
-      }
-
-      return new ApiResponseDto('Usuario creado correctamente', {
-        ...userSaved,
-        accessModules: userSaved.accessModules.map((module) => module.id),
-      })
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (alreadyExists) {
+      throw new HttpException('El usuario ya existe', HttpStatus.CONFLICT)
     }
+
+    const password = await this.generateSaltPassword(user.password)
+
+    if (!password) {
+      throw new HttpException(
+        'No se pudo crear el usuario',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    const userEntity = await this.userRepository.create({
+      ...user,
+      accessModules: [],
+      password,
+    })
+
+    if (!userEntity) {
+      throw new HttpException(
+        'No se pudo crear el usuario',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    let userSaved = await this.userRepository.save(userEntity)
+
+    const { data } = await this.userAccessModulesService.create({
+      userId: userSaved.id,
+      modulesIds: user.accessModules,
+    })
+
+    if (data.modules.length === 0) {
+      throw new HttpException(
+        'No se pudo crear asignar los modulos al usuario',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    userEntity.accessModules = data.modules
+
+    userSaved = await this.userRepository.save(userEntity)
+
+    if (!userSaved) {
+      throw new HttpException(
+        'No se pudo crear el usuario',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    const { error, data: isShared } = await this.filesService.shareAsset(
+      `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
+      userSaved.googleEmail,
+    )
+
+    if (error || !isShared) {
+      userSaved.remove()
+
+      throw new HttpException(
+        'No se pudo otorgar permisos en Google Drive, verifique el correo de gmail del usuario',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    return new ApiResponseDto('Usuario creado correctamente', {
+      ...userSaved,
+      accessModules: userSaved.accessModules.map((module) => module.id),
+    })
   }
 
   async update(id: number, user: Partial<CreateUserDTO>) {
@@ -113,7 +135,20 @@ export class UsersService {
       let password = ''
       const hasNewPassword = user.password !== undefined
       const hasAccessModules = !!user.accessModules
+      const userFound = await this.userRepository.findOne({
+        where: {
+          id,
+        },
+      })
 
+      if (!userFound) {
+        throw new HttpException(
+          'No se encontro el usuario',
+          HttpStatus.NOT_FOUND,
+        )
+      }
+
+      const currentUser = { ...userFound }
       if (hasAccessModules) {
         const result = await this.userAccessModulesService.update({
           userId: id,
@@ -171,24 +206,65 @@ export class UsersService {
         relations: ['accessModules'],
       })
 
-      if (!userUpdated) {
-        throw new HttpException(
-          'No se encontro el usuario',
-          HttpStatus.NOT_FOUND,
+      if (user.googleEmail && user.googleEmail !== currentUser.googleEmail) {
+        const { error, data: isShared } = await this.filesService.shareAsset(
+          `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
+          user.googleEmail,
         )
+
+        if (error || !isShared) {
+          await this.userRepository.update({ id }, currentUser)
+
+          throw new HttpException(
+            'No se pudo otorgar permisos en Google Drive, verifique el correo de gmail del usuario',
+            HttpStatus.CONFLICT,
+          )
+        }
+
+        const { error: unsharedError, data: isUnshared } =
+          await this.filesService.unshareAsset(
+            `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
+            currentUser.googleEmail,
+          )
+
+        if (!isUnshared || unsharedError) {
+          await this.userRepository.update({ id }, currentUser)
+
+          throw new HttpException(
+            'No se pudo revocar permisos en Google Drive, verifique el correo de gmail del usuario',
+            HttpStatus.CONFLICT,
+          )
+        }
+      }
+
+      if (user.isActive !== undefined && user.isActive === false) {
+        const { error, data: isUnshared } =
+          await this.filesService.unshareAsset(
+            `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
+            user.googleEmail,
+          )
+
+        if (error || !isUnshared) {
+          await this.userRepository.update({ id }, currentUser)
+
+          throw new HttpException(
+            'No se pudo revocar permisos en Google Drive',
+            HttpStatus.CONFLICT,
+          )
+        }
       }
 
       const payload = {
         sub: id,
-        firstName: user.firstName,
-        firstLastName: user.firstLastName,
-        secondName: user.secondName,
-        secondLastName: user.secondLastName,
-        outlookEmail: user.outlookEmail,
-        googleEmail: user.googleEmail,
-        role: user.role,
-        isActive: user.isActive,
-        accessModules: user.accessModules,
+        firstName: userUpdated.firstName,
+        firstLastName: userUpdated.firstLastName,
+        secondName: userUpdated.secondName,
+        secondLastName: userUpdated.secondLastName,
+        outlookEmail: userUpdated.outlookEmail,
+        googleEmail: userUpdated.googleEmail,
+        role: userUpdated.role,
+        isActive: userUpdated.isActive,
+        accessModules: userUpdated.accessModules,
       }
 
       return new ApiResponseDto('Usuario actualizado', {
@@ -204,22 +280,40 @@ export class UsersService {
   }
 
   async delete(id: number) {
-    try {
-      await this.userRepository.update(
-        {
-          id,
-        },
-        {
-          isActive: false,
-        },
-      )
+    const user = await this.userRepository.findOne({
+      where: {
+        id,
+      },
+    })
 
-      return new ApiResponseDto('Usuario eliminado', {
-        success: true,
-      })
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!user) {
+      throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND)
     }
+
+    const { error, data: isUnshared } = await this.filesService.unshareAsset(
+      `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
+      user.googleEmail,
+    )
+
+    if (error || !isUnshared) {
+      throw new HttpException(
+        'No se pudo revocar permisos en Google Drive',
+        HttpStatus.CONFLICT,
+      )
+    }
+
+    await this.userRepository.update(
+      {
+        id,
+      },
+      {
+        isActive: false,
+      },
+    )
+
+    return new ApiResponseDto('Usuario eliminado', {
+      success: true,
+    })
   }
 
   async findAll(paginationDto: PaginationDto) {

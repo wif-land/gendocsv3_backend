@@ -573,6 +573,22 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         },
       },
       {
+        cell: 'C10',
+        gradeVariable: 'NOTA_ESCRITA_1',
+        gradeTextVariable: 'NOTA_ESCRITA_1_TEXTO',
+        certificateType: {
+          id: 3,
+        },
+      },
+      {
+        cell: 'D10',
+        gradeVariable: 'NOTA_ESCRITA_2',
+        gradeTextVariable: 'NOTA_ESCRITA_2_TEXTO',
+        certificateType: {
+          id: 3,
+        },
+      },
+      {
         cell: 'F10',
         gradeVariable: 'NOTAESCRITA',
         gradeTextVariable: 'NOTAESCRITA_TEXTO',
@@ -626,6 +642,22 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         cell: 'F5',
         gradeVariable: 'NOTAMALLA60',
         gradeTextVariable: 'NOTAMALLA60_TEXTO',
+        certificateType: {
+          id: 2,
+        },
+      },
+      {
+        cell: 'C10',
+        gradeVariable: 'NOTA_ESCRITA_1',
+        gradeTextVariable: 'NOTA_ESCRITA_1_TEXTO',
+        certificateType: {
+          id: 2,
+        },
+      },
+      {
+        cell: 'D10',
+        gradeVariable: 'NOTA_ESCRITA_2',
+        gradeTextVariable: 'NOTA_ESCRITA_2_TEXTO',
         certificateType: {
           id: 2,
         },
@@ -781,6 +813,22 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         },
       },
       {
+        cell: 'C9',
+        gradeVariable: 'NOTA_ESCRITA_1',
+        gradeTextVariable: 'NOTA_ESCRITA_1_TEXTO',
+        certificateType: {
+          id: 6,
+        },
+      },
+      {
+        cell: 'D9',
+        gradeVariable: 'NOTA_ESCRITA_2',
+        gradeTextVariable: 'NOTA_ESCRITA_2_TEXTO',
+        certificateType: {
+          id: 6,
+        },
+      },
+      {
         cell: 'F9',
         gradeVariable: 'NOTAESCRITA',
         gradeTextVariable: 'NOTAESCRITA_TEXTO',
@@ -818,6 +866,22 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         cell: 'C4',
         gradeVariable: 'NOTAMALLA',
         gradeTextVariable: 'NOTAMALLA_TEXTO',
+        certificateType: {
+          id: 5,
+        },
+      },
+      {
+        cell: 'C9',
+        gradeVariable: 'NOTA_ESCRITA_1',
+        gradeTextVariable: 'NOTA_ESCRITA_1_TEXTO',
+        certificateType: {
+          id: 5,
+        },
+      },
+      {
+        cell: 'D9',
+        gradeVariable: 'NOTA_ESCRITA_2',
+        gradeTextVariable: 'NOTA_ESCRITA_2_TEXTO',
         certificateType: {
           id: 5,
         },

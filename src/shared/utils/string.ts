@@ -24,7 +24,8 @@ export const getFullName = (
 export const getFullNameWithTitles = (
   functionary: FunctionaryEntity,
 ): string => {
-  const { thirdLevelDegree, fourthLevelDegree } = functionary
+  const object = { ...functionary }
+  const { thirdLevelDegree, fourthLevelDegree } = object
   return `${
     thirdLevelDegree ? `${thirdLevelDegree.abbreviation}` : ''
   } ${getFullName(functionary)} ${
@@ -44,7 +45,6 @@ export const formatNumeration = (numeration: number, length = 4): string =>
   numeration.toString().padStart(length, '0')
 
 export const concatNames = (names: string[]): string => {
-  console.log(names)
   if (names.length === 0) return ''
   if (names.length === 1) return names[0]
 

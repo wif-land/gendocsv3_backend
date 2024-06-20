@@ -12,7 +12,6 @@ import { CertificateTypeService } from './certificate-type.service'
 import { FunctionariesService } from '../../functionaries/functionaries.service'
 import { CertificateStatusService } from './certificate-status.service'
 import { DegreeModalitiesService } from './degree-modalities.service'
-import { getSTATUS_CODE_BY_CERT_STATUS } from '../../shared/enums/genders'
 import { DegreeCertificateRepository } from '../repositories/degree-certificate-repository'
 import {
   CERTIFICATE_QUEUE_NAME,
@@ -25,7 +24,10 @@ import { InjectDataSource } from '@nestjs/typeorm'
 import { DegreeCertificateAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
 import { DegreeCertificateAttendanceEntity } from '../../degree-certificate-attendance/entities/degree-certificate-attendance.entity'
 import { DataSource } from 'typeorm'
-import { DEGREE_ATTENDANCE_ROLES } from '../../shared/enums/degree-certificates'
+import {
+  DEGREE_ATTENDANCE_ROLES,
+  getSTATUS_CODE_BY_CERT_STATUS,
+} from '../../shared/enums/degree-certificates'
 import { CertificateStatusEntity } from '../entities/certificate-status.entity'
 import { DegreeModalityEntity } from '../entities/degree-modality.entity'
 import { StudentEntity } from '../../students/entities/student.entity'
@@ -248,6 +250,7 @@ export class CertificateBulkService {
     // validate certificate type
     const certificateType = await this.validateCertificateType(
       createCertificateDto.certificateType,
+      students.students[0].career.id,
       errors,
     )
 
@@ -309,12 +312,25 @@ export class CertificateBulkService {
       })
 
       // generate grades sheet
-      await this.generateGradesSheet(
-        degreeCertificate,
-        createCertificateDto.gradesDetails,
-        errors,
-        createCertificateDto.curriculumGrade,
-      )
+      if (
+        // eslint-disable-next-line no-extra-parens
+        !(await this.generateGradesSheet(
+          degreeCertificate,
+          createCertificateDto.gradesDetails,
+          errors,
+          createCertificateDto.curriculumGrade,
+        ))
+      ) {
+        const messages = errors.map((e) => e.detail)
+
+        await degreeCertificate.remove()
+
+        await this.notificationsService.updateFailureMsg(
+          childNotification.id,
+          messages,
+        )
+        return { errors }
+      }
 
       const attendance = await this.generateAttendance(
         createCertificateDto,
@@ -495,13 +511,15 @@ export class CertificateBulkService {
 
   async validateCertificateType(
     certificateType: string,
+    careerId: number,
     errors: ErrorsBulkCertificate[],
   ) {
     let certificateTypeEntity: CertificateTypeEntity
     try {
       certificateTypeEntity =
-        await this.certiticateTypeService.findCertificateTypeByName(
+        await this.certiticateTypeService.findCertificateTypeByNameAndCareer(
           certificateType.toUpperCase(),
+          careerId,
         )
     } catch (error) {
       errors.push(

@@ -5,6 +5,7 @@ import { docs, docs_v1 } from '@googleapis/docs'
 import { drive, drive_v3 } from '@googleapis/drive'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { sheets, sheets_v4 } from '@googleapis/sheets'
+import { ReturnMethodDto } from '../shared/dtos/return-method.dto'
 
 @Injectable()
 export class GcpService {
@@ -74,19 +75,40 @@ export class GcpService {
     return new ApiResponseDto('Hoja de cálculo creada con éxito', data.id)
   }
 
-  async shareAsset(assetId: string, email: string) {
-    await this.drive.permissions.create({
-      fileId: assetId,
-      requestBody: {
-        role: 'writer',
-        type: 'user',
-        emailAddress: email,
-      },
-    })
+  async shareAsset(
+    assetId: string,
+    email: string,
+  ): Promise<ReturnMethodDto<boolean>> {
+    try {
+      await this.drive.permissions.create({
+        fileId: assetId,
+        requestBody: {
+          role: 'writer',
+          type: 'user',
+          emailAddress: email,
+        },
+      })
 
-    return new ApiResponseDto('Documento compartido con éxito', {
-      success: true,
-    })
+      return new ReturnMethodDto(true)
+    } catch (error) {
+      return new ReturnMethodDto(null, new Error(error.message))
+    }
+  }
+
+  async unshareAsset(
+    assetId: string,
+    email: string,
+  ): Promise<ReturnMethodDto<boolean>> {
+    try {
+      await this.drive.permissions.delete({
+        fileId: assetId,
+        permissionId: email,
+      })
+
+      return new ReturnMethodDto(true)
+    } catch (error) {
+      return new ReturnMethodDto(null, new Error(error.message))
+    }
   }
 
   async moveFile(assetId: string, parentId: string) {

@@ -9,7 +9,7 @@ import {
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 import { CreateDegreeCertificateDto } from '../dto/create-degree-certificate.dto'
 import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
-import { CERT_STATUS_CODE } from '../../shared/enums/genders'
+import { CERT_STATUS_CODE } from '../../shared/enums/degree-certificates'
 
 @Injectable()
 export class DegreeCertificateRepository extends Repository<DegreeCertificateEntity> {
