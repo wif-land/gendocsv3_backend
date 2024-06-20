@@ -18,6 +18,7 @@ import {
   getFullName,
   formatNumeration,
   concatNames,
+  getFullNameWithTitles,
 } from '../shared/utils/string'
 import { DocumentFunctionaryEntity } from '../documents/entities/document-functionary.entity'
 import { DataSource, Repository } from 'typeorm'
@@ -663,10 +664,12 @@ export class VariablesService {
     members: DegreeCertificateAttendanceEntity[] | CouncilAttendanceEntity[],
   ) {
     if (members.length === 1) {
-      return getFullName(members[0].functionary)
+      return getFullNameWithTitles(members[0].functionary)
     }
 
-    return concatNames(members.map((member) => getFullName(member.functionary)))
+    return concatNames(
+      members.map((member) => getFullNameWithTitles(member.functionary)),
+    )
   }
 
   formatMembersDateText(members: DegreeCertificateAttendanceEntity[]) {
@@ -715,13 +718,13 @@ export class VariablesService {
 
     const presidentData = {}
 
-    const president = membersAttended.find(
+    const president = members.find(
       (member) => member.role === DEGREE_ATTENDANCE_ROLES.PRESIDENT,
     )
 
     if (president) {
       presidentData[DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT] =
-        getFullName(president.functionary)
+        getFullNameWithTitles(president.functionary)
       presidentData[
         DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT_DOC_ASSIGNED
       ] = president.details
@@ -729,7 +732,7 @@ export class VariablesService {
 
     const membersData = {}
 
-    const tribunalMembers = membersAttended.filter(
+    const tribunalMembers = members.filter(
       (member) =>
         member.role === DEGREE_ATTENDANCE_ROLES.PRINCIPAL ||
         // eslint-disable-next-line no-extra-parens
@@ -741,10 +744,12 @@ export class VariablesService {
         this.formatMembersNames(tribunalMembers)
       membersData[
         DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_DEGREE_CERTIFICATE
-      ] = getFullName(tribunalMembers[0].functionary)
+      ] = getFullNameWithTitles(tribunalMembers[0].functionary)
       membersData[
         DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_DEGREE_CERTIFICATE
-      ] = getFullName(tribunalMembers[tribunalMembers.length - 1].functionary)
+      ] = getFullNameWithTitles(
+        tribunalMembers[tribunalMembers.length - 1].functionary,
+      )
       membersData[DEFAULT_VARIABLE.ASISTIERON] =
         this.formatMembersNames(membersAttended)
       membersData[DEFAULT_VARIABLE.NO_ASISTIERON] =
@@ -779,9 +784,8 @@ export class VariablesService {
     )
 
     if (icUnitPresident) {
-      membersData[DEGREE_CERTIFICATE_VARIABLES.IC_UNIT_PRESIDENT] = getFullName(
-        icUnitPresident.functionary,
-      )
+      membersData[DEGREE_CERTIFICATE_VARIABLES.IC_UNIT_PRESIDENT] =
+        getFullNameWithTitles(icUnitPresident.functionary)
     }
 
     return { ...presidentData, ...membersData }
@@ -844,7 +848,7 @@ export class VariablesService {
     const { data: studentData } =
       this.getStudentDegreeCertificateVariables(degreeCertificate)
 
-    const memberData = this.getDegreeCertificateMemberVariables(
+    const memberData = await this.getDegreeCertificateMemberVariables(
       degreeCertificateAttendance,
     )
 
@@ -878,7 +882,7 @@ export class VariablesService {
 
       const variables = {
         [DEFAULT_VARIABLE.FECHA]: formatDate(council.date),
-        [DEFAULT_VARIABLE.RESPONSABLE]: getFullName(
+        [DEFAULT_VARIABLE.RESPONSABLE]: getFullNameWithTitles(
           council.attendance.find(
             (attendance) => attendance.positionOrder === 1,
           ).functionary,
@@ -951,7 +955,9 @@ export class VariablesService {
       positions.forEach(
         (position) =>
           // eslint-disable-next-line no-extra-parens
-          (variables[position.variable] = getFullName(position.functionary)),
+          (variables[position.variable] = getFullNameWithTitles(
+            position.functionary,
+          )),
       )
 
       return new ApiResponseDto(

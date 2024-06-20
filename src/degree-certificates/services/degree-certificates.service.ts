@@ -280,6 +280,12 @@ export class DegreeCertificatesService {
       )
     }
 
+    if (!degreeCertificate.presentationDate) {
+      throw new DegreeCertificateBadRequestError(
+        'El certificado no cuenta con una fecha de presentación',
+      )
+    }
+
     const certificateStatusType =
       await this.certificateStatusService.findCertificateStatusType(
         degreeCertificate.certificateType.id,

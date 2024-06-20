@@ -52,6 +52,11 @@ export class LoadInitPositionsVariables1705112420411
         name: 'Presidente de la unidad de integración curricular',
         functionary: { id: 5 },
       },
+      {
+        variable: '{{SECRETARIA_FACULTAD}}',
+        name: 'Secretaria de la facultad',
+        functionary: { id: 6 },
+      },
     ]
 
     await positionsRepository.save(positionForTest)

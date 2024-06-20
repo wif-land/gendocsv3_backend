@@ -250,6 +250,7 @@ export class CertificateBulkService {
     // validate certificate type
     const certificateType = await this.validateCertificateType(
       createCertificateDto.certificateType,
+      students.students[0].career.id,
       errors,
     )
 
@@ -510,13 +511,15 @@ export class CertificateBulkService {
 
   async validateCertificateType(
     certificateType: string,
+    careerId: number,
     errors: ErrorsBulkCertificate[],
   ) {
     let certificateTypeEntity: CertificateTypeEntity
     try {
       certificateTypeEntity =
-        await this.certiticateTypeService.findCertificateTypeByName(
+        await this.certiticateTypeService.findCertificateTypeByNameAndCareer(
           certificateType.toUpperCase(),
+          careerId,
         )
     } catch (error) {
       errors.push(
