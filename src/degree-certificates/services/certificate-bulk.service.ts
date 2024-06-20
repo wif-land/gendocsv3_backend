@@ -311,12 +311,25 @@ export class CertificateBulkService {
       })
 
       // generate grades sheet
-      await this.generateGradesSheet(
-        degreeCertificate,
-        createCertificateDto.gradesDetails,
-        errors,
-        createCertificateDto.curriculumGrade,
-      )
+      if (
+        // eslint-disable-next-line no-extra-parens
+        !(await this.generateGradesSheet(
+          degreeCertificate,
+          createCertificateDto.gradesDetails,
+          errors,
+          createCertificateDto.curriculumGrade,
+        ))
+      ) {
+        const messages = errors.map((e) => e.detail)
+
+        await degreeCertificate.remove()
+
+        await this.notificationsService.updateFailureMsg(
+          childNotification.id,
+          messages,
+        )
+        return { errors }
+      }
 
       const attendance = await this.generateAttendance(
         createCertificateDto,
