@@ -8,7 +8,7 @@ import { CreateDefaultMemberStrategy } from './strategies/members-manipulation/c
 import { UpdateDefaultMemberStrategy } from './strategies/members-manipulation/update-members'
 import { DeleteDefaultMemberStrategy } from './strategies/members-manipulation/delete-default-members'
 import { DefaultMembersContext } from './strategies/members-manipulation/default-members-context'
-import { EmailService } from '../email/email.service'
+import { EmailService } from '../email/services/email.service'
 
 @Injectable()
 export class AttendanceService {

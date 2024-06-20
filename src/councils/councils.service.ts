@@ -22,7 +22,7 @@ import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { StudentEntity } from '../students/entities/student.entity'
 import { CouncilsThatOverlapValidator } from './validators/councils-that-overlap'
-import { EmailService } from '../email/email.service'
+import { EmailService } from '../email/services/email.service'
 import { NotifyMembersDTO } from './dto/notify-members.dto'
 
 @Injectable()
@@ -456,10 +456,13 @@ export class CouncilsService {
     // TODO: GENERATE FILE TO SEND AS AN ATTACHMENT WITH THE RESUME OF THE COUNCIL MEETING
     // si mandan solo un miembro, se genera solo con ese miembro? o como
     // o debo consultar todos los miembros y generar un solo archivo con todos los miembros?
-    await this.emailService.sendTestEmail(
-      members.map((val) => val.email),
-      'Notificación de Consejo',
-    )
+
+    const to = members.map((member) => member.email).join(', ')
+    await this.emailService.sendEmail({
+      to,
+      subject: 'Notificación de Consejo',
+      text: `Se ha generado un acta de consejo para la reunión ${council.name}`,
+    })
     return true
   }
 }

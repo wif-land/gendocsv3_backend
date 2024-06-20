@@ -9,8 +9,8 @@ import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { StudentEntity } from '../students/entities/student.entity'
-import { EmailService } from '../email/email.service'
-import { SendGridClient } from '../email/sendgrid-client'
+import { EmailService } from '../email/services/email.service'
+import { SendGridClient } from '../email/clients/sendgrid-client'
 
 @Module({
   imports: [

@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { FilesModule } from '../files/modules/files.module'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
 import { CouncilEntity } from '../councils/entities/council.entity'
-import { EmailService } from '../email/email.service'
+import { EmailService } from '../email/services/email.service'
 import { EmailModule } from '../email/email.module'
 
 @Module({
