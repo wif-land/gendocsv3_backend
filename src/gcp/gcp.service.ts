@@ -271,16 +271,32 @@ export class GcpService {
 
   async replaceValuesOnCells(
     spreadsheetId: string,
-    range: string,
-    value: string,
+    rangeId: number,
+    value: [string, string][],
   ) {
     try {
-      await this.sheets.spreadsheets.values.update({
+      const requests: sheets_v4.Schema$Request[] = value.map((val) => ({
+        updateCells: {
+          range: this.getGridRange(val[0], rangeId),
+          rows: [
+            {
+              values: [
+                {
+                  userEnteredValue: {
+                    numberValue: parseFloat(val[1]),
+                  },
+                },
+              ],
+            },
+          ],
+          fields: 'userEnteredValue',
+        },
+      }))
+
+      await this.sheets.spreadsheets.batchUpdate({
         spreadsheetId,
-        range,
-        valueInputOption: 'USER_ENTERED',
         requestBody: {
-          values: [[value]],
+          requests,
         },
       })
 
@@ -289,6 +305,47 @@ export class GcpService {
       })
     } catch (error) {
       throw new Error(error.message)
+    }
+  }
+
+  getColumnIndexFromA1Notation(a1Notation) {
+    const match = a1Notation.match(/[A-Z]+/)
+    if (!match) return -1 // No column letters found
+
+    const columnLetters = match[0]
+    let columnIndex = 0
+
+    for (let i = 0; i < columnLetters.length; i++) {
+      const charValue = columnLetters.charCodeAt(i) - 'A'.charCodeAt(0) + 1
+      columnIndex = columnIndex * 26 + charValue
+    }
+
+    // Subtract 1 because spreadsheet columns are 0-indexed
+    return columnIndex - 1
+  }
+
+  getGridRange(a1Notation: string, sheetId: number) {
+    // Aquí debes convertir la notación A1 (ej. "C1") a un objeto de rango de celdas
+    // Esta función debe extraer el nombre de la hoja y los índices de columna y fila para formar el objeto de rango
+
+    // Ejemplo de objeto de rango:
+    // {
+    //   sheetId: 0,
+    //   startRowIndex: 0,
+    //   endRowIndex: 1,
+    //   startColumnIndex: 0,
+    //   endColumnIndex: 1,
+    // }
+
+    const rowIndex = parseInt(a1Notation.match(/\d+/)[0], 10) - 1
+    const columnIndex = this.getColumnIndexFromA1Notation(a1Notation)
+
+    return {
+      sheetId,
+      startRowIndex: rowIndex,
+      endRowIndex: rowIndex + 1,
+      startColumnIndex: columnIndex,
+      endColumnIndex: columnIndex + 1,
     }
   }
 

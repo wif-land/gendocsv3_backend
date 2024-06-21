@@ -308,11 +308,15 @@ export class FilesService {
     return path
   }
 
-  async replaceValuesOnCells(sheetId: string, range: string, value: string) {
+  async replaceValuesOnCells(
+    sheetId: string,
+    rangeId: number,
+    values: [string, string][],
+  ) {
     const result = await this.gcpService.replaceValuesOnCells(
       sheetId,
-      range,
-      value,
+      rangeId,
+      values,
     )
 
     if (!result) {
