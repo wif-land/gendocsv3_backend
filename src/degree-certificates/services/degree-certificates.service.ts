@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { IsNull, Repository } from 'typeorm'
+import { IsNull, Not, Repository } from 'typeorm'
 import { CreateDegreeCertificateDto } from '../dto/create-degree-certificate.dto'
 import { UpdateDegreeCertificateDto } from '../dto/update-degree-certificate.dto'
 import { CertificateTypeEntity } from '../entities/certificate-type.entity'
@@ -47,10 +47,7 @@ export class DegreeCertificatesService {
     private readonly certificateTypeRepository: Repository<CertificateTypeEntity>,
   ) {}
 
-  async findAll(
-    paginationDto: IDegreeCertificateFilters,
-    carrerId: number,
-  ): Promise<
+  async findAll(paginationDto: IDegreeCertificateFilters): Promise<
     ApiResponseDto<{
       count: number
       degreeCertificates: DegreeCertificateEntity[]
@@ -63,7 +60,7 @@ export class DegreeCertificatesService {
       await this.degreeCertificateRepository.findManyFor(
         {
           where: {
-            career: { id: carrerId },
+            career: { id: Number(paginationDto.careerId) || Not(IsNull()) },
             deletedAt: IsNull(),
           },
           order: { auxNumber: 'ASC' },

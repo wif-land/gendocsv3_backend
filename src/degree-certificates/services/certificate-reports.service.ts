@@ -30,24 +30,28 @@ export class CertificateReportsService {
 
     const subModuleYearModule =
       await this.degreeCertificateService.getCurrentDegreeSubmoduleYearModule()
-    const certificates = await this.degreeCertificateRepository.findManyFor({
-      where: {
-        career: { id: +careerId },
-        presentationDate:
-          dateType === DATE_TYPES.CREATION ? Not(IsNull()) : IsNull(),
-        isClosed: false,
-        deletedAt: IsNull(),
-        submoduleYearModule: { id: subModuleYearModule.id },
-        createdAt:
-          dateType === DATE_TYPES.CREATION
-            ? Between(
-                new Date(new Date(startDate).setHours(0, 0, 0, 0)),
-                new Date(new Date(endDate).setHours(23, 59, 59, 999)),
-              )
-            : Not(IsNull()),
+    const certificates = await this.degreeCertificateRepository.findManyFor(
+      {
+        where: {
+          career: { id: +careerId },
+          presentationDate:
+            dateType === DATE_TYPES.CREATION ? Not(IsNull()) : IsNull(),
+          isClosed: false,
+          deletedAt: IsNull(),
+          submoduleYearModule: { id: subModuleYearModule.id },
+          createdAt:
+            dateType === DATE_TYPES.CREATION
+              ? Between(
+                  new Date(new Date(startDate).setHours(0, 0, 0, 0)),
+                  new Date(new Date(endDate).setHours(23, 59, 59, 999)),
+                )
+              : Not(IsNull()),
+        },
+
+        order: { createdAt: 'ASC' },
       },
-      order: { createdAt: 'ASC' },
-    })
+      degreeCertificateFilters.field,
+    )
 
     return certificates
   }

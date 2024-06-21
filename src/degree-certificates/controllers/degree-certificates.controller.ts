@@ -11,7 +11,6 @@ import {
 import { CreateDegreeCertificateDto } from '../dto/create-degree-certificate.dto'
 import { UpdateDegreeCertificateDto } from '../dto/update-degree-certificate.dto'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
-import { PaginationDto } from '../../shared/dtos/pagination.dto'
 import { Auth } from '../../auth/decorators/auth-decorator'
 import { RolesType } from '../../auth/decorators/roles-decorator'
 import { DegreeCertificatesService } from '../services/degree-certificates.service'
@@ -19,6 +18,7 @@ import { CertificateBulkService } from '../services/certificate-bulk.service'
 import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
 import { ApiTags } from '@nestjs/swagger'
 import { CertificateNumerationService } from '../services/certificate-numeration.service'
+import { IDegreeCertificateFilters } from '../constants'
 
 @ApiTags('degree-certificates')
 @Controller('degree-certificates')
@@ -31,12 +31,11 @@ export class DegreeCertificatesController {
 
   // #region DegreeCertificates
   @Auth(RolesType.ADMIN, RolesType.READER)
-  @Get('carrer/:carrerId')
+  @Get()
   async getDegreeCertificates(
-    @Param('carrerId', ParseIntPipe) carrerId: number,
-    @Query() paginationDto: PaginationDto,
+    @Query() paginationDto: IDegreeCertificateFilters,
   ) {
-    return await this.degreeCertificatesService.findAll(paginationDto, carrerId)
+    return await this.degreeCertificatesService.findAll(paginationDto)
   }
 
   @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
