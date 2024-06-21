@@ -24,7 +24,7 @@ export class AuthService {
     const validUser = this.validateUser(user, password)
 
     if (!validUser) {
-      throw new UnauthorizedException(`AuthService:login ${email} ********`)
+      throw new UnauthorizedException(`Credenciales incorrectas`)
     }
 
     const accessModules = user.accessModules.map(
@@ -66,7 +66,7 @@ export class AuthService {
     const { data } = user
     const { recoveryPasswordToken } = data
 
-    this.validateToken(recoveryPasswordToken, token)
+    this.validateToken(recoveryPasswordToken)
 
     return this.usersService.newPassword(email, password, token)
   }
@@ -91,12 +91,8 @@ export class AuthService {
     }
   }
 
-  private validateToken(token: string, incomingToken: string) {
+  private validateToken(token: string) {
     try {
-      if (token !== incomingToken) {
-        throw new HttpException(`Token invalido`, 400)
-      }
-
       return this.jwtService.verify(token, { ignoreExpiration: false })
     } catch (error) {
       throw new HttpException(`Token invalido`, 400)
