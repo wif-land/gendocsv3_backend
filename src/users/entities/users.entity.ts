@@ -92,6 +92,20 @@ export class UserEntity extends BaseAppEntity {
   })
   password: string
 
+  @Column({
+    name: 'recovery_password_token',
+    type: 'varchar',
+    default: null,
+  })
+  recoveryPasswordToken: string
+
+  @Column({
+    name: 'recovery_password_token_tries',
+    type: 'integer',
+    default: 0,
+  })
+  recoveryPasswordTokenTries: number
+
   @ApiProperty({
     example: 'ADMIN',
     description: 'Rol del usuario',

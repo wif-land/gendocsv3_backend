@@ -461,7 +461,7 @@ export class CouncilsService {
     this.emailService.sendEmail({
       to,
       subject: 'Notificación de Consejo',
-      text: `Se ha generado un acta de consejo para la reunión ${council.name}`,
+      body: `Se ha generado un acta de consejo para la reunión ${council.name}`,
     })
     return true
   }
