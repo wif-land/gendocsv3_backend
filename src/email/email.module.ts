@@ -13,6 +13,6 @@ import { EmailController } from './email.controller'
       useClass: SmtpClient,
     },
   ],
-  exports: [EmailService, SmtpClient],
+  exports: [EmailService, 'SmtpClient'],
 })
 export class EmailModule {}

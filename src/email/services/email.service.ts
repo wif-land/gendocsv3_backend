@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 
-import { EmailObject, SmtpClient } from '../clients/smtp-client'
+import { SmtpClient } from '../clients/smtp-client'
+import { IEmailObject } from '../../shared/dtos/email-msg'
 
 @Injectable()
 export class EmailService {
@@ -23,7 +24,7 @@ export class EmailService {
   //   await this.sendGridClient.send(mail)
   // }
 
-  async sendEmail(emailObject: EmailObject) {
+  async sendEmail(emailObject: IEmailObject) {
     return this.stmpClient.sendEmail(emailObject)
   }
 }

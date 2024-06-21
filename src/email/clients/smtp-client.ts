@@ -1,80 +1,55 @@
 import { Injectable } from '@nestjs/common'
+import * as nodemailer from 'nodemailer'
 import { ReturnMethodDto } from '../../shared/dtos/return-method.dto'
-
-export interface EmailObject {
-  text: string
-  to: string
-  subject: string
-  attachment?:
-    | {
-        data: string
-        alternative: boolean
-      }[]
-    | {
-        path: string
-        type: string
-        name: string
-      }[]
-}
+import { IEmailObject } from '../../shared/dtos/email-msg'
 
 @Injectable()
 export class SmtpClient {
-  private client
+  private transporter: nodemailer.Transporter
 
   constructor() {
     this.initClient()
   }
 
-  private async initClient() {
-    // eslint-disable-next-line import/no-unresolved
-    const { SMTPClient } = await import('emailjs')
-    this.client = new SMTPClient({
-      user: process.env.SMTP_USER,
-      password: process.env.SMTP_PASSWORD,
+  private initClient() {
+    this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
+      port: +process.env.SMTP_PORT || 587, // Usa el puerto adecuado para tu servidor SMTP
+      secure: false, // true para 465, false para otros puertos
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
       tls: {
         ciphers: 'SSLv3',
+        rejectUnauthorized: false,
       },
+      debug: true,
+      logger: true,
     })
   }
 
-  private async emailObject({ text, subject, to, attachment }: EmailObject) {
-    // eslint-disable-next-line import/no-unresolved
-    const { Message } = await import('emailjs')
-    return new Message({
-      text,
-      from: process.env.SMTP_FROM,
-      to,
-      subject,
-      attachment,
-    })
-  }
-
-  async sendEmail(email: EmailObject): Promise<ReturnMethodDto<string>> {
-    const emailMessage = await this.emailObject(email)
-
+  async sendEmail(email: IEmailObject): Promise<ReturnMethodDto<string>> {
     let error = null
     let message = null
 
-    try {
-      await new Promise((resolve, reject) => {
-        this.client.send(emailMessage, (err, mess) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(mess)
-          }
-        })
-      })
-        .then((mess) => {
-          message = mess
-        })
-        .catch((err) => {
-          error = err
-        })
+    const mailOptions = {
+      from: process.env.SMTP_FROM,
+      to: email.to,
+      subject: email.subject,
+      text: email.text,
+    }
 
+    try {
+      await this.transporter.sendMail({
+        from: mailOptions.from,
+        to: mailOptions.to,
+        subject: mailOptions.subject,
+        text: mailOptions.text,
+      })
       return new ReturnMethodDto<string>(message, error)
-    } catch (error) {
+    } catch (err) {
+      error = err.message
       return new ReturnMethodDto<string>(null, error)
     }
   }
