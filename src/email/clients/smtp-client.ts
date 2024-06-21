@@ -1,33 +1,19 @@
 import { Injectable } from '@nestjs/common'
 import { ReturnMethodDto } from '../../shared/dtos/return-method.dto'
-
-export interface EmailObject {
-  text: string
-  to: string
-  subject: string
-  attachment?:
-    | {
-        data: string
-        alternative: boolean
-      }[]
-    | {
-        path: string
-        type: string
-        name: string
-      }[]
-}
+// eslint-disable-next-line import/no-unresolved
+import { SMTPClient, Message } from 'emailjs'
+import { BaseEmailClient, EmailObject } from './base-client.interface'
 
 @Injectable()
-export class SmtpClient {
+export class SmtpClient extends BaseEmailClient {
   private client
 
   constructor() {
+    super()
     this.initClient()
   }
 
-  private async initClient() {
-    // eslint-disable-next-line import/no-unresolved
-    const { SMTPClient } = await import('emailjs')
+  async initClient() {
     this.client = new SMTPClient({
       user: process.env.SMTP_USER,
       password: process.env.SMTP_PASSWORD,
@@ -38,9 +24,7 @@ export class SmtpClient {
     })
   }
 
-  private async emailObject({ text, subject, to, attachment }: EmailObject) {
-    // eslint-disable-next-line import/no-unresolved
-    const { Message } = await import('emailjs')
+  async emailObject({ text, subject, to, attachment }: EmailObject) {
     return new Message({
       text,
       from: process.env.SMTP_FROM,

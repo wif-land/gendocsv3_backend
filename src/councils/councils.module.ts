@@ -10,7 +10,7 @@ import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-yea
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { StudentEntity } from '../students/entities/student.entity'
 import { EmailService } from '../email/services/email.service'
-import { SendGridClient } from '../email/clients/sendgrid-client'
+import { EmailModule } from '../email/email.module'
 
 @Module({
   imports: [
@@ -23,8 +23,9 @@ import { SendGridClient } from '../email/clients/sendgrid-client'
       FunctionaryEntity,
       StudentEntity,
     ]),
+    EmailModule,
   ],
   controllers: [CouncilsController],
-  providers: [CouncilsService, EmailService, SendGridClient],
+  providers: [CouncilsService, EmailService],
 })
 export class CouncilsModule {}

@@ -43,6 +43,7 @@ import { EmailService } from './email/services/email.service'
 import { EmailModule } from './email/email.module'
 import { BullModule } from '@nestjs/bull'
 import { NotificationsModule } from './notifications/notifications.module'
+import { MailerModule } from '@nestjs-modules/mailer'
 
 dotenvConfig({ path: '.env' })
 
@@ -79,6 +80,15 @@ export default connectionSource
       redis: {
         host: process.env.REDIS_HOST,
         port: +process.env.REDIS_PORT,
+      },
+    }),
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.SMTP_HOST,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD,
+        },
       },
     }),
     LogModule,

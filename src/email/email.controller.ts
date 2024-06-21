@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common'
 import { EmailService } from './services/email.service'
-import { EmailObject } from './clients/smtp-client'
+import { EmailObject } from './clients/base-client.interface'
 
 @Controller('email')
 export class EmailController {

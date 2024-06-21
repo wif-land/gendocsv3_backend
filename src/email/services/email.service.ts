@@ -1,29 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 
-import { EmailObject, SmtpClient } from '../clients/smtp-client'
+import { EmailObject } from '../clients/base-client.interface'
+import { MailerService } from '@nestjs-modules/mailer'
 
 @Injectable()
 export class EmailService {
-  constructor(
-    @Inject('SmtpClient')
-    private readonly stmpClient: SmtpClient,
-  ) {}
-
-  // async sendTestEmail(
-  //   recipients: string[],
-  //   body = 'This is a test mail',
-  // ): Promise<void> {
-  //   const mail: MailDataRequired = {
-  //     to: recipients,
-  //     from: 'ddlm.montenegro@uta.edu.ec',
-  //     subject: 'NOTIFICACIÓN',
-  //     content: [{ type: 'text/plain', value: body }],
-  //   }
-
-  //   await this.sendGridClient.send(mail)
-  // }
+  constructor(private readonly mailService: MailerService) {}
 
   async sendEmail(emailObject: EmailObject) {
-    return this.stmpClient.sendEmail(emailObject)
+    return this.mailService.sendMail(emailObject)
   }
 }
