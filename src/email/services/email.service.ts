@@ -10,21 +10,29 @@ export class EmailService {
     private readonly stmpClient: SmtpClient,
   ) {}
 
-  // async sendTestEmail(
-  //   recipients: string[],
-  //   body = 'This is a test mail',
-  // ): Promise<void> {
-  //   const mail: MailDataRequired = {
-  //     to: recipients,
-  //     from: 'ddlm.montenegro@uta.edu.ec',
-  //     subject: 'NOTIFICACIÓN',
-  //     content: [{ type: 'text/plain', value: body }],
-  //   }
-
-  //   await this.sendGridClient.send(mail)
-  // }
-
   async sendEmail(emailObject: IEmailObject) {
     return this.stmpClient.sendEmail(emailObject)
+  }
+
+  async sendRecoveryPasswordEmail(email: string, token: string) {
+    const emailObject: IEmailObject = {
+      to: email,
+      subject: 'GENDOCS - Recuperación de contraseña',
+      body: `Para recuperar tu contraseña, haz click en el siguiente enlace: http://localhost:3000/auth/new-password?token=${token}
+      Este enlace expirará en 1 hora.
+      `,
+    }
+
+    return this.sendEmail(emailObject)
+  }
+
+  async sendWelcomeEmail(email: string) {
+    const emailObject: IEmailObject = {
+      to: email,
+      subject: 'GENDOCS - Bienvenido a la plataforma',
+      body: `¡Bienvenido a GENDOCS!`,
+    }
+
+    return this.sendEmail(emailObject)
   }
 }

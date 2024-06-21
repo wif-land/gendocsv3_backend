@@ -40,7 +40,7 @@ export class UsersService {
 
       if (!user) {
         throw new HttpException(
-          'No se encontro el usuario',
+          'No se encontró el usuario',
           HttpStatus.NOT_FOUND,
         )
       }
@@ -392,6 +392,38 @@ export class UsersService {
       count,
       users,
     })
+  }
+
+  async updateRecoveryPasswordToken(email: string, token: string) {
+    await this.userRepository.update(
+      {
+        outlookEmail: email,
+      },
+      {
+        recoveryPasswordToken: token,
+        recoveryPasswordTokenTries: () => 'recovery_password_token_tries + 1',
+      },
+    )
+  }
+
+  async newPassword(email: string, password: string, token: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        outlookEmail: email,
+        recoveryPasswordToken: token,
+      },
+    })
+
+    if (!user) {
+      throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND)
+    }
+    user.password = await this.generateSaltPassword(password)
+    user.recoveryPasswordToken = null
+    user.recoveryPasswordTokenTries = 0
+
+    await this.userRepository.save(user)
+
+    return new ApiResponseDto('Contraseña actualizada', null)
   }
 
   private async generateSaltPassword(password: string) {

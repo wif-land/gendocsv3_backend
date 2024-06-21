@@ -1,16 +1,22 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import {
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { UsersService } from '../users/users.service'
 import { UserEntity } from '../users/entities/users.entity'
 import { JwtService } from '@nestjs/jwt'
 import { compareSync } from 'bcrypt'
 import { ModuleEntity } from '../modules/entities/modules.entity'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { EmailService } from '../email/services/email.service'
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private readonly emailService: EmailService,
   ) {}
 
   async login(email: string, password: string) {
@@ -39,9 +45,64 @@ export class AuthService {
     }
 
     return new ApiResponseDto(
-      `Bienvenido ${user.firstName} ${user.firstLastName}!`,
+      `Hola de nuevo, ${user.firstName} ${user.firstLastName}!`,
       this.jwtService.sign(payload),
     )
+  }
+
+  async forgotPassword(email: string) {
+    const data = await this.usersService.getByEmail(email)
+    this.validateUserExists(data?.data)
+
+    const token = this.jwtService.sign({ email }, { expiresIn: '1h' })
+
+    await this.emailService.sendRecoveryPasswordEmail(email, token)
+    await this.usersService.updateRecoveryPasswordToken(email, token)
+  }
+
+  async newPassword(email: string, password: string, token: string) {
+    const user = await this.usersService.getByEmail(email)
+    this.validateUserExists(user?.data)
+    const { data } = user
+    const { recoveryPasswordToken } = data
+
+    this.validateToken(recoveryPasswordToken)
+
+    return this.usersService.newPassword(email, password, token)
+  }
+
+  async resendActivationEmail(email: string) {
+    const user = await this.usersService.getByEmail(email)
+    this.validateUserExists(user?.data)
+    this.validateTries(user.data?.recoveryPasswordTokenTries)
+
+    const token = this.jwtService.sign({ email }, { expiresIn: '1h' })
+
+    await this.emailService.sendRecoveryPasswordEmail(email, token)
+    await this.usersService.updateRecoveryPasswordToken(email, token)
+  }
+
+  private validateTries(recoveryPasswordTokenTries: number) {
+    if (recoveryPasswordTokenTries >= 3) {
+      throw new HttpException(
+        `Has excedido el número de intentos permitidos para recuperación de contraseña`,
+        400,
+      )
+    }
+  }
+
+  private validateToken(token: string) {
+    try {
+      return this.jwtService.verify(token, { ignoreExpiration: false })
+    } catch (error) {
+      throw new HttpException(`Token invalido`, 400)
+    }
+  }
+
+  private validateUserExists(user: UserEntity) {
+    if (!user) {
+      throw new HttpException(`Usuario no encontrado`, 404)
+    }
   }
 
   private validateUser(user: UserEntity, passwordToVerify: string) {

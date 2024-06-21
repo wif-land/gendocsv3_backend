@@ -37,7 +37,7 @@ export class SmtpClient {
       from: process.env.SMTP_FROM,
       to: email.to,
       subject: email.subject,
-      text: email.text,
+      text: email.body,
     }
 
     try {
