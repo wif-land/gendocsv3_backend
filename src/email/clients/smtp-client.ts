@@ -38,15 +38,11 @@ export class SmtpClient {
       to: email.to,
       subject: email.subject,
       text: email.body,
+      html: email.html,
     }
 
     try {
-      await this.transporter.sendMail({
-        from: mailOptions.from,
-        to: mailOptions.to,
-        subject: mailOptions.subject,
-        text: mailOptions.text,
-      })
+      await this.transporter.sendMail(mailOptions)
       return new ReturnMethodDto<string>(message, error)
     } catch (err) {
       error = err.message

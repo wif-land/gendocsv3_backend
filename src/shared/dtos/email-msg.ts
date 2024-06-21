@@ -1,5 +1,6 @@
 export interface IEmailObject {
-  body: string
+  body?: string
   to: string
   subject: string
+  html?: string
 }

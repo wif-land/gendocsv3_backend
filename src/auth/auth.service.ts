@@ -66,7 +66,7 @@ export class AuthService {
     const { data } = user
     const { recoveryPasswordToken } = data
 
-    this.validateToken(recoveryPasswordToken)
+    this.validateToken(recoveryPasswordToken, token)
 
     return this.usersService.newPassword(email, password, token)
   }
@@ -91,8 +91,12 @@ export class AuthService {
     }
   }
 
-  private validateToken(token: string) {
+  private validateToken(token: string, incomingToken: string) {
     try {
+      if (token !== incomingToken) {
+        throw new HttpException(`Token invalido`, 400)
+      }
+
       return this.jwtService.verify(token, { ignoreExpiration: false })
     } catch (error) {
       throw new HttpException(`Token invalido`, 400)
