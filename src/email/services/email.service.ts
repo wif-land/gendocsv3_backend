@@ -24,7 +24,7 @@ export class EmailService {
     )
     const template = Handlebars.compile(emailTemplateSource)
     const htmlToSend = template({
-      resetLink: `http://${process.env.SERVER_IP}:${process.env.APP_PORT}/auth/new-password?token=${token}`,
+      resetLink: `http://${process.env.SERVER_IP}:${process.env.FRONTEND_PORT}/auth/new-password?token=${token}`,
     })
 
     const emailObject: IEmailObject = {
