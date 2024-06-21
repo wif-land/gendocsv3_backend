@@ -31,7 +31,7 @@ export class SmtpClient {
 
   async sendEmail(email: IEmailObject): Promise<ReturnMethodDto<string>> {
     let error = null
-    let message = null
+    const message = null
 
     const mailOptions = {
       from: process.env.SMTP_FROM,
