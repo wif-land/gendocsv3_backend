@@ -78,12 +78,13 @@ export class GcpService {
   async shareAsset(
     assetId: string,
     email: string,
+    role = 'writer',
   ): Promise<ReturnMethodDto<boolean>> {
     try {
       await this.drive.permissions.create({
         fileId: assetId,
         requestBody: {
-          role: 'writer',
+          role,
           type: 'user',
           emailAddress: email,
         },

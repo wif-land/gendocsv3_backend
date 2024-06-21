@@ -97,10 +97,12 @@ export class FilesService {
   async shareAsset(
     driveId: string,
     email: string,
+    role: string,
   ): Promise<ReturnMethodDto<boolean>> {
     const { error, data: result } = await this.gcpService.shareAsset(
       driveId,
       email,
+      role,
     )
 
     if (!result || error) {
