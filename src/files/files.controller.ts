@@ -21,7 +21,11 @@ export class FilesController {
     @Body() { email, driveId }: { email: string; driveId: string },
   ) {
     try {
-      const result = await this.filesService.shareAsset(driveId, email)
+      const result = await this.filesService.shareAsset(
+        driveId,
+        email,
+        'writer',
+      )
 
       return result
     } catch (error) {
