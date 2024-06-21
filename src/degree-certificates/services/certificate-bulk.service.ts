@@ -42,6 +42,7 @@ import { NotificationStatus } from '../../shared/enums/notification-status'
 import { NotificationEntity } from '../../notifications/entities/notification.entity'
 import { CertificateNumerationService } from './certificate-numeration.service'
 import { formatDateTime } from '../../shared/utils/date'
+import { ModuleEntity } from '../../modules/entities/modules.entity'
 
 @Injectable()
 export class CertificateBulkService {
@@ -49,7 +50,6 @@ export class CertificateBulkService {
 
   // Si se cambia el id del módulo de comunes que tiene a las actas de grado
   // cambiar esta variable, se evita hacer la consulta a la bd por optimizar tiempos
-  private readonly degreeCertificatesModuleId = 11
 
   constructor(
     @InjectQueue(CERTIFICATE_QUEUE_NAME)
@@ -78,6 +78,14 @@ export class CertificateBulkService {
     userId: number,
     retryId?: number,
   ) {
+    const degreeCertificatesModule = await ModuleEntity.findOne({
+      where: { code: 'COMM' },
+    })
+
+    if (!degreeCertificatesModule) {
+      throw new Error('No se encontró el módulo de actas de grado')
+    }
+
     this.logger.log('Creando certificados de grado en lote...')
     const rootNotification = await this.notificationsService.create({
       isMain: true,
@@ -89,7 +97,7 @@ export class CertificateBulkService {
       createdBy: userId,
       retryId,
       scope: {
-        modules: [this.degreeCertificatesModuleId],
+        modules: [degreeCertificatesModule.id],
         roles: [RolesType.ADMIN, RolesType.WRITER],
       },
       status: NotificationStatus.IN_PROGRESS,
@@ -128,8 +136,6 @@ export class CertificateBulkService {
     await Promise.all(promises)
 
     await this.certificateQueue.whenCurrentJobsFinished()
-
-    this.logger.debug(await this.certificateQueue.getJobCounts())
 
     const notifications = await this.notificationsService.notificationsByParent(
       rootNotification.id,
@@ -247,6 +253,17 @@ export class CertificateBulkService {
       createCertificateDto.studentDni,
       errors,
     )
+
+    if (errors.length > 0) {
+      this.logger.error(errors)
+      const messages = errors.map((e) => e.detail)
+
+      await this.notificationsService.updateFailureMsg(
+        childNotification.id,
+        messages,
+      )
+      return { errors }
+    }
     // validate certificate type
     const certificateType = await this.validateCertificateType(
       createCertificateDto.certificateType,
@@ -473,6 +490,10 @@ export class CertificateBulkService {
       }
     }
 
+    degreeCertificate = await this.degreeCertificateRepository.findOneFor({
+      where: { id: degreeCertificate.id },
+    })
+
     return { degreeCertificate, errors }
   }
 
@@ -483,7 +504,7 @@ export class CertificateBulkService {
         state: true,
       })
 
-      if (students.count === 0) {
+      if (!students || students.count === 0) {
         errors.push(
           new ErrorsBulkCertificate(
             `No existe el estudiante con cédula${studentDni}`,
@@ -496,7 +517,6 @@ export class CertificateBulkService {
 
       return students
     } catch (error) {
-      this.logger.debug(`skdfjasdlf ${error.message}`)
       const msg =
         error.message.message ||
         error.message.detail ||
@@ -505,7 +525,7 @@ export class CertificateBulkService {
         `No se pudo obtener el estudiante con cédula ${studentDni}`
 
       errors.push(new ErrorsBulkCertificate(msg, error.stack))
-      this.logger.debug(`mesnasf ${msg}`)
+      this.logger.debug(`${msg}`)
     }
   }
 
@@ -865,7 +885,7 @@ export class CertificateBulkService {
       if (matchedGradesVariables.length !== processedGradesDetails.length) {
         errors.push(
           new ErrorsBulkCertificate(
-            `No se encontraron todas las variables de notas en la hoja de calificaciones: variables encontradas: ${matchedGradesVariables.length}, variables esperadas: ${processedGradesDetails.length}, revise las variables de notas en el tipo de acta seleccionado: ${degreeCertificate.certificateType.name}`,
+            `No se encontraron todas las variables de notas en la hoja de calificaciones: variables encontradas: ${matchedGradesVariables}, variables esperadas: ${processedGradesDetails}, revise las variables de notas en el tipo de acta seleccionado: ${degreeCertificate.certificateType.name}`,
             new Error().stack,
           ),
         )
@@ -881,13 +901,19 @@ export class CertificateBulkService {
       )
 
       try {
-        const replacedSheetsId =
-          await this.gradesSheetService.replaceCellsVariables({
-            cellsVariables: valuesToReplace,
-            gradesSheetDriveId: degreeUpdated.gradesSheetDriveId,
-          })
+        const { error } = await this.gradesSheetService.replaceCellsVariables({
+          cellsVariables: valuesToReplace,
+          gradesSheetDriveId: degreeUpdated.gradesSheetDriveId,
+        })
 
-        Logger.log(replacedSheetsId, 'replacedSheetsId')
+        if (error) {
+          errors.push(
+            new ErrorsBulkCertificate(
+              'No se pudo reemplazar las variables de notas',
+              error.stack,
+            ),
+          )
+        }
 
         return true
       } catch (error) {

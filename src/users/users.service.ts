@@ -15,6 +15,7 @@ import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UserFiltersDto } from './dto/user-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { FilesService } from '../files/services/files.service'
+import { RolesType } from '../auth/decorators/roles-decorator'
 
 @Injectable()
 export class UsersService {
@@ -112,6 +113,7 @@ export class UsersService {
     const { error, data: isShared } = await this.filesService.shareAsset(
       `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
       userSaved.googleEmail,
+      user.role === RolesType.READER ? 'reader' : 'writer',
     )
 
     if (error || !isShared) {
@@ -210,6 +212,7 @@ export class UsersService {
         const { error, data: isShared } = await this.filesService.shareAsset(
           `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
           user.googleEmail,
+          userUpdated.role === RolesType.READER ? 'reader' : 'writer',
         )
 
         if (error || !isShared) {

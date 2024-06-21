@@ -97,10 +97,12 @@ export class FilesService {
   async shareAsset(
     driveId: string,
     email: string,
+    role: string,
   ): Promise<ReturnMethodDto<boolean>> {
     const { error, data: result } = await this.gcpService.shareAsset(
       driveId,
       email,
+      role,
     )
 
     if (!result || error) {
@@ -308,11 +310,15 @@ export class FilesService {
     return path
   }
 
-  async replaceValuesOnCells(sheetId: string, range: string, value: string) {
+  async replaceValuesOnCells(
+    sheetId: string,
+    rangeId: number,
+    values: [string, string][],
+  ) {
     const result = await this.gcpService.replaceValuesOnCells(
       sheetId,
-      range,
-      value,
+      rangeId,
+      values,
     )
 
     if (!result) {
