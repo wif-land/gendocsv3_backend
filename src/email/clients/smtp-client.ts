@@ -25,7 +25,7 @@ export class SmtpClient {
         rejectUnauthorized: false,
       },
       debug: true,
-      logger: true,
+      logger: false,
     })
   }
 

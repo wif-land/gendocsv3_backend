@@ -458,7 +458,7 @@ export class CouncilsService {
     // o debo consultar todos los miembros y generar un solo archivo con todos los miembros?
 
     const to = members.map((member) => member.email).join(', ')
-    await this.emailService.sendEmail({
+    this.emailService.sendEmail({
       to,
       subject: 'Notificación de Consejo',
       text: `Se ha generado un acta de consejo para la reunión ${council.name}`,
