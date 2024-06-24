@@ -20,8 +20,8 @@ export class FunctionaryForTest1704621645707 implements MigrationInterface {
       },
       {
         abbreviation: 'Phd.',
-        maleTitle: 'Doctor',
-        femaleTitle: 'Doctora',
+        maleTitle: 'Phd',
+        femaleTitle: 'Phd',
         degreeLevel: '4',
       },
       {
