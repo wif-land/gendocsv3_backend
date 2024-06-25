@@ -272,12 +272,34 @@ export class CouncilsService {
     return new ResponseCouncilsDto(council)
   }
 
+  async regenerateCouncilDocuments(id: number, updatedBy: number) {
+    const council = await this.councilRepository.findOne({
+      where: { id },
+      relations: ['attendance', 'attendance.functionary', 'attendance.student'],
+    })
+
+    if (!council) {
+      throw new NotFoundException(`Council not found with id ${id}`)
+    }
+  }
+
   async update(id: number, updateCouncilDto: UpdateCouncilDto) {
     const queryBuilder = this.dataSource.createQueryBuilder(
       CouncilEntity,
       'councils',
     )
     const hasNameChanged = updateCouncilDto.name !== undefined
+
+    const council = await queryBuilder
+      .clone()
+      .where('councils.id = :id', { id })
+      .getOne()
+
+    if (!council) {
+      throw new NotFoundException(`Council not found with id ${id}`)
+    }
+
+    const currentCouncil = { ...council }
 
     if (hasNameChanged) {
       queryBuilder.where('councils.id = :id', { id })
@@ -363,6 +385,10 @@ export class CouncilsService {
 
       const councilUpdated = await this.councilRepository.save(updatedCouncil)
 
+      if (currentCouncil.date !== updateCouncilDto.date) {
+        this.regenerateCouncilDocuments(id, updateCouncilDto.userId)
+      }
+
       return {
         ...councilUpdated,
         members: await Promise.all(councilMembers),
@@ -379,6 +405,10 @@ export class CouncilsService {
     }
 
     const councilUpdated = await this.councilRepository.save(updatedCouncil)
+
+    if (currentCouncil.date !== updateCouncilDto.date) {
+      this.regenerateCouncilDocuments(id, updateCouncilDto.userId)
+    }
 
     return {
       ...councilUpdated,

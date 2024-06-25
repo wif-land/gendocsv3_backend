@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common'
 import { CreateDocumentDto } from '../dto/create-document.dto'
@@ -18,6 +19,15 @@ import { formatNumeration } from '../../shared/utils/string'
 import { ResponseDocumentDto } from '../dto/response-document'
 import { PaginationV2Dto } from '../../shared/dtos/paginationv2.dto'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
+import { CouncilEntity } from '../../councils/entities/council.entity'
+import { NotificationsService } from '../../notifications/notifications.service'
+import { NotificationStatus } from '../../shared/enums/notification-status'
+import { RolesType } from '../../auth/decorators/roles-decorator'
+import { InjectQueue } from '@nestjs/bull'
+import { DOCUMENT_QUEUE_NAME, DocumentRecreation } from '../constants'
+import { Queue } from 'bull'
+import { NotificationEntity } from '../../notifications/entities/notification.entity'
+import { NotificationsGateway } from '../../notifications/notifications.gateway'
 
 @Injectable()
 export class DocumentsService {
@@ -28,6 +38,12 @@ export class DocumentsService {
     @InjectRepository(DocumentFunctionaryEntity)
     private documentFunctionaryRepository: Repository<DocumentFunctionaryEntity>,
 
+    @InjectQueue(DOCUMENT_QUEUE_NAME)
+    private readonly documentQueue: Queue<DocumentRecreation>,
+
+    private readonly notificationsGateway: NotificationsGateway,
+
+    private readonly notificationsService: NotificationsService,
     private readonly dataSource: DataSource,
     private readonly numerationDocumentService: NumerationDocumentService,
     private readonly variableService: VariablesService,
@@ -227,6 +243,202 @@ export class DocumentsService {
     }
   }
 
+  async recreateDocumentsByCouncil(council: CouncilEntity, createdBy: number) {
+    const rootNotification = await this.notificationsService.create({
+      isMain: true,
+      name: `Recreación de documentos para el consejo con nombre: ${council.name}`,
+      createdBy,
+      scope: {
+        roles: [RolesType.ADMIN, RolesType.WRITER],
+        id: createdBy,
+      },
+      status: NotificationStatus.IN_PROGRESS,
+      type: 'recreateDocumentsByCouncil',
+    })
+
+    if (!rootNotification) {
+      Logger.error(new ConflictException('Error al crear la notificación'))
+
+      return
+    }
+
+    this.notificationsGateway.handleSendNotification(rootNotification)
+
+    const documents = await this.documentsRepository
+      .createQueryBuilder('document')
+      .leftJoinAndSelect('document.numerationDocument', 'numerationDocument')
+      .leftJoinAndSelect('document.user', 'user')
+      .leftJoinAndSelect('document.student', 'student')
+      .leftJoinAndSelect('document.templateProcess', 'templateProcess')
+      .leftJoinAndSelect(
+        'document.documentFunctionaries',
+        'documentFunctionaries',
+      )
+      .leftJoinAndSelect('documentFunctionaries.functionary', 'functionary')
+      .where('numerationDocument.council = :council', { council: council.id })
+      .getMany()
+
+    if (!documents || documents.length === 0) {
+      // eslint-disable-next-line require-atomic-updates
+      rootNotification.status = NotificationStatus.COMPLETED
+
+      rootNotification.save()
+
+      const childNotification = await this.notificationsService.create({
+        name: 'No existen documentos generados para el consejo',
+        createdBy,
+        parentId: rootNotification.id,
+        status: NotificationStatus.COMPLETED,
+        type: 'recreateDocumentByCouncil',
+      })
+
+      if (!childNotification) {
+        Logger.error(new ConflictException('Error al crear la notificación'))
+
+        return
+      }
+
+      await this.notificationsGateway.handleSendNotification({
+        notification: rootNotification,
+        childs: [childNotification],
+      })
+
+      return
+    }
+
+    const { data: councilVariablesData } =
+      await this.variableService.getCouncilVariables(documents[0])
+
+    const promises = documents.map(async (document) => {
+      const job = await this.documentQueue.add(
+        'recreateDocument',
+        {
+          notification: rootNotification,
+          document,
+          councilVariablesData,
+        },
+        {
+          attempts: 2,
+          backoff: 1000,
+        },
+      )
+
+      return job.finished()
+    })
+
+    await Promise.all(promises)
+
+    await this.documentQueue.whenCurrentJobsFinished()
+
+    const notifications = await this.notificationsService.notificationsByParent(
+      rootNotification.id,
+    )
+
+    const completedWithoutErrors = notifications.filter(
+      (notification) => notification.status === NotificationStatus.COMPLETED,
+    )
+
+    let savedRootNotification: NotificationEntity
+
+    if (completedWithoutErrors.length === documents.length) {
+      // eslint-disable-next-line require-atomic-updates
+      rootNotification.status = NotificationStatus.COMPLETED
+      savedRootNotification = await rootNotification.save()
+    } else if (
+      completedWithoutErrors.length < documents.length &&
+      completedWithoutErrors.length > 0
+    ) {
+      // eslint-disable-next-line require-atomic-updates
+      rootNotification.status = NotificationStatus.WITH_ERRORS
+      savedRootNotification = await rootNotification.save()
+    } else {
+      // eslint-disable-next-line require-atomic-updates
+      rootNotification.status = NotificationStatus.FAILURE
+      savedRootNotification = await rootNotification.save()
+    }
+
+    await this.notificationsGateway.handleSendNotification({
+      notification: savedRootNotification,
+      childs: notifications,
+    })
+  }
+
+  async recreateDocument(
+    rootNotification: NotificationEntity,
+    document: DocumentEntity,
+    councilVariablesData: { [key: string]: string },
+  ) {
+    const childNotification = await this.notificationsService.create({
+      name: `Recreación de documento con número: ${document.numerationDocument.number}`,
+      createdBy: rootNotification.createdBy.id,
+      parentId: rootNotification.id,
+      status: NotificationStatus.IN_PROGRESS,
+      type: 'recreateDocument',
+    })
+
+    if (!childNotification) {
+      Logger.error(new ConflictException('Error al crear la notificación'))
+
+      return
+    }
+
+    try {
+      const variables = JSON.parse(document.variables)
+
+      const newVariables = {
+        ...variables,
+        [DEFAULT_VARIABLE.PREFIX_CONSEJO]: councilVariablesData,
+      }
+
+      const variablesJson = JSON.stringify(newVariables)
+
+      const driveId = (
+        await this.filesService.createDocumentByParentIdAndCopy(
+          formatNumeration(document.numerationDocument.number),
+          document.numerationDocument.council.driveId,
+          document.templateProcess.driveId,
+        )
+      ).data
+
+      const formatVariables = newVariables.reduce((acc, item) => {
+        acc[item.key] = item.value
+
+        return acc
+      })
+
+      await this.filesService.replaceTextOnDocument(formatVariables, driveId)
+
+      await this.documentsRepository.save({
+        id: document.id,
+        driveId,
+        variables: variablesJson,
+      })
+
+      // eslint-disable-next-line require-atomic-updates
+      childNotification.status = NotificationStatus.COMPLETED
+
+      await childNotification.save()
+    } catch (error) {
+      Logger.error(error)
+
+      const errorMsg: string =
+        error.message ||
+        error.detail.message ||
+        error.detail ||
+        'Error al recrear el documento'
+
+      // eslint-disable-next-line require-atomic-updates
+      await this.notificationsService.updateFailureMsg(
+        childNotification.id,
+        new Array(errorMsg),
+      )
+
+      await childNotification.save()
+
+      return error
+    }
+  }
+
   async findAll(paginationDto: PaginationV2Dto) {
     const {
       // eslint-disable-next-line no-magic-numbers
@@ -239,78 +451,6 @@ export class DocumentsService {
 
     try {
       // Se usa query builder para hacer la consulta por la velocidad de respuesta
-      // const documents = await this.documentsRepository.find({
-      //   select: {
-      //     id: true,
-      //     createdAt: true,
-      //     driveId: true,
-      //     description: true,
-      //     variables: false,
-      //   },
-      //   relations: {
-      //     numerationDocument: {
-      //       council: {
-      //         module: {
-      //           defaultAttendance: false,
-      //           councils: false,
-      //           processes: false,
-      //           submodules: false,
-      //         },
-      //         submoduleYearModule: {
-      //           degreeCertificates: false,
-      //           processes: false,
-      //           yearModule: {
-      //             submoduleYearModules: false,
-      //           },
-      //         },
-      //         attendance: {
-      //           council: false,
-      //           functionary: {
-      //             documentFunctionaries: false,
-      //           },
-      //         },
-      //       },
-      //     },
-      //     user: {
-      //       accessModules: false,
-      //       councils: false,
-      //       degreeCertificates: false,
-      //       documents: false,
-      //       processes: false,
-      //       templateProcesses: false,
-      //     },
-      //     student: {
-      //       career: {
-      //         coordinator: false,
-      //       },
-      //       canton: {
-      //         province: false,
-      //       },
-      //       documents: false,
-      //     },
-      //     templateProcess: {
-      //       documents: false,
-      //       process: false,
-      //       user: false,
-      //     },
-      //     documentFunctionaries: {
-      //       functionary: {
-      //         careers: false,
-      //         documentFunctionaries: false,
-      //         councilAttendance: false,
-      //         positions: false,
-      //       },
-      //     },
-      //   },
-      //   order: {
-      //     [orderBy]: order.toUpperCase(),
-      //   },
-      //   take: rowsPerPage,
-      //   skip: rowsPerPage * (page - 1),
-      //   where: {
-      //     numerationDocument: { council: { module: { id: Number(moduleId) } } },
-      //   },
-      // })
       const documents = await this.documentsRepository
         .createQueryBuilder('document')
         .select([
