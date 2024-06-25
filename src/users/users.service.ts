@@ -125,10 +125,13 @@ export class UsersService {
       )
     }
 
-    return new ApiResponseDto('Usuario creado correctamente', {
-      ...userSaved,
-      accessModules: userSaved.accessModules.map((module) => module.id),
-    })
+    return new ApiResponseDto(
+      'Usuario creado correctamente, tome en cuenta que la habilitación de permisos de documentos tardará 10-15 minutos en aplicarse',
+      {
+        ...userSaved,
+        accessModules: userSaved.accessModules.map((module) => module.id),
+      },
+    )
   }
 
   async update(id: number, user: Partial<CreateUserDTO>) {
@@ -270,13 +273,16 @@ export class UsersService {
         accessModules: userUpdated.accessModules,
       }
 
-      return new ApiResponseDto('Usuario actualizado', {
-        user: {
-          ...userUpdated,
-          accessModules: userUpdated.accessModules.map((module) => module.id),
+      return new ApiResponseDto(
+        'Usuario actualizado, tome en cuenta que la habilitación de permisos de documentos tardará 10-15 minutos en aplicarse',
+        {
+          user: {
+            ...userUpdated,
+            accessModules: userUpdated.accessModules.map((module) => module.id),
+          },
+          accessToken: this.jwtService.sign(payload),
         },
-        accessToken: this.jwtService.sign(payload),
-      })
+      )
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }

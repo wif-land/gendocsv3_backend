@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { GoogleAuth } from 'google-auth-library'
 import { docs, docs_v1 } from '@googleapis/docs'
@@ -233,7 +233,7 @@ export class GcpService {
         success: true,
       })
     } catch (error) {
-      throw new Error(error.message)
+      Logger.error(new Error(error.message))
     }
   }
 

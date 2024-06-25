@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { IsNull, Not, Repository } from 'typeorm'
 import { CreateDegreeCertificateDto } from '../dto/create-degree-certificate.dto'
@@ -10,6 +10,7 @@ import { DegreeCertificateAlreadyExists } from '../errors/degree-certificate-alr
 import { DegreeCertificateNotFoundError } from '../errors/degree-certificate-not-found'
 import { YearModuleService } from '../../year-module/year-module.service'
 import {
+  CERT_STATUS_CODE,
   DEGREE_ATTENDANCE_ROLES,
   DEGREE_MODULES,
 } from '../../shared/enums/degree-certificates'
@@ -334,6 +335,66 @@ export class DegreeCertificatesService {
       )
     }
 
+    const gradeCells =
+      await this.gradesSheetService.getGradeCellsByCertificateType(
+        degreeCertificate.certificateType.id,
+      )
+
+    const finalGrade = gradeCells.find(
+      (cell) =>
+        cell.gradeVariable === 'NOTAFINAL' ||
+        cell.gradeVariable === 'NOTAGRADO',
+    )
+
+    if (!finalGrade) {
+      throw new DegreeCertificateBadRequestError(
+        'No se encontró la celda de calificación para la nota final o la nota de grado',
+      )
+    }
+
+    const gradeCellsData = await this.gradesSheetService.getCellsVariables(
+      gradeCells,
+      degreeCertificate.gradesSheetDriveId,
+    )
+
+    if (
+      !gradeCellsData[`{{${finalGrade.gradeVariable}}}`] ||
+      gradeCellsData[`{{${finalGrade.gradeVariable}}}`] == null ||
+      gradeCellsData[`{{${finalGrade.gradeVariable}}}`] === ''
+    ) {
+      throw new DegreeCertificateBadRequestError(
+        'La hoja de calificaciones no cuenta con la nota final o la nota de grado',
+      )
+    }
+
+    const finalGradeValue = parseFloat(
+      gradeCellsData[`{{${finalGrade.gradeVariable}}}`],
+    )
+
+    if (finalGradeValue < 0 || finalGradeValue > 10) {
+      throw new DegreeCertificateBadRequestError(
+        `La nota final o la nota de grado: ${finalGradeValue} no es válida`,
+      )
+    }
+
+    if (
+      finalGradeValue < 7 &&
+      certificateStatusType.certificateStatus.code === CERT_STATUS_CODE.APRO
+    ) {
+      throw new DegreeCertificateBadRequestError(
+        `La nota final o la nota de grado: ${finalGradeValue} no es suficiente para aprobar el certificado`,
+      )
+    }
+
+    if (
+      finalGradeValue >= 7 &&
+      certificateStatusType.certificateStatus.code === CERT_STATUS_CODE.REPR
+    ) {
+      throw new DegreeCertificateBadRequestError(
+        `La nota final o la nota de grado: ${finalGradeValue} es suficiente para aprobar el certificado`,
+      )
+    }
+
     const { data: driveId } =
       await this.filesService.createDocumentByParentIdAndCopy(
         `${degreeCertificate.number} - ${degreeCertificate.student.dni} | ${degreeCertificate.certificateType.code} - ${degreeCertificate.certificateStatus.code}`,
@@ -347,23 +408,13 @@ export class DegreeCertificatesService {
       )
     }
 
-    const gradeCells =
-      await this.gradesSheetService.getGradeCellsByCertificateType(
-        degreeCertificate.certificateType.id,
-      )
-
-    const gradeCellsData = await this.gradesSheetService.getCellsVariables(
-      gradeCells,
-      degreeCertificate.gradesSheetDriveId,
-    )
-
     const { data: dregreeCertificateData } =
       await this.variablesService.getDegreeCertificateVariables(
         degreeCertificate,
         attendance,
       )
 
-    await this.filesService.replaceTextOnDocument(
+    this.filesService.replaceTextOnDocument(
       {
         ...dregreeCertificateData,
         ...gradeCellsData,
@@ -395,14 +446,9 @@ export class DegreeCertificatesService {
         `El certificado con id ${id} no existe`,
       )
     }
-    const qr =
-      this.degreeCertificateRepository.manager.connection.createQueryRunner()
 
+    const currentDegreeCertigicate = { ...degreeCertificate }
     try {
-      await qr.connect()
-
-      await qr.startTransaction()
-      const currentDegreeCertigicate = { ...degreeCertificate }
       if (
         dto.studentId &&
         dto.studentId !== currentDegreeCertigicate.student.id
@@ -431,9 +477,9 @@ export class DegreeCertificatesService {
         })
       }
 
-      const degreeCertificatePreloaded = await qr.manager
-        .getRepository(DegreeCertificateEntity)
-        .merge(degreeCertificate, {
+      const degreeCertificatePreloaded =
+        await this.degreeCertificateRepository.preload({
+          ...currentDegreeCertigicate,
           ...dto,
           student: { id: dto.studentId },
           certificateType: { id: dto.certificateTypeId },
@@ -449,7 +495,7 @@ export class DegreeCertificatesService {
         )
       }
 
-      const certificateUpdated = await qr.manager.save(
+      const certificateUpdated = await this.degreeCertificateRepository.save(
         degreeCertificatePreloaded,
       )
 
@@ -486,9 +532,14 @@ export class DegreeCertificatesService {
         }
       }
       if (
-        dto.presentationDate !== undefined &&
-        // eslint-disable-next-line eqeqeq
-        dto.presentationDate != currentDegreeCertigicate.presentationDate
+        // eslint-disable-next-line no-extra-parens
+        (dto.presentationDate !== undefined &&
+          // eslint-disable-next-line eqeqeq
+          dto.presentationDate != currentDegreeCertigicate.presentationDate) ||
+        // eslint-disable-next-line no-extra-parens
+        (dto.certificateStatusId &&
+          dto.certificateStatusId !==
+            currentDegreeCertigicate.certificateStatus.id)
       ) {
         if (currentDegreeCertigicate.certificateDriveId) {
           await this.filesService.remove(degreeCertificate.certificateDriveId)
@@ -501,24 +552,21 @@ export class DegreeCertificatesService {
         })
       }
 
-      await qr.commitTransaction()
-
       return new ApiResponseDto(
         'Certificado actualizado correctamente',
         certificateUpdated,
       )
     } catch (error) {
-      await qr.rollbackTransaction()
-
+      await this.degreeCertificateRepository.save(currentDegreeCertigicate)
       if (error instanceof DegreeCertificateError) {
         throw error
       }
 
+      Logger.error(error.message, error.stack)
+
       throw new DegreeCertificateBadRequestError(
         'Error al actualizar el certificado',
       )
-    } finally {
-      await qr.release()
     }
   }
 

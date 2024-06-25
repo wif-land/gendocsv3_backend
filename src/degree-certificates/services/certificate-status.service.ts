@@ -118,9 +118,12 @@ export class CertificateStatusService {
     certificateStatusId: number,
   ) {
     const certificateTypeStatus =
-      await this.certificateTypeStatusRepository.findOneBy({
-        certificateType: { id: certificateTypeId },
-        certificateStatus: { id: certificateStatusId },
+      await this.certificateTypeStatusRepository.findOne({
+        where: {
+          certificateType: { id: certificateTypeId },
+          certificateStatus: { id: certificateStatusId },
+        },
+        relations: ['certificateStatus'],
       })
 
     if (!certificateTypeStatus) {
