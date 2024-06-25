@@ -405,8 +405,6 @@ export class DocumentsService {
         )
       ).data
 
-      console.log(councilVariablesData, newVariables, variablesJson)
-
       await this.filesService.replaceTextOnDocument(newVariables, driveId)
 
       await this.documentsRepository.save({
