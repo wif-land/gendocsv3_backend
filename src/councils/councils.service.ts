@@ -24,6 +24,7 @@ import { StudentEntity } from '../students/entities/student.entity'
 import { CouncilsThatOverlapValidator } from './validators/councils-that-overlap'
 import { EmailService } from '../email/services/email.service'
 import { NotifyMembersDTO } from './dto/notify-members.dto'
+import { DocumentsService } from '../documents/services/documents.service'
 
 @Injectable()
 export class CouncilsService {
@@ -43,6 +44,8 @@ export class CouncilsService {
     private readonly dataSource: DataSource,
     @Inject(EmailService)
     private readonly emailService: EmailService,
+    @Inject(DocumentsService)
+    private readonly documentsService: DocumentsService,
   ) {}
 
   async create(data: CreateCouncilDto) {
@@ -281,6 +284,8 @@ export class CouncilsService {
     if (!council) {
       throw new NotFoundException(`Council not found with id ${id}`)
     }
+
+    await this.documentsService.recreateDocumentsByCouncil(council, updatedBy)
   }
 
   async update(id: number, updateCouncilDto: UpdateCouncilDto) {
@@ -406,7 +411,10 @@ export class CouncilsService {
 
     const councilUpdated = await this.councilRepository.save(updatedCouncil)
 
-    if (currentCouncil.date !== updateCouncilDto.date) {
+    if (
+      currentCouncil.date !== updateCouncilDto.date ||
+      currentCouncil.type !== updateCouncilDto.type
+    ) {
       this.regenerateCouncilDocuments(id, updateCouncilDto.userId)
     }
 

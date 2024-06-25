@@ -267,6 +267,9 @@ export class DocumentsService {
     const documents = await this.documentsRepository
       .createQueryBuilder('document')
       .leftJoinAndSelect('document.numerationDocument', 'numerationDocument')
+      .leftJoinAndSelect('numerationDocument.council', 'council')
+      .leftJoinAndSelect('council.attendance', 'attendance')
+      .leftJoinAndSelect('attendance.functionary', 'attendance-functionary')
       .leftJoinAndSelect('document.user', 'user')
       .leftJoinAndSelect('document.student', 'student')
       .leftJoinAndSelect('document.templateProcess', 'templateProcess')
@@ -385,9 +388,11 @@ export class DocumentsService {
     try {
       const variables = JSON.parse(document.variables)
 
-      const newVariables = {
+      const newVariables: {
+        [key: string]: string
+      } = {
         ...variables,
-        [DEFAULT_VARIABLE.PREFIX_CONSEJO]: councilVariablesData,
+        ...councilVariablesData,
       }
 
       const variablesJson = JSON.stringify(newVariables)
@@ -400,13 +405,9 @@ export class DocumentsService {
         )
       ).data
 
-      const formatVariables = newVariables.reduce((acc, item) => {
-        acc[item.key] = item.value
+      console.log(councilVariablesData, newVariables, variablesJson)
 
-        return acc
-      })
-
-      await this.filesService.replaceTextOnDocument(formatVariables, driveId)
+      await this.filesService.replaceTextOnDocument(newVariables, driveId)
 
       await this.documentsRepository.save({
         id: document.id,

@@ -10,11 +10,13 @@ import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-yea
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { StudentEntity } from '../students/entities/student.entity'
 import { EmailModule } from '../email/email.module'
+import { DocumentsModule } from '../documents/documents.module'
 
 @Module({
   imports: [
     FilesModule,
     EmailModule,
+    DocumentsModule,
     TypeOrmModule.forFeature([
       CouncilEntity,
       CouncilAttendanceEntity,

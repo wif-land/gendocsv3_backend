@@ -26,5 +26,6 @@ import { DOCUMENT_QUEUE_NAME } from './constants'
     NotificationsModule,
   ],
   providers: [DocumentsService, DocumentRecopilationService, DocumentProcessor],
+  exports: [DocumentsService],
 })
 export class DocumentsModule {}
