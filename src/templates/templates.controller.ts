@@ -11,6 +11,7 @@ import {
 import { TemplatesService } from './templates.service'
 import { CreateTemplateDto } from './dto/create-template.dto'
 import { UpdateTemplateDto } from './dto/update-template.dto'
+import { MigrateTemplatesToNewProcessDto } from './dto/migrate-templates-to-new-process.dto'
 
 @Controller('templates')
 export class TemplatesController {
@@ -19,6 +20,15 @@ export class TemplatesController {
   @Post()
   async create(@Body() createTemplateDto: CreateTemplateDto) {
     return await this.templatesService.create(createTemplateDto)
+  }
+
+  @Patch('migrate')
+  async migrateTemplatesToNewProcess(
+    @Body() migrateTemplatesToNewProcessDto: MigrateTemplatesToNewProcessDto,
+  ) {
+    return await this.templatesService.migrateTemplatesToNewProcess(
+      migrateTemplatesToNewProcessDto,
+    )
   }
 
   @Get()
