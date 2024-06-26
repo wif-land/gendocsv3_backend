@@ -109,10 +109,6 @@ export class FunctionariesService {
 
     const count = await qb.getCount()
 
-    if (functionaries.length === 0 || count === 0) {
-      throw new FunctionaryNotFoundError('No existen funcionarios registrados')
-    }
-
     return new ApiResponseDto('Funcionarios encontrados', {
       count,
       functionaries,

@@ -20,10 +20,8 @@ import {
 } from '../constants'
 import { CertificateTypeEntity } from '../entities/certificate-type.entity'
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
-import { InjectDataSource } from '@nestjs/typeorm'
 import { DegreeCertificateAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
 import { DegreeCertificateAttendanceEntity } from '../../degree-certificate-attendance/entities/degree-certificate-attendance.entity'
-import { DataSource } from 'typeorm'
 import {
   DEGREE_ATTENDANCE_ROLES,
   getSTATUS_CODE_BY_CERT_STATUS,
@@ -43,13 +41,11 @@ import { NotificationEntity } from '../../notifications/entities/notification.en
 import { CertificateNumerationService } from './certificate-numeration.service'
 import { formatDateTime } from '../../shared/utils/date'
 import { ModuleEntity } from '../../modules/entities/modules.entity'
+import { BaseError } from '../../shared/utils/error'
 
 @Injectable()
 export class CertificateBulkService {
   private readonly logger = new Logger(CertificateBulkService.name)
-
-  // Si se cambia el id del módulo de comunes que tiene a las actas de grado
-  // cambiar esta variable, se evita hacer la consulta a la bd por optimizar tiempos
 
   constructor(
     @InjectQueue(CERTIFICATE_QUEUE_NAME)
@@ -68,11 +64,14 @@ export class CertificateBulkService {
 
     @Inject('DegreeCertificateRepository')
     private readonly degreeCertificateRepository: DegreeCertificateRepository,
-
-    @InjectDataSource()
-    private readonly dataSource: DataSource,
   ) {}
 
+  /**
+   * Create bulk degree certificates from an excel file using queue jobs and send notifications to the user
+   * @param createCertificatesDtos {CreateDegreeCertificateBulkDto[]} Array of DTOs with the data to create the degree certificates
+   * @param userId {number} Id of the user who is creating the certificates
+   * @param retryId {number} Id of the notification to retry the creation of the certificates
+   */
   async createBulkCertificates(
     createCertificatesDtos: CreateDegreeCertificateBulkDto[],
     userId: number,
@@ -381,15 +380,9 @@ export class CertificateBulkService {
       return { degreeCertificate, attendance, errors }
 
       // TODO: Refactor this
-      // TODO: variables para hoja de notas (columna notas, celda con el nombre de la variable de nota y el valor de la nota. Ej. Nota1:4.5)
       // TODO: Cargar plantilla de formato de subida de datos de acta y mostrarla
-      // TODO: Actualizar fecha de fin de estudios del estudiante que sea igual a la fecha de presentación del acta
       // TODO: Formato de texto de notificación de asistencia a consejos y actas, en actas incluir el lugar fecha y hora
       // TODO: Al crear una carrera crear un modulo, crear automáticamente las relaciones con submódulos y años	y módulos y las carpetas de drive de los mismos, copiar plantillas de tipos de actas junto con las hojas de calculo de las notas del tipo de acta, en base a la ultima carrera creada y modulo creado
-      // TODO: Implementar control de sesiones de usuario para reinicio automático de año
-      // TODO: Implementar batched jobs para la creación de actas de grado y notificar creación y errores al usuario que subió el archivo
-      // TODO: Implementar control de asistencia de actas de grado por lugar, fecha, hora y docente y estado de asistencia
-      // TODO: Al notificar a los docentes de la asistencia a actas de grado, realizar el control de asistencia mencionado en el punto anterior
       // INFO: Existen 3 etapas de inicio, 1. Inicio de proyecto en producción(Corre migraciones y ejecuta endpoint para crear las carpetas en el drive de cada módulo y submódulo), 2. Reinicio Anual (Cambia el año del sistema en la tabla de la bd, y ejecuta endpoint para crear los modulos y submódulos por año y las carpetas en el drive de cada módulo y submódulo de ese año), 3. Creación de una carrera y por ende un módulo ( Ejecuta endpoint para crear los submódulos y años y módulos y las carpetas en el drive de cada módulo y submódulo de ese año para la carrera creada y copia las plantillas generales para tipos de acta de grado y consejos y plantillas en base al últimos módulo creado)
     } catch (error) {
       if (error.code && error.code === HttpStatus.TOO_MANY_REQUESTS) {
@@ -664,154 +657,155 @@ export class CertificateBulkService {
       await this.degreeCertificateAttendanceService.removeAllAttendanceByDegreeCertificateId(
         degreeCertificate.id,
       )
+
+      // validate first main qualifier
+      const { data: firstMainQualifier } =
+        await this.functionariesService.findByFilters({
+          field: createCertificateDto.firstMainQualifierDni,
+          state: true,
+        })
+
+      if (firstMainQualifier.count === 0) {
+        errors.push(
+          new ErrorsBulkCertificate(
+            `No existe el calificador principal con cédula ${createCertificateDto.firstMainQualifierDni}`,
+            new Error().stack,
+          ),
+        )
+      }
+      const { data: firstAttendance } =
+        await this.degreeCertificateAttendanceService.create({
+          assignationDate: new Date(),
+          degreeCertificateId: degreeCertificate.id,
+          functionaryId: firstMainQualifier.functionaries[0].id,
+          details: createCertificateDto.qualifiersResolution,
+          role: DEGREE_ATTENDANCE_ROLES.PRINCIPAL,
+        })
+
+      attendance.push(firstAttendance)
+
+      // validate second main qualifier
+      const { data: secondMainQualifier } =
+        await this.functionariesService.findByFilters({
+          field: createCertificateDto.secondMainQualifierDni,
+          state: true,
+        })
+
+      if (secondMainQualifier.count === 0) {
+        errors.push(
+          new ErrorsBulkCertificate(
+            `No existe el calificador principal con cédula ${createCertificateDto.secondMainQualifierDni}`,
+            new Error().stack,
+          ),
+        )
+      }
+
+      const { data: secondAttendance } =
+        await this.degreeCertificateAttendanceService.create({
+          assignationDate: new Date(),
+          degreeCertificateId: degreeCertificate.id,
+          functionaryId: secondMainQualifier.functionaries[0].id,
+          details: createCertificateDto.qualifiersResolution,
+          role: DEGREE_ATTENDANCE_ROLES.PRINCIPAL,
+        })
+
+      attendance.push(secondAttendance)
+
+      // validate first secondary qualifier
+      if (createCertificateDto.firstSecondaryQualifierDni) {
+        const { data: firstSecondaryQualifier } =
+          await this.functionariesService.findByFilters({
+            field: createCertificateDto.firstSecondaryQualifierDni,
+            state: true,
+          })
+
+        if (firstSecondaryQualifier.count === 0) {
+          errors.push(
+            new ErrorsBulkCertificate(
+              `No existe el calificador secundario con cédula ${createCertificateDto.firstSecondaryQualifierDni}`,
+              new Error().stack,
+            ),
+          )
+        }
+
+        const { data: firstSecondaryAttendance } =
+          await this.degreeCertificateAttendanceService.create({
+            assignationDate: new Date(),
+            degreeCertificateId: degreeCertificate.id,
+            functionaryId: firstSecondaryQualifier.functionaries[0].id,
+            details: createCertificateDto.qualifiersResolution,
+            role: DEGREE_ATTENDANCE_ROLES.SUBSTITUTE,
+          })
+
+        attendance.push(firstSecondaryAttendance)
+      }
+
+      // validate second secondary qualifier
+      if (createCertificateDto.secondSecondaryQualifierDni) {
+        const { data: secondSecondaryQualifier } =
+          await this.functionariesService.findByFilters({
+            field: createCertificateDto.secondSecondaryQualifierDni,
+            state: true,
+          })
+
+        if (secondSecondaryQualifier.count === 0) {
+          errors.push(
+            new ErrorsBulkCertificate(
+              `No existe el calificador secundario con cédula ${createCertificateDto.secondSecondaryQualifierDni}`,
+              new Error().stack,
+            ),
+          )
+        }
+
+        const { data: secondSecondaryAttendance } =
+          await this.degreeCertificateAttendanceService.create({
+            assignationDate: new Date(),
+            degreeCertificateId: degreeCertificate.id,
+            functionaryId: secondSecondaryQualifier.functionaries[0].id,
+            details: createCertificateDto.qualifiersResolution,
+            role: DEGREE_ATTENDANCE_ROLES.SUBSTITUTE,
+          })
+
+        attendance.push(secondSecondaryAttendance)
+      }
+
+      // validate tutor
+      const { data: tutor } = await this.functionariesService.findByFilters({
+        field: createCertificateDto.mentorDni,
+        state: true,
+      })
+
+      if (tutor.count === 0) {
+        errors.push(
+          new ErrorsBulkCertificate(
+            `No existe el tutor con cédula ${createCertificateDto.mentorDni}`,
+            new Error().stack,
+          ),
+        )
+      }
+
+      const { data: tutorAttendance } =
+        await this.degreeCertificateAttendanceService.create({
+          assignationDate: new Date(),
+          degreeCertificateId: degreeCertificate.id,
+          functionaryId: tutor.functionaries[0].id,
+          details: 'POR DEFINIR',
+          role: DEGREE_ATTENDANCE_ROLES.MENTOR,
+        })
+
+      attendance.push(tutorAttendance)
+
+      return attendance
     } catch (error) {
       errors.push(
         new ErrorsBulkCertificate(
-          'No se pudo actualizar la asistencia al acta de grado',
+          error instanceof BaseError
+            ? error.detail
+            : 'No se pudo actualizar la asistencia al acta de grado',
           error.stack,
         ),
       )
     }
-
-    // validate first main qualifier
-    const { data: firstMainQualifier } =
-      await this.functionariesService.findByFilters({
-        field: createCertificateDto.firstMainQualifierDni,
-        state: true,
-      })
-
-    if (firstMainQualifier.count === 0) {
-      errors.push(
-        new ErrorsBulkCertificate(
-          `No existe el calificador principal con cédula ${createCertificateDto.firstMainQualifierDni}`,
-          new Error().stack,
-        ),
-      )
-    }
-
-    const { data: firstAttendance } =
-      await this.degreeCertificateAttendanceService.create({
-        assignationDate: new Date(),
-        degreeCertificateId: degreeCertificate.id,
-        functionaryId: firstMainQualifier.functionaries[0].id,
-        details: createCertificateDto.qualifiersResolution,
-        role: DEGREE_ATTENDANCE_ROLES.PRINCIPAL,
-      })
-
-    attendance.push(firstAttendance)
-
-    // validate second main qualifier
-    const { data: secondMainQualifier } =
-      await this.functionariesService.findByFilters({
-        field: createCertificateDto.secondMainQualifierDni,
-        state: true,
-      })
-
-    if (secondMainQualifier.count === 0) {
-      errors.push(
-        new ErrorsBulkCertificate(
-          `No existe el calificador principal con cédula ${createCertificateDto.secondMainQualifierDni}`,
-          new Error().stack,
-        ),
-      )
-    }
-
-    const { data: secondAttendance } =
-      await this.degreeCertificateAttendanceService.create({
-        assignationDate: new Date(),
-        degreeCertificateId: degreeCertificate.id,
-        functionaryId: secondMainQualifier.functionaries[0].id,
-        details: createCertificateDto.qualifiersResolution,
-        role: DEGREE_ATTENDANCE_ROLES.PRINCIPAL,
-      })
-
-    attendance.push(secondAttendance)
-
-    // validate first secondary qualifier
-    if (createCertificateDto.firstSecondaryQualifierDni) {
-      const { data: firstSecondaryQualifier } =
-        await this.functionariesService.findByFilters({
-          field: createCertificateDto.firstSecondaryQualifierDni,
-          state: true,
-        })
-
-      if (firstSecondaryQualifier.count === 0) {
-        errors.push(
-          new ErrorsBulkCertificate(
-            `No existe el calificador secundario con cédula ${createCertificateDto.firstSecondaryQualifierDni}`,
-            new Error().stack,
-          ),
-        )
-      }
-
-      const { data: firstSecondaryAttendance } =
-        await this.degreeCertificateAttendanceService.create({
-          assignationDate: new Date(),
-          degreeCertificateId: degreeCertificate.id,
-          functionaryId: firstSecondaryQualifier.functionaries[0].id,
-          details: createCertificateDto.qualifiersResolution,
-          role: DEGREE_ATTENDANCE_ROLES.SUBSTITUTE,
-        })
-
-      attendance.push(firstSecondaryAttendance)
-    }
-
-    // validate second secondary qualifier
-    if (createCertificateDto.secondSecondaryQualifierDni) {
-      const { data: secondSecondaryQualifier } =
-        await this.functionariesService.findByFilters({
-          field: createCertificateDto.secondSecondaryQualifierDni,
-          state: true,
-        })
-
-      if (secondSecondaryQualifier.count === 0) {
-        errors.push(
-          new ErrorsBulkCertificate(
-            `No existe el calificador secundario con cédula ${createCertificateDto.secondSecondaryQualifierDni}`,
-            new Error().stack,
-          ),
-        )
-      }
-
-      const { data: secondSecondaryAttendance } =
-        await this.degreeCertificateAttendanceService.create({
-          assignationDate: new Date(),
-          degreeCertificateId: degreeCertificate.id,
-          functionaryId: secondSecondaryQualifier.functionaries[0].id,
-          details: createCertificateDto.qualifiersResolution,
-          role: DEGREE_ATTENDANCE_ROLES.SUBSTITUTE,
-        })
-
-      attendance.push(secondSecondaryAttendance)
-    }
-
-    // validate tutor
-    const { data: tutor } = await this.functionariesService.findByFilters({
-      field: createCertificateDto.mentorDni,
-      state: true,
-    })
-
-    if (tutor.count === 0) {
-      errors.push(
-        new ErrorsBulkCertificate(
-          `No existe el tutor con cédula ${createCertificateDto.mentorDni}`,
-          new Error().stack,
-        ),
-      )
-    }
-
-    const { data: tutorAttendance } =
-      await this.degreeCertificateAttendanceService.create({
-        assignationDate: new Date(),
-        degreeCertificateId: degreeCertificate.id,
-        functionaryId: tutor.functionaries[0].id,
-        details: 'POR DEFINIR',
-        role: DEGREE_ATTENDANCE_ROLES.MENTOR,
-      })
-
-    attendance.push(tutorAttendance)
-
-    return attendance
   }
 
   async generateGradesSheet(

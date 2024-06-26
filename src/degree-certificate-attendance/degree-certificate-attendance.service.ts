@@ -216,7 +216,10 @@ export class DegreeCertificateAttendanceService {
         where: { degreeCertificate: { id: degreeCertificateId } },
       })
 
-    if (!degreeCertificateAttendance) {
+    if (
+      !degreeCertificateAttendance ||
+      degreeCertificateAttendance.length === 0
+    ) {
       return
     }
 

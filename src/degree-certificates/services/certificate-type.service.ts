@@ -34,7 +34,7 @@ export class CertificateTypeService {
 
     const foundCertificateTypeCareer = certificateTypesCareers.find(
       (certificateTypeCareer) =>
-        certificateTypeCareer.certificateType.name === name,
+        certificateTypeCareer.certificateType.name.toUpperCase() === name,
     )
 
     if (!foundCertificateTypeCareer) {
