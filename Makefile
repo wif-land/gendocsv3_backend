@@ -8,8 +8,10 @@ REMOTE_DIR := /root/gendocsv3
 VM_USER := root
 BACKEND_DOCKER_IMAGE := leninner/gendocsv3:latest
 FRONTEND_DOCKER_IMAGE := leninner/gendocsv3-frontend:latest
-BACKUP_SCRIPT := ./scripts/backup.sh
-CRON_SCHEDULE := 0 0 * * *  # Ejemplo: se ejecutará todos los días a la medianoche
+LOCAL_BACKUP_SCRIPT := ./scripts/backup.sh
+REMOTE_BACKUP_SCRIPT := $REMOTE_DIR/backup.sh
+REMOTE_BACKUPS_DIR := /var/gendocsv3/backups
+CRON_SCHEDULE := "* 19 * * *" # Every day at 19:00 hours
 
 up:
 	docker compose -f $(COMPOSE_DEVELOP_FILE) --env-file $(ENV_FILE) up -d
@@ -29,10 +31,14 @@ prepare_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@echo "Deploying to production..."
 	@make create_remote_directory
 	@make copy_files
+	@make install_backup_script_cron
+	@echo "Prepared successfully!"
 
 create_remote_directory:
-	@echo "Creating remote directory for gendocs..."
+	@echo "Creating remote directory for gendocs related files..."
 	@ssh $(VM_USER)@$(VM_IP) "mkdir -p $(REMOTE_DIR)"
+	@echo "Creating remote directory for backups..."
+	@ssh $(VM_USER)@$(VM_IP) "mkdir -p $(REMOTE_BACKUPS_DIR)"
 
 copy_files:
 	@echo "Copying files..."
@@ -40,6 +46,7 @@ copy_files:
 
 deploy_backend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@echo "Deploying backend to production..."
+	@make backup
 	@ssh $(VM_USER)@$(VM_IP) 'cd $(REMOTE_DIR) && \
 														if [ $$(docker ps -q -f name=gendocsv3_backend) ] || [ $$(docker ps -q -f name=gendocsv3_bull_redis) ]; then \
 															docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down backend bull_redis; \
@@ -68,21 +75,15 @@ deploy_all_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefil
 	@echo "Deployed successfully!"
 
 backup:
-	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && docker exec -it gendocsv3_postgres pg_dump -U postgres -d gendocsv3 > $(REMOTE_DIR)/backup_`date +'%Y%m%d%H%M%S'`.sql"
-	scp $(VM_USER)@$(VM_IP):$(REMOTE_DIR)/backup_`date +'%Y%m%d%H%M%S'`.sql ./backup_`date +'%Y%m%d%H%M%S'`.sql
+	@echo "Realizando backup previo a la actualización..."
+	@ssh $(VM_USER)@$(VM_IP) "$(REMOTE_BACKUP_SCRIPT)"
 
 generate_ssh_key:
 	ssh-keygen -t rsa -b 2048 -C "gendocsv3" -f ~/.ssh/id_gendocsv3 -N "" | true
 	scp ~/.ssh/id_gendocsv3.pub ${VM_USER}@$(VM_IP):~/.ssh/authorized_keys
 
-install_cron:
-	@echo "Instalando el cronjob..."
-	scp $(BACKUP_SCRIPT) $(VM_USER)@$(VM_IP):$(REMOTE_DIR)/
-	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && echo '$(CRON_SCHEDULE) $(BACKUP_SCRIPT)' > gendocsv3_backup_script && crontab -l | { cat; echo '$(CRON_SCHEDULE) $(REMOTE_DIR)/gendocsv3_backup_script'; } | crontab -"
+install_backup_script_cron:
+	@echo "Instalando el script de backup en el cronjob..."
+	scp $(LOCAL_BACKUP_SCRIPT) $(VM_USER)@$(VM_IP):$(REMOTE_DIR)/
+	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && echo '$(CRON_SCHEDULE) $(REMOTE_BACKUP_SCRIPT)' > gendocsv3_backup_script && crontab -l | { cat; echo '$(CRON_SCHEDULE) $(REMOTE_DIR)/gendocsv3_backup_script'; } | crontab -"
 	@echo "Cronjob instalado correctamente."
-
-# Objetivo para desinstalar el cronjob
-uninstall_cron:
-	@echo "Desinstalando el cronjob..."
-	@crontab -l | grep -v "$(BACKUP_SCRIPT)" | crontab -
-	@echo "Cronjob desinstalado correctamente."
