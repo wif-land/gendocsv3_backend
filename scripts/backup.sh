@@ -33,7 +33,7 @@ docker exec gendocsv3_postgres pg_dump -U $PGUSER -h localhost $PGDATABASE > "$B
 tar -cvf "$BACKUP_DIR/$FILE" "$BACKUP_DIR/$PGDATABASE.sql" || error_exit "Failed to create tar file"
 
 # Remove the SQL dump file
-rm -rf "$BACKUP_DIR/$PGDATABASE.sql" || error_exit "Failed to remove SQL dump file"
+rm -f "$BACKUP_DIR/$PGDATABASE.sql" || error_exit "Failed to remove SQL dump file"
 
 # Remove old backups
 find "$BACKUP_DIR"/* -mtime +$RETENTION_DAYS -exec rm -f {} \; || error_exit "Failed to remove old backups"
