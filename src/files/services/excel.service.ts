@@ -84,7 +84,7 @@ export class ExcelService {
         }
       })
 
-      if (cellFound !== null) {
+      if (cellFound != null) {
         return cellFound
       }
     }
