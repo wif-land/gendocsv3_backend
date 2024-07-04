@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import * as bodyParser from 'body-parser'
 import { ConfigService } from '@nestjs/config'
 import { Logger, ValidationPipe } from '@nestjs/common'
 import { HttpExceptionsMiddleware } from './core/middleware/http-exception'
@@ -19,7 +20,10 @@ const bootstrap = async () => {
   })
   const logger = new Logger('Bootstrap')
 
+  app.use(bodyParser.json({ limit: '10mb' }))
+  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
   app.setGlobalPrefix('api')
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

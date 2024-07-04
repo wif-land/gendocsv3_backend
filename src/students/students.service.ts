@@ -92,6 +92,7 @@ export class StudentsService {
               gender: getEnumGender(student.gender),
             }
           }
+
           const updated = await this.studentRepository.update(
             studentEntity.id,
             studentDataToUpdate as unknown as Partial<StudentEntity>,
@@ -104,6 +105,12 @@ export class StudentsService {
             })
           }
         } else {
+          if (!student.registration || !student.folio) {
+            throw new StudentBadRequestError(
+              `Los datos de matrícula y folio son requeridos para el estudiante con cédula ${student.dni}`,
+            )
+          }
+
           const saved = await this.studentRepository.save({
             ...student,
             gender: student.gender ? getEnumGender(student.gender) : undefined,
@@ -143,7 +150,7 @@ export class StudentsService {
       await queryRunner.release()
       throw new StudentError({
         statuscode: 500,
-        detail: error.message,
+        detail: error.detail ?? error.message,
         instance: 'students.errors.StudentsService.createBulk',
       })
     }

@@ -16,6 +16,7 @@ import { UserFiltersDto } from './dto/user-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { FilesService } from '../files/services/files.service'
 import { RolesType } from '../auth/decorators/roles-decorator'
+import { UsersGateway } from './users.gateway'
 
 @Injectable()
 export class UsersService {
@@ -25,6 +26,7 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly filesService: FilesService,
 
+    private readonly usersGateway: UsersGateway,
     private readonly userAccessModulesService: UserAccessModulesService,
 
     private readonly dataSource: DataSource,
@@ -271,6 +273,12 @@ export class UsersService {
         role: userUpdated.role,
         isActive: userUpdated.isActive,
         accessModules: userUpdated.accessModules,
+      }
+
+      if (hasAccessModules) {
+        this.usersGateway.handleChangeAccessModules(
+          userUpdated.accessModules.map((module) => module.id),
+        )
       }
 
       return new ApiResponseDto(

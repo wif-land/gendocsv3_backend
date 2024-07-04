@@ -9,6 +9,7 @@ import {
   IsPositive,
   IsEnum,
   IsNumber,
+  IsNumberString,
 } from 'class-validator'
 import { DtoUtils } from '../../shared/utils/dtos'
 import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
@@ -94,9 +95,14 @@ export class CreateStudentDto {
   @ApiProperty({
     description: 'Matrícula',
   })
-  @IsString({
-    message: 'registration is required',
-  })
+  @IsNumberString(
+    {
+      no_symbols: true,
+    },
+    {
+      message: 'La matrícula debe ser un número válido',
+    },
+  )
   registration: string
 
   @ApiProperty({

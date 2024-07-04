@@ -41,6 +41,12 @@ export class CareerEntity extends BaseAppEntity implements ICareer {
   })
   vinculationHours: number
 
+  @Column({
+    name: 'module_name',
+    nullable: true,
+  })
+  moduleName: string
+
   @ManyToOne(() => FunctionaryEntity, (functionary) => functionary.careers, {
     eager: true,
     nullable: false,

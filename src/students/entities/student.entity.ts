@@ -118,6 +118,7 @@ export class StudentEntity extends BasePerson {
   @Column({
     name: 'start_studies_date',
     type: 'date',
+    nullable: true,
   })
   startStudiesDate: Date
 

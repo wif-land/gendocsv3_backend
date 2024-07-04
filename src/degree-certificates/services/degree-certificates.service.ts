@@ -95,7 +95,7 @@ export class DegreeCertificatesService {
       student.approvedCredits == null
     ) {
       throw new DegreeCertificateBadRequestError(
-        'Falta información. Revise el genero, fecha de inicio de estudios, horas de pasantias y horas de vinculacion del estudiante',
+        'Falta información. Revise:, genero, fecha de inicio de estudios, horas de pasantias y horas de vinculacion del estudiante',
       )
     }
 

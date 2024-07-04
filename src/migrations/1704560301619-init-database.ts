@@ -67,8 +67,8 @@ export class InitDatabase1704560301619 implements MigrationInterface {
           '1k0dr8OUcCeYkZROGhI8Rz7Y3pyH89cWvIBjj1a4N1vs',
       },
       {
-        code: 'SIST',
-        name: 'SISTEMAS (UNI-TITU)',
+        code: 'SIST-UNI',
+        name: 'SISTEMAS',
         isActive: true,
         hasDocuments: true,
         driveId:
@@ -82,8 +82,8 @@ export class InitDatabase1704560301619 implements MigrationInterface {
           '1WxWYPpYzSbquBPGeBdr7PI-qyK2q0TbDjJoY4DsmsIg',
       },
       {
-        code: 'INPA',
-        name: 'INDUSTRIAL EN PROCESOS (UNI-TITU)',
+        code: 'INPA-UNI',
+        name: 'INDUSTRIAL EN PROCESOS',
         isActive: true,
         hasDocuments: true,
         driveId:
@@ -97,8 +97,8 @@ export class InitDatabase1704560301619 implements MigrationInterface {
           '1ZV84qwYgx1bAzWMNueWmiJr-I2Q3wTk_hKJaIBq-IS4',
       },
       {
-        code: 'ELEC',
-        name: 'ELECTRÓNICA Y COMUNICACIONES (UNI-TITU)',
+        code: 'ELEC-UNI',
+        name: 'ELECTRÓNICA Y COMUNICACIONES',
         isActive: true,
         hasDocuments: true,
         driveId:
@@ -112,8 +112,8 @@ export class InitDatabase1704560301619 implements MigrationInterface {
           '1oB3XQJSLA7j5V-uA4KxWNTpP9J7iO7HgSHVvHUUVI_8',
       },
       {
-        code: 'SOFT',
-        name: 'SOFTWARE (UNI-IC)',
+        code: 'SOFT-UNI',
+        name: 'SOFTWARE',
         isActive: true,
         hasDocuments: true,
         driveId:
@@ -127,8 +127,8 @@ export class InitDatabase1704560301619 implements MigrationInterface {
           '1vHkOw5BPKdcGRuy-8aY9G1w0Ui--Ad-mFL5mHT4shxY',
       },
       {
-        code: 'TECI',
-        name: 'TECNOLOGÍA DE INFORMACIÓN (UNI-IC)',
+        code: 'TECI-UNI',
+        name: 'TECNOLOGÍA DE INFORMACIÓN',
         isActive: true,
         hasDocuments: true,
         driveId:
@@ -142,8 +142,8 @@ export class InitDatabase1704560301619 implements MigrationInterface {
           '1zXogcewHhmmx3nS9tA-HczyUVbuqSVkU4KVY7gCqI38',
       },
       {
-        code: 'TELE',
-        name: 'TELECOMUNICACIONES (UNI-IC)',
+        code: 'TELE-UNI',
+        name: 'TELECOMUNICACIONES',
         isActive: true,
         hasDocuments: true,
         driveId:
@@ -157,8 +157,8 @@ export class InitDatabase1704560301619 implements MigrationInterface {
           '1Njbz2C0zPD6tIMkSoFHEayMFLQBWeh2O98FV-NXppS4',
       },
       {
-        code: 'INDS',
-        name: 'INDUSTRIAL (UNI-IC)',
+        code: 'INDS-UNI',
+        name: 'INDUSTRIAL',
         isActive: true,
         hasDocuments: true,
         driveId:

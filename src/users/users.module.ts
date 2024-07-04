@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { UserAccessModulesModule } from '../users-access-modules/users-access-modules.module'
 import { FilesModule } from '../files/modules/files.module'
+import { UsersGateway } from './users.gateway'
 
 @Module({
   imports: [
@@ -22,8 +23,8 @@ import { FilesModule } from '../files/modules/files.module'
     UserAccessModulesModule,
     FilesModule,
   ],
-  providers: [UsersService],
-  exports: [UsersService],
+  providers: [UsersService, UsersGateway],
+  exports: [UsersService, UsersGateway],
   controllers: [UsersController],
 })
 export class UsersModule {}

@@ -55,6 +55,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         menDegree: 'Ingeniero en Sistemas Computacionales e Informáticos',
         womenDegree: 'Ingeniera en Sistemas Computacionales e Informáticos',
         isActive: true,
+        moduleName: 'SISTEMAS',
       },
       {
         id: 2,
@@ -66,6 +67,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         menDegree: 'Ingeniero en Electrónica y Comunicaciones',
         womenDegree: 'Ingeniera en Electrónica y Comunicaciones',
         isActive: true,
+        moduleName: 'ELECTRÓNICA Y COMUNICACIONES',
       },
       {
         id: 3,
@@ -77,6 +79,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         menDegree: 'Ingeniero Industrial en Procesos de Automatización',
         womenDegree: 'Ingeniera Industrial en Procesos de Automatización',
         isActive: true,
+        moduleName: 'INDUSTRIAL EN PROCESOS',
       },
       {
         id: 4,
@@ -88,6 +91,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         menDegree: 'Ingeniero en Tecnologías de la Información',
         womenDegree: 'Ingeniera en Tecnologías de la Información',
         isActive: true,
+        moduleName: 'TECNOLOGÍA DE INFORMACIÓN',
       },
       {
         id: 5,
@@ -99,6 +103,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         menDegree: 'Ingeniero en Telecomunicaciones',
         womenDegree: 'Ingeniera en Telecomunicaciones',
         isActive: true,
+        moduleName: 'TELECOMUNICACIONES',
       },
       {
         id: 6,
@@ -110,6 +115,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         menDegree: 'Ingeniero Industrial',
         womenDegree: 'Ingeniera Industrial',
         isActive: true,
+        moduleName: 'INDUSTRIAL',
       },
       {
         id: 7,
@@ -121,6 +127,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         menDegree: 'Ingeniero en Software',
         womenDegree: 'Ingeniera en Software',
         isActive: true,
+        moduleName: 'SOFTWARE',
       },
     ]
 
