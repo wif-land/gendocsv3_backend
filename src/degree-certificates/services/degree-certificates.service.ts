@@ -121,11 +121,11 @@ export class DegreeCertificatesService {
   } = {}): Promise<void> {
     if (
       roomId &&
-      roomId !== null &&
+      roomId != null &&
       presentationDate &&
-      presentationDate !== null &&
+      presentationDate != null &&
       duration &&
-      duration !== null
+      duration != null
     ) {
       const certificatesInRange =
         await this.degreeCertificateRepository.countCertificatesInDateRangeByRoom(

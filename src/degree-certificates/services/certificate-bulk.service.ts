@@ -277,9 +277,7 @@ export class CertificateBulkService {
     )
 
     const degreeModality =
-      createCertificateDto.link !== '' &&
-      createCertificateDto.link !== null &&
-      createCertificateDto.link !== undefined
+      createCertificateDto.link !== '' && createCertificateDto.link != null
         ? DEGREE_MODALITY.ONLINE
         : DEGREE_MODALITY.PRESENCIAL
 
@@ -323,9 +321,11 @@ export class CertificateBulkService {
       }
 
       // change student ends studies date
-      await this.studentsService.update(students.students[0].id, {
-        endStudiesDate: createCertificateDto.presentationDate,
-      })
+      if (createCertificateDto.presentationDate != null) {
+        await this.studentsService.update(students.students[0].id, {
+          endStudiesDate: createCertificateDto.presentationDate,
+        })
+      }
 
       // generate grades sheet
       if (
@@ -613,17 +613,16 @@ export class CertificateBulkService {
   }) {
     return {
       auxNumber:
-        degreeCertificate !== null && degreeCertificate !== undefined
+        degreeCertificate != null
           ? degreeCertificate.auxNumber
           : await this.certificateNumerationService.getLastNumberToRegister(
               careerId,
             ),
       topic: createCertificateDto.topic,
       presentationDate:
-        createCertificateDto.presentationDate !== null ||
-        createCertificateDto.presentationDate !== undefined
+        createCertificateDto.presentationDate != null
           ? createCertificateDto.presentationDate
-          : degreeCertificate !== null || degreeCertificate !== undefined
+          : degreeCertificate != null
           ? degreeCertificate.presentationDate
           : null,
       student: { id: studentId },
@@ -632,9 +631,7 @@ export class CertificateBulkService {
       certificateStatus: { id: certificateStatusId },
       degreeModality: { id: degreeModalityId },
       link:
-        createCertificateDto.link !== '' ||
-        createCertificateDto.link !== null ||
-        createCertificateDto.link !== undefined
+        createCertificateDto.link !== '' || createCertificateDto.link != null
           ? createCertificateDto.link
           : undefined,
       submoduleYearModule: {
@@ -814,10 +811,7 @@ export class CertificateBulkService {
     errors: ErrorsBulkCertificate[],
     curriculumGrade?: string,
   ): Promise<boolean> {
-    if (
-      degreeCertificate.gradesSheetDriveId !== null &&
-      degreeCertificate.gradesSheetDriveId !== undefined
-    ) {
+    if (degreeCertificate.gradesSheetDriveId != null) {
       const revoked = await this.gradesSheetService.revokeGradeSheet(
         degreeCertificate,
       )
