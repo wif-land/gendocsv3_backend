@@ -9,9 +9,9 @@ VM_USER := root
 BACKEND_DOCKER_IMAGE := leninner/gendocsv3:latest
 FRONTEND_DOCKER_IMAGE := leninner/gendocsv3-frontend:latest
 LOCAL_BACKUP_SCRIPT := ./scripts/backup.sh
-REMOTE_BACKUP_SCRIPT := $REMOTE_DIR/backup.sh
+REMOTE_BACKUP_SCRIPT := $(REMOTE_DIR)/backup.sh
 REMOTE_BACKUPS_DIR := /var/gendocsv3/backups
-CRON_SCHEDULE := "* 19 * * *" # Every day at 19:00 hours
+CRON_SCHEDULE := 0 19 * * * # Every day at 19:00 hours
 
 up:
 	docker compose -f $(COMPOSE_DEVELOP_FILE) --env-file $(ENV_FILE) up -d
@@ -83,7 +83,13 @@ generate_ssh_key:
 	scp ~/.ssh/id_gendocsv3.pub ${VM_USER}@$(VM_IP):~/.ssh/authorized_keys
 
 install_backup_script_cron:
+	@make uninstall_crons
 	@echo "Instalando el script de backup en el cronjob..."
 	scp $(LOCAL_BACKUP_SCRIPT) $(VM_USER)@$(VM_IP):$(REMOTE_DIR)/
-	ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && echo '$(CRON_SCHEDULE) $(REMOTE_BACKUP_SCRIPT)' > gendocsv3_backup_script && crontab -l | { cat; echo '$(CRON_SCHEDULE) $(REMOTE_DIR)/gendocsv3_backup_script'; } | crontab -"
+	ssh $(VM_USER)@$(VM_IP) "crontab -l | { cat; echo '$(CRON_SCHEDULE) $(REMOTE_BACKUP_SCRIPT)'; } | crontab -"
 	@echo "Cronjob instalado correctamente."
+
+uninstall_crons:
+	@echo "Desinstalando los cronjobs..."
+	@ssh $(VM_USER)@$(VM_IP) "crontab -l | grep -v $(REMOTE_BACKUP_SCRIPT) | crontab -"
+	@echo "Cronjobs desinstalados correctamente."
