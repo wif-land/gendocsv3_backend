@@ -320,13 +320,6 @@ export class CertificateBulkService {
         return { errors }
       }
 
-      // change student ends studies date
-      if (createCertificateDto.presentationDate != null) {
-        await this.studentsService.update(students.students[0].id, {
-          endStudiesDate: createCertificateDto.presentationDate,
-        })
-      }
-
       // generate grades sheet
       if (
         // eslint-disable-next-line no-extra-parens
@@ -619,12 +612,6 @@ export class CertificateBulkService {
               careerId,
             ),
       topic: createCertificateDto.topic,
-      presentationDate:
-        createCertificateDto.presentationDate != null
-          ? createCertificateDto.presentationDate
-          : degreeCertificate != null
-          ? degreeCertificate.presentationDate
-          : null,
       student: { id: studentId },
       career: { id: careerId },
       certificateType: { id: certificateTypeId },

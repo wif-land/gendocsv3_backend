@@ -1,6 +1,4 @@
-import { Type } from 'class-transformer'
 import {
-  IsDate,
   IsInt,
   IsNumberString,
   IsOptional,
