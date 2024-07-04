@@ -4,13 +4,29 @@ Version: 3.0.0
 
 ## Descripción
 
-Este proyecto es creado para la Universidad Técnica de Ambato que se planea sea usada por las secretarias de la universidad para aspectos legales y de comunicación.
+Proyecto de generación de documentos y manejo de plantillas para la Universidad Técnica de Ambato.
 
 ## Requisitos
 
-- NVM (Node version manager)
-- Docker
-- Make
+Es recomendable tener instalado `nvm` para poder cambiar de versión de node de manera sencilla.
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+```
+
+```bash
+nvm install 20.14.0
+```
+
+Es recomendable tener un sistema operativo basado en linux para poder ejecutar los comandos de `make` de manera sencilla.
+
+### Dependencias
+
+| Dependencia | Versión |
+| ----------- | ------- |
+| Node        | 20.14.0 |
+| NPM         | 10.7.0  |
+| Docker      | 27.0.3  |
 
 ## Modo de uso
 
@@ -59,49 +75,20 @@ choco install make
 Pregunta a un miembro del equipo de desarrollo para que te proporcione las variables de entorno necesarias para el proyecto. O míralas dentro del notion del proyecto.
 
 4. En la carpeta `gcp` del root del proyecto crea un archivo llamado `credentials.json` y pide a un miembro del equipo de desarrollo que te proporcione el archivo.
- 
-5. Instala las dependencias
 
-```bash
-npm install
-```
+| Comando               | Descripción |
+| --------------------- | ----------- |
+| `npm install`         | Instala las dependencias del proyecto |
+| `npm run start`       | Inicia el servidor de desarrollo |
+| `npm run start:dev`   | Inicia el servidor de desarrollo y se reinicia cada vez que se haga un cambio en el código |
+| `npm run start:debug` | Inicia el servidor de desarrollo y se reinicia cada vez que se haga un cambio en el código y muestra los logs de la aplicación |
 
-6. Inicia el servidor de desarrollo
-
-```bash
-npm run start
-```
-
-O  si deseas que se reinicie el servidor cada vez que se haga un cambio en el código
-
-```bash
-npm run start:dev
-```
-
-O si deseas que se reinicie el servidor cada vez que se haga un cambio en el código y que se muestren los logs de la aplicación
-
-```bash
-npm run start:debug
-```
-
-7. Abre el navegador en la dirección `http://localhost:3001/api`
+Abre el navegador en la dirección `http://localhost:3001/api`
 
 ### Migraciones
 
-Para crear una nueva migración ejecuta el siguiente comando:
-
-```bash
-npm run migration:create --name=<nombre de la migración en snake-case>
-```
-
-Para ejecutar las migraciones ejecuta el siguiente comando:
-
-```bash
-npm run migration:run
-```
-
-Para revertir las migraciones ejecuta el siguiente comando:
-
-```bash
-npm run migration:revert
-```
+| Comando                    | Descripción |
+| -------------------------- | ----------- |
+| `npm run migration:create --name=<nombre de la migración en snake-case>` | Crea una nueva migración |
+| `npm run migration:run`    | Ejecuta las migraciones |
+| `npm run migration:revert` | Revierte las migraciones |
