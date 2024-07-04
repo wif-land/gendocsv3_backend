@@ -17,11 +17,6 @@ export class CreateDegreeCertificateBulkDto {
   topic: string
 
   @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  presentationDate: Date
-
-  @IsOptional()
   @IsInt()
   roomId: number
 

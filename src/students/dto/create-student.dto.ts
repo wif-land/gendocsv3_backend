@@ -158,11 +158,12 @@ export class CreateStudentDto {
   @ApiProperty({
     description: 'Fecha de inicio de estudios del estudiante',
   })
+  @IsOptional()
   @IsDate({
-    message: 'startStudiesDate is required',
+    message: 'La fecha de inicio de estudios debe ser válida',
   })
   @Type(() => Date)
-  startStudiesDate: Date
+  startStudiesDate?: Date
 
   @ApiProperty({
     description: 'Fecha de fin de estudios del estudiante',
