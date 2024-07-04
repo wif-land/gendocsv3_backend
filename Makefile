@@ -57,13 +57,18 @@ deploy_backend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Mak
 deploy_frontend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@echo "Deploying frontend to production..."
 	@ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && \
-														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down frontend && \
+														if [ $$(docker ps -q -f name=gendocsv3_frontend) ]; then \
+															docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down frontend; \
+														fi && \
 														docker rmi ${FRONTEND_DOCKER_IMAGE} | true && \
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d frontend"
 
 deploy_db_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile
 	@echo "Deploying db to production..."
 	@ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && \
+														if [ $$(docker ps -q -f name=gendocsv3_postgres) ]; then \
+															docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down postgres; \
+														fi && \
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down postgres && \
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d postgres"
 
