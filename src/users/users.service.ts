@@ -276,9 +276,10 @@ export class UsersService {
       }
 
       if (hasAccessModules) {
-        this.usersGateway.handleChangeAccessModules(
-          userUpdated.accessModules.map((module) => module.id),
-        )
+        this.usersGateway.handleChangeAccessModules({
+          id,
+          accessModules: userUpdated.accessModules.map((module) => module.id),
+        })
       }
 
       return new ApiResponseDto(

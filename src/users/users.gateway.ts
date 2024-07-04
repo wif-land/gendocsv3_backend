@@ -28,8 +28,11 @@ export class UsersGateway {
   @UseFilters(WsAndHttpExceptionFilter)
   handleChangeAccessModules(
     @MessageBody()
-    data: number[],
+    data: {
+      id: number
+      accessModules: number[]
+    },
   ): void {
-    this.server.emit('changeAccessModules', data)
+    this.server.emit('change-access-modules', data)
   }
 }
