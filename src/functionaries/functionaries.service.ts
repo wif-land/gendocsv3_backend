@@ -50,7 +50,6 @@ export class FunctionariesService {
   }
 
   async findAll(paginationDto: PaginationDto) {
-    // eslint-disable-next-line no-magic-numbers
     const { limit = 5, offset = 0 } = paginationDto
 
     const functionaries = await this.functionaryRepository.find({

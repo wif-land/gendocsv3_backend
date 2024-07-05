@@ -10,6 +10,7 @@ import {
   IsEnum,
   IsNumber,
   IsNumberString,
+  ValidateIf,
 } from 'class-validator'
 import { DtoUtils } from '../../shared/utils/dtos'
 import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
@@ -25,8 +26,8 @@ export class CreateStudentDto {
   @ApiProperty({
     description: 'Segundo nombre del estudiante',
   })
-  @IsString()
-  secondName: string
+  @IsOptional()
+  secondName?: string
 
   @ApiProperty({
     description: 'Primer apellido del estudiante',
@@ -37,8 +38,8 @@ export class CreateStudentDto {
   @ApiProperty({
     description: 'Segundo apellido del estudiante',
   })
-  @IsString()
-  secondLastName: string
+  @IsOptional()
+  secondLastName?: string
 
   @ApiProperty({
     description: 'Correo institucional del estudiante',
@@ -60,11 +61,8 @@ export class CreateStudentDto {
     description: 'Correo personal del estudiante',
   })
   @IsEmail()
-  @IsString({
-    message: DtoUtils.messageError(VALIDATION_ERROR_MESSAGES.required, {
-      '{field}': 'personalEmail',
-    }),
-  })
+  @ValidateIf((o) => o.personalEmail)
+  @IsOptional()
   personalEmail: string
 
   @ApiProperty({
@@ -103,7 +101,9 @@ export class CreateStudentDto {
       message: 'La matrícula debe ser un número válido',
     },
   )
-  registration: string
+  @ValidateIf((o) => o.registration)
+  @IsOptional()
+  registration?: string
 
   @ApiProperty({
     description: 'Folio',
@@ -111,7 +111,9 @@ export class CreateStudentDto {
   @IsString({
     message: 'folio is required',
   })
-  folio: string
+  @ValidateIf((o) => o.folio)
+  @IsOptional()
+  folio?: string
 
   @ApiProperty({
     description: 'Género',

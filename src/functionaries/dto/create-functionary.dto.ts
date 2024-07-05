@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateIf,
 } from 'class-validator'
 import { GENDER } from '../../shared/enums/genders'
 
@@ -19,8 +20,8 @@ export class CreateFunctionaryDto {
   @ApiProperty({
     description: 'Segundo nombre del funcionario',
   })
-  @IsNotEmpty()
-  secondName: string
+  @IsOptional()
+  secondName?: string
 
   @ApiProperty({
     description: 'Primer apellido del funcionario',
@@ -31,15 +32,14 @@ export class CreateFunctionaryDto {
   @ApiProperty({
     description: 'Segundo apellido del funcionario',
   })
-  @IsNotEmpty()
-  secondLastName: string
+  @IsOptional()
+  secondLastName?: string
 
   @ApiProperty({
     description: 'Correo institucional del funcionario',
   })
   @IsEmail(
     {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       host_whitelist: ['uta.edu.ec'],
     },
     {
@@ -51,12 +51,12 @@ export class CreateFunctionaryDto {
 
   @ApiProperty({
     description: 'Correo personal del funcionario',
+    required: false,
   })
   @IsEmail()
-  @IsNotEmpty({
-    message: 'personalEmail is required',
-  })
-  personalEmail: string
+  @ValidateIf((o) => o.personalEmail)
+  @IsOptional()
+  personalEmail?: string
 
   @ApiProperty({
     description: 'Número de teléfono del funcionario',

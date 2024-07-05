@@ -67,9 +67,9 @@ export class BasePerson extends BaseAppEntity {
   })
   @Column({
     name: 'personal_email',
-    unique: true,
     type: 'varchar',
     length: 255,
+    nullable: true,
   })
   personalEmail: string
 
