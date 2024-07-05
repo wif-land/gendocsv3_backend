@@ -741,7 +741,7 @@ export class VariablesService {
 
     if (tribunalMembers.length) {
       membersData[DEGREE_CERTIFICATE_VARIABLES.MEMBERS_DEGREE_CERTIFICATE] =
-        this.formatMembersNames(tribunalMembers)
+        this.formatMembersDateText(membersAttended)
       membersData[
         DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_DEGREE_CERTIFICATE
       ] = getFullNameWithTitles(tribunalMembers[0].functionary)
@@ -773,7 +773,7 @@ export class VariablesService {
     )
 
     if (decana) {
-      membersData[DEGREE_CERTIFICATE_VARIABLES.DECANA] = getFullName(
+      membersData[DEGREE_CERTIFICATE_VARIABLES.DECANA] = getFullNameWithTitles(
         decana.functionary,
       )
     }
@@ -795,9 +795,11 @@ export class VariablesService {
     degreeCertificate: DegreeCertificateEntity,
     presentationDate: Date,
   ) {
-    const year = presentationDate.getFullYear().toString()
+    const year = presentationDate.getFullYear().toString().toLowerCase()
     const monthText = formatMonthName(presentationDate)
-    const dayText = transformNumberToWords(presentationDate.getDate())
+    const dayText = transformNumberToWords(
+      presentationDate.getDate(),
+    ).toLowerCase()
 
     return {
       [DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_TYPE]:
@@ -815,7 +817,7 @@ export class VariablesService {
       [DEFAULT_VARIABLE.NUMMES_T_U]: monthText.toUpperCase(),
       [DEFAULT_VARIABLE.MES_T_L]: monthText.toLowerCase(),
       [DEFAULT_VARIABLE.DIAS_T]: `${dayText} días`,
-      [DEFAULT_VARIABLE.NUMDIA_T]: dayText.toUpperCase(),
+      [DEFAULT_VARIABLE.NUMDIA_T]: dayText.toLowerCase(),
       [DEFAULT_VARIABLE.NUMANIO_T]: transformNumberToWords(
         presentationDate.getFullYear(),
       ).toUpperCase(),
@@ -829,7 +831,7 @@ export class VariablesService {
         presentationDate.getMinutes(),
       ).toLowerCase(),
       [DEFAULT_VARIABLE.HORA_MINUTOS_TEXTO_L]:
-        formatHourMinutesText(presentationDate),
+        formatHourMinutesText(presentationDate).toLowerCase(),
     }
   }
 

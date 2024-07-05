@@ -23,11 +23,13 @@ export const transformNumberToWords = (number: number): string => {
       text = 'punto'
     }
 
-    return `${numeroALetras(entera)} ${text} ${numeroALetras(decimal)}`
+    return `${numeroALetras(entera)} ${text} ${numeroALetras(
+      decimal,
+    )}`.toLowerCase()
   } else if (list.length === 1) {
     entera = parseInt(list[0], 10)
   }
-  return numeroALetras(entera)
+  return numeroALetras(entera).toLowerCase()
 }
 
 // Código basado en https://gist.github.com/alfchee/e563340276f89b22042a
