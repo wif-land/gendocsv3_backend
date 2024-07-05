@@ -92,10 +92,14 @@ export class DegreeCertificatesService {
       student.startStudiesDate == null ||
       student.internshipHours == null ||
       student.vinculationHours == null ||
-      student.approvedCredits == null
+      student.approvedCredits == null ||
+      student.birthdate == null ||
+      student.canton == null ||
+      student.folio == null ||
+      student.registration == null
     ) {
       throw new DegreeCertificateBadRequestError(
-        'Falta información. Revise:, genero, fecha de inicio de estudios, horas de pasantias y horas de vinculacion del estudiante',
+        'Falta información. Revise:, género, fecha de inicio de estudios, horas de pasantias y horas de vinculación, Fecha de nacimiento, Cantón, Folio, Matrícula del estudiante ',
       )
     }
 

@@ -54,6 +54,7 @@ export class StudentEntity extends BasePerson {
     name: 'gender',
     type: 'varchar',
     enum: GENDER,
+    nullable: true,
   })
   gender: GENDER
 
@@ -64,6 +65,7 @@ export class StudentEntity extends BasePerson {
   @Column({
     name: 'birthdate',
     type: 'date',
+    nullable: true,
   })
   birthdate: Date
 
@@ -72,7 +74,7 @@ export class StudentEntity extends BasePerson {
     description: 'Cantón de residencia del estudiante',
   })
   @ManyToOne(() => CityEntity, {
-    nullable: false,
+    nullable: true,
     eager: false,
   })
   @JoinColumn({

@@ -617,9 +617,9 @@ export class VariablesService {
         document.student.gender === GENDER.FEMALE
           ? document.student.career.womenDegree
           : document.student.career.menDegree,
-      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_NACIMIENTO]: formatDateText(
-        document.student.birthdate,
-      ),
+      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_NACIMIENTO]: document.student.birthdate
+        ? formatDateText(document.student.birthdate)
+        : 'NO POSEE FECHA DE NACIMIENTO',
       [DEFAULT_VARIABLE.ESTUDIANTE_TITULO_UPPER]: (document.student.gender ===
       GENDER.FEMALE
         ? document.student.career.womenDegree
@@ -663,6 +663,8 @@ export class VariablesService {
   formatMembersNames(
     members: DegreeCertificateAttendanceEntity[] | CouncilAttendanceEntity[],
   ) {
+    if (!members || members == null) return ''
+
     if (members.length === 1) {
       return getFullNameWithTitles(members[0].functionary)
     }
@@ -672,7 +674,15 @@ export class VariablesService {
     )
   }
 
-  formatMembersDateText(members: DegreeCertificateAttendanceEntity[]) {
+  formatMembersDateText(
+    membersAttendence: DegreeCertificateAttendanceEntity[],
+  ) {
+    const members = membersAttendence.filter(
+      (member) =>
+        member.role === DEGREE_ATTENDANCE_ROLES.PRINCIPAL ||
+        member.role === DEGREE_ATTENDANCE_ROLES.SUBSTITUTE,
+    )
+
     const isDetailsDifferent = members.some(
       (member) => member.details !== members[0].details,
     )
@@ -683,18 +693,19 @@ export class VariablesService {
           ? MEMBERS_DESIGNATION[members[0].role][ADJECTIVES.SINGULAR]
           : MEMBERS_DESIGNATION[members[0].role][ADJECTIVES.PLURAL]
       } ${members[0].details} de fecha ${formatDateText(
-        members[-1].assignationDate,
+        members[members.length - 1].assignationDate,
       )}`
     }
 
-    const clasifiedByDetails = members.reduce((acc, member) => {
-      if (!acc[member.details]) {
-        acc[member.details] = []
+    const clasifiedByDetails: {
+      [key: string]: DegreeCertificateAttendanceEntity[]
+    } = {}
+    members.forEach((member) => {
+      if (!clasifiedByDetails[member.details]) {
+        clasifiedByDetails[member.details] = []
       }
 
-      acc[member.details].push(member)
-
-      return acc
+      clasifiedByDetails[member.details].push(member)
     })
 
     const membersText = Object.entries(clasifiedByDetails).map(
@@ -703,7 +714,9 @@ export class VariablesService {
           members.length === 1
             ? MEMBERS_DESIGNATION[members[0].role][ADJECTIVES.SINGULAR]
             : MEMBERS_DESIGNATION[members[0].role][ADJECTIVES.PLURAL]
-        } ${details} de fecha ${formatDateText(members[-1].assignationDate)}`,
+        } ${details} de fecha ${formatDateText(
+          members[members.length - 1].assignationDate,
+        )}`,
     )
 
     return membersText.join(' ')

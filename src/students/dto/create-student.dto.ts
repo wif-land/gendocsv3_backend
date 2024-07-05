@@ -119,23 +119,26 @@ export class CreateStudentDto {
     description: 'Género',
     enum: GENDER,
   })
+  @IsOptional()
   @IsEnum(GENDER)
-  gender: GENDER
+  gender?: GENDER
 
   @ApiProperty({
     example: '1999-12-31',
     description: 'Fecha de nacimiento',
   })
+  @IsOptional()
   @IsDate({
     message: 'birthdate is required',
   })
   @Type(() => Date)
-  birthdate: Date
+  birthdate?: Date
 
   @ApiProperty({
     description: 'Cantón de nacimiento',
     type: Number,
   })
+  @IsOptional()
   @IsNumber()
   canton: number
 
@@ -182,7 +185,7 @@ export class CreateStudentDto {
   })
   @IsOptional()
   @Type(() => Date)
-  endStudiesDate: Date
+  endStudiesDate?: Date
 
   @ApiProperty({
     description: 'Horas de vinculación',

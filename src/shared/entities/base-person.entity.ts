@@ -92,7 +92,7 @@ export class BasePerson extends BaseAppEntity {
   @Column({
     name: 'regular_phone_number',
     type: 'varchar',
-    length: 10,
+    length: 15,
     nullable: true,
   })
   regularPhoneNumber?: string

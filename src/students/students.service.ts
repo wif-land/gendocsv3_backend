@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { CreateStudentDto } from './dto/create-student.dto'
 import { UpdateStudentDto } from './dto/update-student.dto'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -106,18 +106,19 @@ export class StudentsService {
             })
           }
         } else {
-          if (!student.registration || !student.folio) {
-            throw new StudentBadRequestError(
-              `Los datos de matrícula y folio son requeridos para el estudiante con cédula ${student.dni}`,
-            )
-          }
+          const studentEntityCreated = await queryRunner.manager.create(
+            StudentEntity,
+            {
+              ...student,
+              gender: student.gender
+                ? getEnumGender(student.gender)
+                : undefined,
+              career: { id: student.career ?? undefined },
+              canton: { id: student.canton ?? undefined },
+            },
+          )
 
-          const saved = await queryRunner.manager.save({
-            ...student,
-            gender: student.gender ? getEnumGender(student.gender) : undefined,
-            career: { id: student.career ?? undefined },
-            canton: { id: student.canton ?? undefined },
-          })
+          const saved = await queryRunner.manager.save(studentEntityCreated)
 
           if (!saved) {
             throw new StudentError({
@@ -147,6 +148,7 @@ export class StudentsService {
         success: true,
       })
     } catch (error) {
+      Logger.error(error)
       await queryRunner.rollbackTransaction()
       await queryRunner.release()
       throw new StudentError({

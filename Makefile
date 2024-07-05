@@ -49,7 +49,8 @@ deploy_backend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Mak
 	@make backup
 	@ssh $(VM_USER)@$(VM_IP) 'cd $(REMOTE_DIR) && \
 														if [ $$(docker ps -q -f name=gendocsv3_backend) ] || [ $$(docker ps -q -f name=gendocsv3_bull_redis) ]; then \
-															docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down backend bull_redis; \
+															docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) stop backend bull_redis; \
+															docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) rm -f backend bull_redis; \
 														fi && \
 														docker rmi ${BACKEND_DOCKER_IMAGE} || true && \
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d backend bull_redis'
@@ -58,9 +59,10 @@ deploy_frontend_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Ma
 	@echo "Deploying frontend to production..."
 	@ssh $(VM_USER)@$(VM_IP) "cd $(REMOTE_DIR) && \
 														if [ $$(docker ps -q -f name=gendocsv3_frontend) ]; then \
-															docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) down frontend; \
+															docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) stop frontend; \
+															docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) rm -f frontend; \
+															docker rmi ${FRONTEND_DOCKER_IMAGE} | true; \
 														fi && \
-														docker rmi ${FRONTEND_DOCKER_IMAGE} | true && \
 														docker compose -f $(COMPOSE_PRODUCTION_FILE) --env-file $(ENV_FILE_PRODUCTION) up -d frontend"
 
 deploy_db_production: $(ENV_FILE_PRODUCTION) $(COMPOSE_PRODUCTION_FILE) Makefile

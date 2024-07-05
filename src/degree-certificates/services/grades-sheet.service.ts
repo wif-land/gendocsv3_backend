@@ -183,9 +183,7 @@ export class GradesSheetService {
 
       const cleanValues = values.values ?? []
       const value = cleanValues.length > 0 ? cleanValues[0][0] : '0.0'
-      const textValue = transformNumberToWords(
-        Number(parseFloat(value)),
-      ).toLowerCase()
+      const textValue = transformNumberToWords(value).toLowerCase()
 
       cellsVariables[`{{${cell.gradeVariable}}}`] = value
       cellsVariables[`{{${cell.gradeTextVariable}}}`] = textValue

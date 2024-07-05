@@ -20,6 +20,7 @@ export const getEnumGender = (gender: string) => {
   ) {
     return GENDER.MALE
   } else {
-    throw new Error(`Género "${gender}" no soportado`)
+    // throw new Error(`Género "${gender}" no soportado`)
+    return undefined
   }
 }
