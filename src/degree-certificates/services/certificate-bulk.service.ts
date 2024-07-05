@@ -97,7 +97,7 @@ export class CertificateBulkService {
       retryId,
       scope: {
         modules: [degreeCertificatesModule.id],
-        roles: [RolesType.ADMIN, RolesType.WRITER],
+        roles: [RolesType.ADMIN, RolesType.TEMP_ADMIN],
       },
       status: NotificationStatus.IN_PROGRESS,
       type: 'createBulkCertificates',
@@ -626,6 +626,7 @@ export class CertificateBulkService {
           await this.degreeCertificateService.getCurrentDegreeSubmoduleYearModule()
         ).id,
       },
+      duration: 60,
       user: { id: userId },
     }
   }

@@ -181,6 +181,7 @@ export class DegreeCertificatesService {
       certificateStatus: { id: dto.certificateStatusId },
       degreeModality: { id: dto.degreeModalityId },
       room: { id: dto.roomId ? dto.roomId : null },
+      duration: dto.duration ?? 60,
       submoduleYearModule: {
         id: submoduleYearModuleId.id,
       },

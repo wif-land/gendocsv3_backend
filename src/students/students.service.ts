@@ -93,7 +93,8 @@ export class StudentsService {
             }
           }
 
-          const updated = await this.studentRepository.update(
+          const updated = await queryRunner.manager.update(
+            StudentEntity,
             studentEntity.id,
             studentDataToUpdate as unknown as Partial<StudentEntity>,
           )
@@ -111,7 +112,7 @@ export class StudentsService {
             )
           }
 
-          const saved = await this.studentRepository.save({
+          const saved = await queryRunner.manager.save({
             ...student,
             gender: student.gender ? getEnumGender(student.gender) : undefined,
             career: { id: student.career ?? undefined },
