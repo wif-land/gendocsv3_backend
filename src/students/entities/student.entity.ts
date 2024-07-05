@@ -30,8 +30,9 @@ export class StudentEntity extends BasePerson {
   @Column({
     name: 'registration',
     type: 'varchar',
+    nullable: true,
   })
-  registration: string
+  registration?: string
 
   @ApiProperty({
     example: '2020-2021',
@@ -40,8 +41,9 @@ export class StudentEntity extends BasePerson {
   @Column({
     name: 'folio',
     type: 'varchar',
+    nullable: true,
   })
-  folio: string
+  folio?: string
 
   @ApiProperty({
     example: 'Masculino',
