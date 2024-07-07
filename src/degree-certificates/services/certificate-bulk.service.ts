@@ -20,7 +20,7 @@ import {
 } from '../constants'
 import { CertificateTypeEntity } from '../entities/certificate-type.entity'
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
-import { DegreeCertificateAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
+import { DegreeAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
 import { DegreeCertificateAttendanceEntity } from '../../degree-certificate-attendance/entities/degree-certificate-attendance.entity'
 import {
   DEGREE_ATTENDANCE_ROLES,
@@ -56,7 +56,7 @@ export class CertificateBulkService {
     private readonly functionariesService: FunctionariesService,
     private readonly certificateStatusService: CertificateStatusService,
     private readonly degreeModalitiesService: DegreeModalitiesService,
-    private readonly degreeCertificateAttendanceService: DegreeCertificateAttendanceService,
+    private readonly degreeCertificateAttendanceService: DegreeAttendanceService,
     private readonly gradesSheetService: GradesSheetService,
     private readonly notificationsService: NotificationsService,
     private readonly certificateNumerationService: CertificateNumerationService,

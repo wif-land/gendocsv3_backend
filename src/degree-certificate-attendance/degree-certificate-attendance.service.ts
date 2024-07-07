@@ -10,7 +10,7 @@ import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { DegreeCertificateThatOverlapValidator } from './validators/degree-that-overlap'
 
 @Injectable()
-export class DegreeCertificateAttendanceService {
+export class DegreeAttendanceService {
   constructor(
     @InjectRepository(DegreeCertificateAttendanceEntity)
     private readonly degreeCerAttendanceRepository: Repository<DegreeCertificateAttendanceEntity>,
@@ -108,6 +108,7 @@ export class DegreeCertificateAttendanceService {
       .where('degreeCertificate.id = :degreeCertificateId', {
         degreeCertificateId,
       })
+      .addOrderBy('degreeCertificateAttendance.createdAt', 'ASC')
       .getMany()
 
     return new ApiResponseDto(

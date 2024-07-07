@@ -19,7 +19,7 @@ import { FilesService } from '../../files/services/files.service'
 import { StudentsService } from '../../students/students.service'
 import { StudentEntity } from '../../students/entities/student.entity'
 import { VariablesService } from '../../variables/variables.service'
-import { DegreeCertificateAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
+import { DegreeAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
 import { DegreeCertificateConflict } from '../errors/degree-certificate-conflict'
 import { GradesSheetService } from './grades-sheet.service'
 import { CertificateStatusService } from './certificate-status.service'
@@ -36,7 +36,7 @@ export class DegreeCertificatesService {
     private readonly filesService: FilesService,
     private readonly studentService: StudentsService,
     private readonly variablesService: VariablesService,
-    private readonly degreeCertificateAttendanceService: DegreeCertificateAttendanceService,
+    private readonly degreeCertificateAttendanceService: DegreeAttendanceService,
     private readonly gradesSheetService: GradesSheetService,
     private readonly certificateStatusService: CertificateStatusService,
     private readonly certificateNumerationService: CertificateNumerationService,

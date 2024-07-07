@@ -8,7 +8,7 @@ import { MIMETYPES } from '../../shared/constants/mime-types'
 import { getTempProjectPath } from '../../shared/helpers/path-helper'
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 import { getFullName, getFullNameWithTitles } from '../../shared/utils/string'
-import { DegreeCertificateAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
+import { DegreeAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
 import { DEGREE_ATTENDANCE_ROLES } from '../../shared/enums/degree-certificates'
 import { formatDate, formatTime } from '../../shared/utils/date'
 import { DATE_TYPES } from '../../councils/dto/council-filters.dto'
@@ -20,7 +20,7 @@ export class CertificateReportsService {
     private readonly degreeCertificateRepository: DegreeCertificateRepository,
     private readonly degreeCertificateService: DegreeCertificatesService,
     private readonly filesService: FilesService,
-    private readonly certificateAttendanceService: DegreeCertificateAttendanceService,
+    private readonly certificateAttendanceService: DegreeAttendanceService,
   ) {}
 
   async getCertificatesReport(

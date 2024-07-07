@@ -10,7 +10,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       this.logger.error('Error de autenticación', err, user)
 
       throw new HttpException(
-        'Error de autenticación. Por favor, inicie sesión.',
+        'Error de autorización. Por favor inicie sesión.',
         HttpCodes.UNAUTHORIZED,
       )
     }
