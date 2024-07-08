@@ -7,7 +7,7 @@ import {
   IsOptional,
   MinLength,
 } from 'class-validator'
-import { RolesType } from '../../auth/decorators/roles.decorator'
+import { RolesType } from '../../shared/constants/roles'
 import { DtoUtils } from '../../shared/utils/dtos'
 import { VALIDATION_ERROR_MESSAGES } from '../../shared/constants'
 

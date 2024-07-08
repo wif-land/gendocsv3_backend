@@ -15,7 +15,7 @@ import { Auth } from '../auth/decorators/auth.decorator'
 import {
   RolesThatCanQuery,
   RolesThatCanMutate,
-} from '../auth/decorators/roles.decorator'
+} from '../shared/constants/roles'
 
 @ApiTags('Attendance')
 @Controller('attendance')

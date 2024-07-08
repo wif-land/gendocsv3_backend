@@ -11,7 +11,7 @@ import { ApiTags } from '@nestjs/swagger'
 import { Auth } from '../auth/decorators/auth.decorator'
 import { CareersService } from './careers.service'
 import { CreateCareerDto } from './dto/create-career.dto'
-import { RolesType } from '../auth/decorators/roles.decorator'
+import { RolesType } from '../shared/constants/roles'
 import { UpdateCareerDto } from './dto/update-carreer.dto'
 
 @ApiTags('Careers')

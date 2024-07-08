@@ -15,7 +15,7 @@ import { Auth } from '../../auth/decorators/auth.decorator'
 import {
   RolesThatCanMutate,
   RolesThatCanQuery,
-} from '../../auth/decorators/roles.decorator'
+} from '../../shared/constants/roles'
 import { DegreeCertificatesService } from '../services/degree-certificates.service'
 import { CertificateBulkService } from '../services/certificate-bulk.service'
 import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'

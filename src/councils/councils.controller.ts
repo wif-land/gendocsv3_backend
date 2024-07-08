@@ -21,7 +21,7 @@ import { Auth } from '../auth/decorators/auth.decorator'
 import {
   RolesThatCanQuery,
   RolesThatCanMutate,
-} from '../auth/decorators/roles.decorator'
+} from '../shared/constants/roles'
 import { NotifyMembersDTO } from './dto/notify-members.dto'
 
 @ApiTags('Councils')
