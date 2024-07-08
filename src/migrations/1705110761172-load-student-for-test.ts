@@ -217,7 +217,7 @@ export class LoadStudentForTest1705110761172 implements MigrationInterface {
       { name: 'El Chaco', province: { id: 15 } },
       { name: 'Quijos', province: { id: 15 } },
       { name: 'Carlos Julio Arosemena Tola', province: { id: 15 } },
-      { name: 'Pastaza', province: { id: 16 } },
+      { name: 'Puyo', province: { id: 16 } },
       { name: 'Mera', province: { id: 16 } },
       { name: 'Santa Clara', province: { id: 16 } },
       { name: 'Arajuno', province: { id: 16 } },
