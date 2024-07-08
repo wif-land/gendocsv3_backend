@@ -1,10 +1,9 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
-import { ICareer } from '../interfaces/career.interface'
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 
 @Entity('careers')
-export class CareerEntity extends BaseAppEntity implements ICareer {
+export class CareerEntity extends BaseAppEntity {
   @Column({
     name: 'name',
     type: 'varchar',
