@@ -7,6 +7,7 @@ import {
 import { Observable } from 'rxjs'
 import { Reflector } from '@nestjs/core'
 import { ROLE_METADATA } from '../constants'
+import { IPayload } from '../types/payload.interface'
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -22,7 +23,7 @@ export class RolesGuard implements CanActivate {
     if (!validRoles || validRoles.length === 0) return true
 
     const request = context.switchToHttp().getRequest()
-    const user = request.user
+    const user = request.user as IPayload
 
     const isValid = matchRoles(validRoles, user.role)
     if (isValid) return true

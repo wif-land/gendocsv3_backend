@@ -10,6 +10,7 @@ import { compareSync } from 'bcrypt'
 import { ModuleEntity } from '../modules/entities/modules.entity'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { EmailService } from '../email/services/email.service'
+import { IPayload } from './types/payload.interface'
 
 @Injectable()
 export class AuthService {
@@ -27,21 +28,21 @@ export class AuthService {
       throw new UnauthorizedException(`Credenciales incorrectas`)
     }
 
-    const accessModules = user.accessModules.map(
+    const accessModulesIds = user.accessModules.map(
       (module: ModuleEntity) => module.id,
     )
 
-    const payload = {
+    const payload: IPayload = {
+      id: user.id,
+      outlookEmail: user.outlookEmail,
+      googleEmail: user.googleEmail,
       firstName: user.firstName,
       firstLastName: user.firstLastName,
       secondName: user.secondName,
       secondLastName: user.secondLastName,
-      outlookEmail: user.outlookEmail,
-      googleEmail: user.googleEmail,
-      sub: user.id,
       role: user.role,
-      accessModules,
       isActive: user.isActive,
+      accessModulesIds,
     }
 
     return new ApiResponseDto(
