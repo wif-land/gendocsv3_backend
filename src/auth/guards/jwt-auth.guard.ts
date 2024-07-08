@@ -1,17 +1,14 @@
-import { HttpException, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { HttpCodes } from '../../shared/enums/http-codes'
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  private readonly logger = new Logger(JwtAuthGuard.name)
   handleRequest(err, user) {
     if (err || !user) {
-      this.logger.error('Error de autenticación', err, user)
+      Logger.error('Error de autenticación')
 
-      throw new HttpException(
-        'Error de autorización. Por favor inicie sesión.',
-        HttpCodes.UNAUTHORIZED,
+      throw new UnauthorizedException(
+        'Error de autenticación. Por favor inicie sesión.',
       )
     }
 
