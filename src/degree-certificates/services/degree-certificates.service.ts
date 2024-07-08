@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { IsNull, Not, Repository } from 'typeorm'
+import { DataSource, IsNull, Not, Repository } from 'typeorm'
 import { CreateDegreeCertificateDto } from '../dto/create-degree-certificate.dto'
 import { UpdateDegreeCertificateDto } from '../dto/update-degree-certificate.dto'
 import { CertificateTypeEntity } from '../entities/certificate-type.entity'
@@ -28,6 +28,7 @@ import { addMinutesToDate } from '../../shared/utils/date'
 import { DEGREE_CERTIFICATE, IDegreeCertificateFilters } from '../constants'
 import { DegreeCertificateError } from '../errors/degree-certificate-error'
 import { CertificateNumerationService } from './certificate-numeration.service'
+import { DegreeCertificateThatOverlapValidator } from '../../degree-certificate-attendance/validators/degree-that-overlap'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -36,7 +37,7 @@ export class DegreeCertificatesService {
     private readonly filesService: FilesService,
     private readonly studentService: StudentsService,
     private readonly variablesService: VariablesService,
-    private readonly degreeCertificateAttendanceService: DegreeAttendanceService,
+    private readonly degreeAttendanceService: DegreeAttendanceService,
     private readonly gradesSheetService: GradesSheetService,
     private readonly certificateStatusService: CertificateStatusService,
     private readonly certificateNumerationService: CertificateNumerationService,
@@ -46,6 +47,7 @@ export class DegreeCertificatesService {
 
     @InjectRepository(CertificateTypeEntity)
     private readonly certificateTypeRepository: Repository<CertificateTypeEntity>,
+    private readonly datasource: DataSource,
   ) {}
 
   async findAll(paginationDto: IDegreeCertificateFilters): Promise<
@@ -77,7 +79,12 @@ export class DegreeCertificatesService {
     })
   }
 
-  async checkStudent(student: StudentEntity): Promise<void> {
+  /**
+   * Check if the student has a degree certificate. If it has, it throws an error. If it doesn't, it checks if the student has the necessary information to create a degree certificate
+   *
+   * @param {StudentEntity} student Is the student to check if it has a degree certificate
+   */
+  public async checkStudent(student: StudentEntity): Promise<void> {
     const hasApproved =
       await this.degreeCertificateRepository.findApprovedByStudent(student.id)
 
@@ -87,17 +94,19 @@ export class DegreeCertificatesService {
       )
     }
 
-    if (
-      student.gender == null ||
-      student.startStudiesDate == null ||
-      student.internshipHours == null ||
-      student.vinculationHours == null ||
-      student.approvedCredits == null ||
-      student.birthdate == null ||
-      student.canton == null ||
-      student.folio == null ||
-      student.registration == null
-    ) {
+    const nonNullableFields = [
+      student.gender,
+      student.startStudiesDate,
+      student.internshipHours,
+      student.vinculationHours,
+      student.approvedCredits,
+      student.birthdate,
+      student.canton,
+      student.folio,
+      student.registration,
+    ]
+
+    if (nonNullableFields.some((field) => field == null)) {
       throw new DegreeCertificateBadRequestError(
         'Falta información. Revise:, género, fecha de inicio de estudios, horas de pasantias y horas de vinculación, Fecha de nacimiento, Cantón, Folio, Matrícula del estudiante ',
       )
@@ -114,7 +123,16 @@ export class DegreeCertificatesService {
     }
   }
 
-  async checkPresentationDate({
+  /**
+   * Check if there is a degree certificate in the date range provided. If there is, it throws an error
+   *
+   * @param {Object} data Is the data to check the presentation date. It must contain the presentation date, the duration and the room id
+   * @param {Date} data.presentationDate Is the date of the presentation
+   * @param {number} data.duration Is the duration of the presentation
+   * @param {number} data.roomId Is the id of the room where the presentation will be
+   * @returns
+   */
+  public async checkPresentationDate({
     presentationDate,
     duration,
     roomId,
@@ -123,26 +141,21 @@ export class DegreeCertificatesService {
     duration?: number
     roomId?: number
   } = {}): Promise<void> {
-    if (
-      roomId &&
-      roomId != null &&
-      presentationDate &&
-      presentationDate != null &&
-      duration &&
-      duration != null
-    ) {
-      const certificatesInRange =
-        await this.degreeCertificateRepository.countCertificatesInDateRangeByRoom(
-          presentationDate,
-          addMinutesToDate(presentationDate, duration),
-          roomId,
-        )
+    if (!presentationDate || !duration || !roomId) {
+      return
+    }
 
-      if (certificatesInRange > 0) {
-        throw new DegreeCertificateBadRequestError(
-          'Ya existe una acta de grado en la aula seleccionada en el rango de fechas proporcionado',
-        )
-      }
+    const certificatesInRange =
+      await this.degreeCertificateRepository.countCertificatesInDateRangeByRoom(
+        presentationDate,
+        addMinutesToDate(presentationDate, duration),
+        roomId,
+      )
+
+    if (certificatesInRange > 0) {
+      throw new DegreeCertificateBadRequestError(
+        'Ya existe una acta de grado en la aula seleccionada en el rango de fechas proporcionado',
+      )
     }
   }
 
@@ -243,7 +256,7 @@ export class DegreeCertificatesService {
       })
 
     if (!degreeCertificates || degreeCertificates.length === 0) {
-      return undefined
+      return
     }
 
     return degreeCertificates
@@ -320,7 +333,7 @@ export class DegreeCertificatesService {
     }
 
     const { data: attendance } =
-      await this.degreeCertificateAttendanceService.findByDegreeCertificate(
+      await this.degreeAttendanceService.findByDegreeCertificate(
         degreeCertificate.id,
       )
 
@@ -452,11 +465,11 @@ export class DegreeCertificatesService {
       )
     }
 
-    const currentDegreeCertigicate = { ...degreeCertificate }
+    const currentDegreeCertificate = { ...degreeCertificate }
     try {
       if (
         dto.studentId &&
-        dto.studentId !== currentDegreeCertigicate.student.id
+        dto.studentId !== currentDegreeCertificate.student.id
       ) {
         const student = await this.studentService.findOne(dto.studentId)
 
@@ -473,18 +486,21 @@ export class DegreeCertificatesService {
 
       if (
         dto.presentationDate &&
-        dto.presentationDate !== currentDegreeCertigicate.presentationDate
+        dto.presentationDate !== currentDegreeCertificate.presentationDate
       ) {
-        await this.checkPresentationDate({
-          presentationDate: dto.presentationDate,
-          duration: dto.duration,
+        await new DegreeCertificateThatOverlapValidator(
+          this.datasource,
+        ).validate({
+          degreeId: currentDegreeCertificate.id,
+          intendedPresentationDate: dto.presentationDate,
+          validateNewPresentationDate: true,
           roomId: dto.roomId,
         })
       }
 
       const degreeCertificatePreloaded =
         await this.degreeCertificateRepository.preload({
-          ...currentDegreeCertigicate,
+          ...currentDegreeCertificate,
           ...dto,
           student: { id: dto.studentId },
           certificateType: { id: dto.certificateTypeId },
@@ -506,7 +522,7 @@ export class DegreeCertificatesService {
 
       if (
         dto.certificateTypeId &&
-        currentDegreeCertigicate.certificateType.id !== dto.certificateTypeId
+        currentDegreeCertificate.certificateType.id !== dto.certificateTypeId
       ) {
         const certificateType = await this.certificateTypeRepository.findOneBy({
           id: dto.certificateTypeId,
@@ -538,17 +554,16 @@ export class DegreeCertificatesService {
       }
       if (
         // eslint-disable-next-line no-extra-parens
-        (dto.presentationDate !== undefined &&
+        (dto.presentationDate &&
           // eslint-disable-next-line eqeqeq
-          dto.presentationDate != currentDegreeCertigicate.presentationDate) ||
+          dto.presentationDate !== currentDegreeCertificate.presentationDate) ||
         // eslint-disable-next-line no-extra-parens
         (dto.certificateStatusId &&
           dto.certificateStatusId !==
-            currentDegreeCertigicate.certificateStatus.id)
+            currentDegreeCertificate.certificateStatus.id)
       ) {
-        if (currentDegreeCertigicate.certificateDriveId) {
+        if (currentDegreeCertificate.certificateDriveId) {
           await this.filesService.remove(degreeCertificate.certificateDriveId)
-
           await this.generateDocument(certificateUpdated.id)
         }
 
@@ -562,7 +577,7 @@ export class DegreeCertificatesService {
         certificateUpdated,
       )
     } catch (error) {
-      await this.degreeCertificateRepository.save(currentDegreeCertigicate)
+      await this.degreeCertificateRepository.save(currentDegreeCertificate)
       if (error instanceof DegreeCertificateError) {
         throw error
       }
@@ -596,12 +611,12 @@ export class DegreeCertificatesService {
       })
 
     const { data: attendance } =
-      await this.degreeCertificateAttendanceService.findByDegreeCertificate(
+      await this.degreeAttendanceService.findByDegreeCertificate(
         degreeCertificate.id,
       )
 
     if (attendance) {
-      await this.degreeCertificateAttendanceService.removeAllAttendanceByDegreeCertificateId(
+      await this.degreeAttendanceService.removeAllAttendanceByDegreeCertificateId(
         degreeCertificate.id,
       )
     }

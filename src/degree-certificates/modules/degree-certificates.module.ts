@@ -19,7 +19,7 @@ import { GradesSheetService } from '../services/grades-sheet.service'
 import { DegreeModalitiesService } from '../services/degree-modalities.service'
 import { RoomsService } from '../services/rooms.service'
 import { DegreeCertificatesService } from '../services/degree-certificates.service'
-import { DegreeCertificatesController } from '../controllers/degree-certificates.controller'
+import { DegreeController } from '../controllers/degree-certificates.controller'
 import { GradeCellsController } from '../controllers/grade-cells.controller'
 import { DegreeModalitiesController } from '../controllers/degree-modalities.controller'
 import { RoomsController } from '../controllers/rooms.controller'
@@ -38,7 +38,7 @@ import { CertificateReportsService } from '../services/certificate-reports.servi
 
 @Module({
   controllers: [
-    DegreeCertificatesController,
+    DegreeController,
     CertificateTypesController,
     CertificateStatusController,
     GradeCellsController,

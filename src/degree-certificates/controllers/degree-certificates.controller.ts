@@ -12,7 +12,10 @@ import { CreateDegreeCertificateDto } from '../dto/create-degree-certificate.dto
 import { UpdateDegreeCertificateDto } from '../dto/update-degree-certificate.dto'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { Auth } from '../../auth/decorators/auth-decorator'
-import { RolesType } from '../../auth/decorators/roles-decorator'
+import {
+  RolesThatCanMutate,
+  RolesThatCanQuery,
+} from '../../auth/decorators/roles-decorator'
 import { DegreeCertificatesService } from '../services/degree-certificates.service'
 import { CertificateBulkService } from '../services/certificate-bulk.service'
 import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
@@ -22,43 +25,44 @@ import { IDegreeCertificateFilters } from '../constants'
 
 @ApiTags('degree-certificates')
 @Controller('degree-certificates')
-export class DegreeCertificatesController {
+export class DegreeController {
   constructor(
-    private readonly degreeCertificatesService: DegreeCertificatesService,
+    private readonly degreeService: DegreeCertificatesService,
     private readonly certificateBulkService: CertificateBulkService,
     private readonly certificateNumerationService: CertificateNumerationService,
   ) {}
 
   // #region DegreeCertificates
-  @Auth(RolesType.ADMIN, RolesType.READER)
+  @Auth(...RolesThatCanQuery)
   @Get()
   async getDegreeCertificates(
     @Query() paginationDto: IDegreeCertificateFilters,
   ) {
-    return await this.degreeCertificatesService.findAll(paginationDto)
+    return await this.degreeService.findAll(paginationDto)
   }
 
-  @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
+  @Auth(...RolesThatCanMutate)
   @Post()
   async createDegreeCertificate(@Body() dto: CreateDegreeCertificateDto) {
-    return await this.degreeCertificatesService.create(dto)
+    return await this.degreeService.create(dto)
   }
 
-  @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
+  @Auth(...RolesThatCanMutate)
   @Patch(':id')
   async updateDegreeCertificate(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDegreeCertificateDto,
   ) {
-    return await this.degreeCertificatesService.update(id, dto)
+    return await this.degreeService.update(id, dto)
   }
 
-  @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
+  @Auth(...RolesThatCanMutate)
   @Patch('numeration/generate/:careerId')
   async generateNumeration(@Param('careerId', ParseIntPipe) careerId: number) {
     return await this.certificateNumerationService.generateNumeration(careerId)
   }
 
+  @Auth(...RolesThatCanQuery)
   @Get('numeration/last-number-to-register/:careerId')
   async getLastNumberToRegister(
     @Param('careerId', ParseIntPipe) careerId: number,
@@ -69,6 +73,7 @@ export class DegreeCertificatesController {
     return new ApiResponseDto('Siguiente número de registro encontrado', number)
   }
 
+  @Auth(...RolesThatCanQuery)
   @Get('numeration/enqueued/:careerId')
   async getNumerationEnqueued(
     @Param('careerId', ParseIntPipe) careerId: number,
@@ -79,11 +84,13 @@ export class DegreeCertificatesController {
     return new ApiResponseDto('Siguiente número de registro encolado', number)
   }
 
+  @Auth(...RolesThatCanMutate)
   @Patch('generate-document/:id')
   async generateDocument(@Param('id', ParseIntPipe) id: number) {
-    return await this.degreeCertificatesService.generateDocument(id)
+    return await this.degreeService.generateDocument(id)
   }
 
+  @Auth(...RolesThatCanMutate)
   @Patch('bulk/load/:userId')
   async loadBulk(
     @Body() createCertificatesDtos: CreateDegreeCertificateBulkDto[],
@@ -99,6 +106,7 @@ export class DegreeCertificatesController {
     return new ApiResponseDto('Proceso de carga en ejecución', true)
   }
 
+  @Auth(...RolesThatCanQuery)
   @Get('check-presentation-date')
   async checkPresentationDate(
     @Body()
@@ -112,19 +120,19 @@ export class DegreeCertificatesController {
       roomId?: number
     },
   ) {
-    await this.degreeCertificatesService.checkPresentationDate({
+    await this.degreeService.checkPresentationDate({
       presentationDate,
       duration,
       roomId,
     })
   }
 
-  @Auth(RolesType.ADMIN, RolesType.READER, RolesType.WRITER, RolesType.API)
+  @Auth(...RolesThatCanQuery)
   @Get('/get-one/:id')
   async getCertificate(@Param('id', ParseIntPipe) id: number) {
     return new ApiResponseDto(
       'Certificado encontrado',
-      await this.degreeCertificatesService.findById(id),
+      await this.degreeService.findById(id),
     )
   }
 }

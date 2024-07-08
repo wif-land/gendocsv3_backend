@@ -21,22 +21,10 @@ export class DegreeAttendanceService {
   ) {}
 
   async create(data: CreateDegreeCertificateAttendanceDto) {
-    const alreadyExists = await this.degreeCerAttendanceRepository.findOne({
-      where: {
-        degreeCertificate: {
-          id: data.degreeCertificateId,
-        },
-        functionary: {
-          id: data.functionaryId,
-        },
-      },
-    })
-
-    if (alreadyExists) {
-      throw new DegreeCertificateAttendanceAlreadyExists(
-        'Ya existe una asistencia al acta de grado para este funcionario y acta de grado',
-      )
-    }
+    await this.validateDehreeCertificateAttendanceExists(
+      data.degreeCertificateId,
+      data.functionaryId,
+    )
 
     const degreeCertificateAttendance =
       this.degreeCerAttendanceRepository.create({
@@ -121,12 +109,6 @@ export class DegreeAttendanceService {
     id: number,
     updateAttendanceDto: UpdateDegreeCertificateAttendanceDto,
   ) {
-    if ('hasAttended' in updateAttendanceDto) {
-      await new DegreeCertificateThatOverlapValidator(this.dataSource).validate(
-        id,
-      )
-    }
-
     const degreeCertificateAttendance =
       await this.degreeCerAttendanceRepository.findOne({
         where: { id },
@@ -135,6 +117,19 @@ export class DegreeAttendanceService {
     if (!degreeCertificateAttendance) {
       throw new DegreeCertificateBadRequestError(
         `No se encontró la asistencia al acta de grado con id ${id}`,
+      )
+    }
+
+    if (
+      'hasAttended' in updateAttendanceDto &&
+      updateAttendanceDto.hasAttended
+    ) {
+      await new DegreeCertificateThatOverlapValidator(this.dataSource).validate(
+        {
+          degreeId: degreeCertificateAttendance.degreeCertificate.id,
+          validateNewPresentationDate: false,
+          roomId: degreeCertificateAttendance.degreeCertificate.room?.id,
+        },
       )
     }
 
@@ -227,5 +222,27 @@ export class DegreeAttendanceService {
     await this.degreeCerAttendanceRepository.delete({
       degreeCertificate: { id: degreeCertificateId },
     })
+  }
+
+  private async validateDehreeCertificateAttendanceExists(
+    degreeCertificateId: number,
+    functionaryId: number,
+  ) {
+    const alreadyExists = await this.degreeCerAttendanceRepository.findOne({
+      where: {
+        degreeCertificate: {
+          id: degreeCertificateId,
+        },
+        functionary: {
+          id: functionaryId,
+        },
+      },
+    })
+
+    if (alreadyExists) {
+      throw new DegreeCertificateAttendanceAlreadyExists(
+        'Ya existe una asistencia al acta de grado para este funcionario y acta de grado',
+      )
+    }
   }
 }
