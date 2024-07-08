@@ -1,6 +1,7 @@
 import {
-  HttpException,
+  BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
 import { UsersService } from '../users/users.service'
@@ -85,9 +86,8 @@ export class AuthService {
 
   private validateTries(recoveryPasswordTokenTries: number) {
     if (recoveryPasswordTokenTries >= 3) {
-      throw new HttpException(
+      throw new BadRequestException(
         `Has excedido el número de intentos permitidos para recuperación de contraseña`,
-        400,
       )
     }
   }
@@ -96,14 +96,12 @@ export class AuthService {
     try {
       return this.jwtService.verify(token, { ignoreExpiration: false })
     } catch (error) {
-      throw new HttpException(`Token invalido`, 400)
+      throw new UnauthorizedException(`Token inválido`)
     }
   }
 
   private validateUserExists(user: UserEntity) {
-    if (!user) {
-      throw new HttpException(`Usuario no encontrado`, 404)
-    }
+    if (!user) throw new NotFoundException(`Usuario no encontrado`)
   }
 
   private validateUser(user: UserEntity, passwordToVerify: string) {
