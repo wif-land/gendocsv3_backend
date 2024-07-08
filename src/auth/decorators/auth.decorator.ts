@@ -1,12 +1,7 @@
 import { applyDecorators, UseGuards } from '@nestjs/common'
-import { ApiBearerAuth } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../guards/jwt-auth.guard'
-import { Roles, RolesType } from './roles-decorator'
+import { Roles, RolesType } from './roles.decorator'
 import { RolesGuard } from '../guards/roles.guard'
 
 export const Auth = (...roles: RolesType[]) =>
-  applyDecorators(
-    Roles(...roles),
-    UseGuards(JwtAuthGuard, RolesGuard),
-    ApiBearerAuth(),
-  )
+  applyDecorators(Roles(...roles), UseGuards(JwtAuthGuard, RolesGuard))

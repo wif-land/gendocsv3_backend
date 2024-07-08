@@ -1,4 +1,4 @@
-import { RolesType } from '../../auth/decorators/roles-decorator'
+import { RolesType } from '../../auth/decorators/roles.decorator'
 
 export interface ScopeInterface {
   modules?: number[]

@@ -1,5 +1,5 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
-import { RolesType } from '../../auth/decorators/roles-decorator'
+import { RolesType } from '../../auth/decorators/roles.decorator'
 import { ModuleEntity } from '../../modules/entities/modules.entity'
 import { ProcessEntity } from '../../processes/entities/process.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'

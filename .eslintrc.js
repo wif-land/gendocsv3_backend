@@ -34,7 +34,7 @@ module.exports = {
       new RegExp(
         '^[a-z0-9][a-z0-9-]*' +
           '(.module|.controller|.entity|.dto' +
-          '|.strategy|.guard|.service|.gateway' +
+          '|.strategy|.guard|.service|.gateway|.decorator' +
           '|.utils|.interceptor|.interface|.pipe|.filter' +
           '|.schema|.middleware)?' +
           '(.e2e-spec|.spec|.config|.setup)?$' +

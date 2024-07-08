@@ -11,11 +11,11 @@ import {
 import { CreateDegreeCertificateDto } from '../dto/create-degree-certificate.dto'
 import { UpdateDegreeCertificateDto } from '../dto/update-degree-certificate.dto'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
-import { Auth } from '../../auth/decorators/auth-decorator'
+import { Auth } from '../../auth/decorators/auth.decorator'
 import {
   RolesThatCanMutate,
   RolesThatCanQuery,
-} from '../../auth/decorators/roles-decorator'
+} from '../../auth/decorators/roles.decorator'
 import { DegreeCertificatesService } from '../services/degree-certificates.service'
 import { CertificateBulkService } from '../services/certificate-bulk.service'
 import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate-bulk.dto'
