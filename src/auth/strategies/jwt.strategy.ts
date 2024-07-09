@@ -2,22 +2,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt'
 import { PassportStrategy } from '@nestjs/passport'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { AuthUser } from '../dto/auth-user.dto'
-
-interface Payload {
-  sub: string
-  firstName: string
-  secondName: string
-  firstLastName: string
-  secondLastName: string
-  outlookEmail: string
-  googleEmail: string
-  iat: string
-  role: string
-  isActive: boolean
-  accessModulesIds: number[]
-}
-
+import { IPayload } from '../types/payload.interface'
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
@@ -28,9 +13,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  async validate(payload: Payload): Promise<AuthUser> {
+  async validate(payload: IPayload): Promise<IPayload> {
     return {
-      id: payload.sub,
+      id: payload.id,
       outlookEmail: payload.outlookEmail,
       googleEmail: payload.googleEmail,
       firstName: payload.firstName,

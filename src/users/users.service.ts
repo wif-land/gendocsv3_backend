@@ -15,8 +15,10 @@ import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UserFiltersDto } from './dto/user-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { FilesService } from '../files/services/files.service'
-import { RolesType } from '../auth/decorators/roles-decorator'
+import { RolesType } from '../shared/constants/roles'
 import { UsersGateway } from './users.gateway'
+import { IPayload } from '../auth/types/payload.interface'
+import { ModuleEntity } from '../modules/entities/modules.entity'
 
 @Injectable()
 export class UsersService {
@@ -262,17 +264,21 @@ export class UsersService {
         }
       }
 
-      const payload = {
-        sub: id,
+      const accessModulesIds = userUpdated.accessModules.map(
+        (module: ModuleEntity) => module.id,
+      )
+
+      const payload: IPayload = {
+        id,
+        outlookEmail: userUpdated.outlookEmail,
+        googleEmail: userUpdated.googleEmail,
         firstName: userUpdated.firstName,
         firstLastName: userUpdated.firstLastName,
         secondName: userUpdated.secondName,
         secondLastName: userUpdated.secondLastName,
-        outlookEmail: userUpdated.outlookEmail,
-        googleEmail: userUpdated.googleEmail,
         role: userUpdated.role,
         isActive: userUpdated.isActive,
-        accessModules: userUpdated.accessModules,
+        accessModulesIds,
       }
 
       if (hasAccessModules) {

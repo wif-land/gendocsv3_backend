@@ -11,11 +11,11 @@ import { DegreeAttendanceService } from './degree-certificate-attendance.service
 import { CreateDegreeCertificateAttendanceDto } from './dto/create-degree-certificate-attendance.dto'
 import { UpdateDegreeCertificateAttendanceDto } from './dto/update-degree-certificate-attendance.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
-import { Auth } from '../auth/decorators/auth-decorator'
+import { Auth } from '../auth/decorators/auth.decorator'
 import {
   RolesThatCanQuery,
   RolesThatCanMutate,
-} from '../auth/decorators/roles-decorator'
+} from '../shared/constants/roles'
 
 @Controller('degree-certificate-attendance')
 export class DegreeAttendanceController {

@@ -17,11 +17,11 @@ import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { CouncilFiltersDto } from './dto/council-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
-import { Auth } from '../auth/decorators/auth-decorator'
+import { Auth } from '../auth/decorators/auth.decorator'
 import {
   RolesThatCanQuery,
   RolesThatCanMutate,
-} from '../auth/decorators/roles-decorator'
+} from '../shared/constants/roles'
 import { NotifyMembersDTO } from './dto/notify-members.dto'
 
 @ApiTags('Councils')

@@ -1,5 +1,3 @@
-import { CustomDecorator, SetMetadata } from '@nestjs/common'
-
 export enum RolesType {
   ADMIN = 'ADMIN',
   TEMP_ADMIN = 'TEMP_ADMIN',
@@ -22,6 +20,3 @@ export const RolesThatCanQuery = [
   RolesType.READER,
   RolesType.API,
 ]
-
-export const Roles = (...roles: RolesType[]): CustomDecorator<string> =>
-  SetMetadata('roles', roles)

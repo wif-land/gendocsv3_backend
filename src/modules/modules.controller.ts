@@ -2,8 +2,8 @@ import { Body, Controller, Get, Post } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { ModulesService } from './modules.service'
 import { CreateModuleDTO } from './dto/create-module.dto'
-import { Auth } from '../auth/decorators/auth-decorator'
-import { RolesType } from '../auth/decorators/roles-decorator'
+import { Auth } from '../auth/decorators/auth.decorator'
+import { RolesType } from '../shared/constants/roles'
 
 @ApiTags('modules')
 @Controller('modules')

@@ -1,12 +1,12 @@
-export class AuthUser {
-  id: string
+export interface IPayload {
+  id: number
   outlookEmail: string
   googleEmail: string
   firstName: string
   firstLastName: string
   secondName: string
   secondLastName: string
-  isActive: boolean
   role: string
+  isActive: boolean
   accessModulesIds: number[]
 }

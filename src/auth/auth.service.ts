@@ -1,6 +1,7 @@
 import {
-  HttpException,
+  BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
 import { UsersService } from '../users/users.service'
@@ -10,6 +11,7 @@ import { compareSync } from 'bcrypt'
 import { ModuleEntity } from '../modules/entities/modules.entity'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { EmailService } from '../email/services/email.service'
+import { IPayload } from './types/payload.interface'
 
 @Injectable()
 export class AuthService {
@@ -27,21 +29,21 @@ export class AuthService {
       throw new UnauthorizedException(`Credenciales incorrectas`)
     }
 
-    const accessModules = user.accessModules.map(
+    const accessModulesIds = user.accessModules.map(
       (module: ModuleEntity) => module.id,
     )
 
-    const payload = {
+    const payload: IPayload = {
+      id: user.id,
+      outlookEmail: user.outlookEmail,
+      googleEmail: user.googleEmail,
       firstName: user.firstName,
       firstLastName: user.firstLastName,
       secondName: user.secondName,
       secondLastName: user.secondLastName,
-      outlookEmail: user.outlookEmail,
-      googleEmail: user.googleEmail,
-      sub: user.id,
       role: user.role,
-      accessModules,
       isActive: user.isActive,
+      accessModulesIds,
     }
 
     return new ApiResponseDto(
@@ -84,9 +86,8 @@ export class AuthService {
 
   private validateTries(recoveryPasswordTokenTries: number) {
     if (recoveryPasswordTokenTries >= 3) {
-      throw new HttpException(
+      throw new BadRequestException(
         `Has excedido el número de intentos permitidos para recuperación de contraseña`,
-        400,
       )
     }
   }
@@ -95,14 +96,12 @@ export class AuthService {
     try {
       return this.jwtService.verify(token, { ignoreExpiration: false })
     } catch (error) {
-      throw new HttpException(`Token invalido`, 400)
+      throw new UnauthorizedException(`Token inválido`)
     }
   }
 
   private validateUserExists(user: UserEntity) {
-    if (!user) {
-      throw new HttpException(`Usuario no encontrado`, 404)
-    }
+    if (!user) throw new NotFoundException(`Usuario no encontrado`)
   }
 
   private validateUser(user: UserEntity, passwordToVerify: string) {

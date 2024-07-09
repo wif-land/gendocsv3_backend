@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Logger, Delete } from '@nestjs/common'
 import { GcpService } from './gcp.service'
-import { Auth } from '../auth/decorators/auth-decorator'
+import { Auth } from '../auth/decorators/auth.decorator'
 
 export interface ITestDto {
   templateId: string
