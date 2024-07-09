@@ -132,16 +132,6 @@ export class DegreeAttendanceService {
       )
     }
 
-    if (
-      (degreeCertificateAttendance.hasAttended ||
-        degreeCertificateAttendance.hasBeenNotified) &&
-      updateAttendanceDto.hasAttended === false
-    ) {
-      throw new DegreeCertificateBadRequestError(
-        `No se puede actualizar la asistencia al acta de grado con id ${id} porque ya ha sido notificado o ha asistido`,
-      )
-    }
-
     const toUpdate: any = {
       id,
       ...updateAttendanceDto,
@@ -174,6 +164,8 @@ export class DegreeAttendanceService {
       toUpdate.functionary = {
         id: updateAttendanceDto.functionaryId,
       }
+      toUpdate.hasAttended = false
+      toUpdate.hasBeenNotified = false
     }
 
     const updatedDegreeCertificateAttendance =
