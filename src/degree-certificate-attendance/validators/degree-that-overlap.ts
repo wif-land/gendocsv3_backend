@@ -67,7 +67,6 @@ export class DegreeCertificateThatOverlapValidator extends Validator<IDegreeThat
     degreeId,
     validateNewPresentationDate,
     intendedPresentationDate,
-    roomId,
   }: IDegreeThatOverlapValidator) {
     if (validateNewPresentationDate && !intendedPresentationDate) {
       throw new DegreeCertificateBadRequestError(
@@ -92,7 +91,7 @@ export class DegreeCertificateThatOverlapValidator extends Validator<IDegreeThat
           validateNewPresentationDate
             ? intendedPresentationDate
             : degreeCertificateData.presentationDate,
-          degreeCertificateData.duration,
+          degreeCertificateData.duration || 60,
         ),
       )
       .andWhere('functionary.id in (:...functionaryIds)', {
@@ -103,7 +102,6 @@ export class DegreeCertificateThatOverlapValidator extends Validator<IDegreeThat
       .andWhere('dc.id != :dcId', {
         dcId: degreeCertificateData.id,
       })
-      .andWhere('dc.roomId = :roomId', { roomId })
       .andWhere('dc.isClosed = :isClosed', { isClosed: false })
       .andWhere('dc.deletedAt IS NULL')
       .getMany()

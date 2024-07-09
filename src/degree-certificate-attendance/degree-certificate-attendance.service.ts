@@ -13,7 +13,7 @@ import { DegreeCertificateThatOverlapValidator } from './validators/degree-that-
 export class DegreeAttendanceService {
   constructor(
     @InjectRepository(DegreeCertificateAttendanceEntity)
-    private readonly degreeCerAttendanceRepository: Repository<DegreeCertificateAttendanceEntity>,
+    private readonly degreeAttendanceRepository: Repository<DegreeCertificateAttendanceEntity>,
 
     @InjectEntityManager()
     private entityManager: EntityManager,
@@ -26,16 +26,15 @@ export class DegreeAttendanceService {
       data.functionaryId,
     )
 
-    const degreeCertificateAttendance =
-      this.degreeCerAttendanceRepository.create({
-        ...data,
-        degreeCertificate: {
-          id: data.degreeCertificateId,
-        },
-        functionary: {
-          id: data.functionaryId,
-        },
-      })
+    const degreeCertificateAttendance = this.degreeAttendanceRepository.create({
+      ...data,
+      degreeCertificate: {
+        id: data.degreeCertificateId,
+      },
+      functionary: {
+        id: data.functionaryId,
+      },
+    })
 
     if (!degreeCertificateAttendance) {
       throw new DegreeCertificateBadRequestError(
@@ -43,7 +42,7 @@ export class DegreeAttendanceService {
       )
     }
     const newDegreeCertificateAttendance =
-      await this.degreeCerAttendanceRepository.save(degreeCertificateAttendance)
+      await this.degreeAttendanceRepository.save(degreeCertificateAttendance)
 
     return new ApiResponseDto(
       'Asistencia al acta de grado creada con éxito',
@@ -81,7 +80,7 @@ export class DegreeAttendanceService {
   async findByDegreeCertificate(
     degreeCertificateId: number,
   ): Promise<ApiResponseDto<DegreeCertificateAttendanceEntity[]>> {
-    const degreeCertificateAttendance = await this.degreeCerAttendanceRepository
+    const degreeCertificateAttendance = await this.degreeAttendanceRepository
       .createQueryBuilder('degreeCertificateAttendance')
       .leftJoinAndSelect(
         'degreeCertificateAttendance.functionary',
@@ -110,7 +109,7 @@ export class DegreeAttendanceService {
     updateAttendanceDto: UpdateDegreeCertificateAttendanceDto,
   ) {
     const degreeCertificateAttendance =
-      await this.degreeCerAttendanceRepository.findOne({
+      await this.degreeAttendanceRepository.findOne({
         where: { id },
       })
 
@@ -143,11 +142,42 @@ export class DegreeAttendanceService {
       )
     }
 
-    const updatedDegreeCertificateAttendance =
-      await this.degreeCerAttendanceRepository.save({
-        id,
-        ...updateAttendanceDto,
+    const toUpdate: any = {
+      id,
+      ...updateAttendanceDto,
+    }
+
+    if (
+      updateAttendanceDto.functionaryId &&
+      degreeCertificateAttendance.functionary.id !==
+        updateAttendanceDto.functionaryId
+    ) {
+      const alreadyExists = await this.degreeAttendanceRepository.findOne({
+        where: {
+          degreeCertificate: {
+            id: degreeCertificateAttendance.degreeCertificate.id,
+          },
+          functionary: {
+            id: updateAttendanceDto.functionaryId,
+          },
+        },
       })
+
+      if (alreadyExists) {
+        throw new DegreeCertificateAttendanceAlreadyExists(
+          'Ya existe una asistencia al acta de grado para este funcionario y acta de grado',
+        )
+      }
+
+      delete toUpdate.functionaryId
+
+      toUpdate.functionary = {
+        id: updateAttendanceDto.functionaryId,
+      }
+    }
+
+    const updatedDegreeCertificateAttendance =
+      await this.degreeAttendanceRepository.save(toUpdate)
 
     return new ApiResponseDto(
       'Asistencia al acta de grado actualizada con éxito',
@@ -184,7 +214,7 @@ export class DegreeAttendanceService {
 
   async remove(id: number) {
     const degreeCertificateAttendance =
-      await this.degreeCerAttendanceRepository.findOne({
+      await this.degreeAttendanceRepository.findOne({
         where: { id },
       })
 
@@ -203,12 +233,12 @@ export class DegreeAttendanceService {
       )
     }
 
-    await this.degreeCerAttendanceRepository.delete(id)
+    await this.degreeAttendanceRepository.delete(id)
   }
 
   async removeAllAttendanceByDegreeCertificateId(degreeCertificateId: number) {
     const degreeCertificateAttendance =
-      await this.degreeCerAttendanceRepository.find({
+      await this.degreeAttendanceRepository.find({
         where: { degreeCertificate: { id: degreeCertificateId } },
       })
 
@@ -219,7 +249,7 @@ export class DegreeAttendanceService {
       return
     }
 
-    await this.degreeCerAttendanceRepository.delete({
+    await this.degreeAttendanceRepository.delete({
       degreeCertificate: { id: degreeCertificateId },
     })
   }
@@ -228,7 +258,7 @@ export class DegreeAttendanceService {
     degreeCertificateId: number,
     functionaryId: number,
   ) {
-    const alreadyExists = await this.degreeCerAttendanceRepository.findOne({
+    const alreadyExists = await this.degreeAttendanceRepository.findOne({
       where: {
         degreeCertificate: {
           id: degreeCertificateId,
