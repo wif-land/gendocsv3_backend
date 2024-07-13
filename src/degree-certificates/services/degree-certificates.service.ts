@@ -487,7 +487,7 @@ export class DegreeCertificatesService {
       if (
         dto.presentationDate &&
         new Date(dto.presentationDate) !==
-          currentDegreeCertificate.presentationDate
+          new Date(currentDegreeCertificate.presentationDate)
       ) {
         await new DegreeCertificateThatOverlapValidator(
           this.datasource,
