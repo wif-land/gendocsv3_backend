@@ -81,30 +81,61 @@ export class DegreeCertificateThatOverlapValidator extends Validator<IDegreeThat
       validateNewPresentationDate,
     )
 
-    const attendanceAlreadyMarked = await this.dataSource.manager
+    const dateRange = this.getDateRangeValues(
+      validateNewPresentationDate
+        ? intendedPresentationDate
+        : degreeCertificateData.presentationDate,
+      degreeCertificateData.duration || 60,
+    )
+
+    const functionaryIds = degreeCertificateAttendance.map(
+      (dca) => dca.functionary.id,
+    )
+
+    const baseQuery = this.dataSource.manager
       .createQueryBuilder(DegreeCertificateEntity, 'dc')
       .innerJoin('dc.attendances', 'dca')
       .innerJoin('dca.functionary', 'functionary')
       .where(
-        'dc.presentationDate between :start and :end',
-        this.getDateRangeValues(
-          validateNewPresentationDate
-            ? intendedPresentationDate
-            : degreeCertificateData.presentationDate,
-          degreeCertificateData.duration || 60,
-        ),
+        "dc.presentationDate < :start AND dc.presentationDate + (dc.duration * interval '1 minute') > :start",
+        {
+          start: dateRange.start,
+        },
       )
-      .andWhere('functionary.id in (:...functionaryIds)', {
-        functionaryIds: degreeCertificateAttendance.map(
-          (dca) => dca.functionary.id,
-        ),
-      })
+      .orWhere(
+        "dc.presentationDate + (dc.duration * interval '1 minute') > :end AND dc.presentationDate < :end",
+        {
+          end: dateRange.end,
+        },
+      )
+      .orWhere(
+        "dc.presentationDate > :start AND dc.presentationDate + (dc.duration * interval '1 minute') < :end",
+        {
+          start: dateRange.start,
+          end: dateRange.end,
+        },
+      )
       .andWhere('dc.id != :dcId', {
         dcId: degreeCertificateData.id,
       })
       .andWhere('dc.isClosed = :isClosed', { isClosed: false })
       .andWhere('dc.deletedAt IS NULL')
-      .getMany()
+
+    if (functionaryIds.length > 0) {
+      const attendanceAlreadyMarked = await baseQuery
+        .andWhere('functionary.id in (:...functionaryIds)', {
+          functionaryIds,
+        })
+        .getMany()
+
+      if (attendanceAlreadyMarked.length > 0) {
+        throw new DegreeCertificateBadRequestError(
+          'Uno o más miembros del acta de grado se encuentran en otro consejo en la misma fecha. Por favor, verifique los datos e intente nuevamente.',
+        )
+      }
+    }
+
+    const attendanceAlreadyMarked = await baseQuery.getMany()
 
     if (attendanceAlreadyMarked.length > 0) {
       throw new DegreeCertificateBadRequestError(
