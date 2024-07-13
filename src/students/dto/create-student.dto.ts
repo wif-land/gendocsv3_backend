@@ -127,11 +127,12 @@ export class CreateStudentDto {
     example: '1999-12-31',
     description: 'Fecha de nacimiento',
   })
-  @IsOptional()
   @IsDate({
-    message: 'birthdate is required',
+    message: 'birthdate must be a valid date',
   })
+  @IsOptional()
   @Type(() => Date)
+  @ValidateIf((o) => o.birthdate)
   birthdate?: Date
 
   @ApiProperty({
@@ -140,6 +141,7 @@ export class CreateStudentDto {
   })
   @IsOptional()
   @IsNumber()
+  @ValidateIf((o) => o.birthCanton)
   canton: number
 
   @ApiProperty({
