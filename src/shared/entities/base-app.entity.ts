@@ -21,7 +21,7 @@ export class BaseAppEntity extends BaseEntity {
   })
   @CreateDateColumn({
     name: 'created_at',
-    type: 'timestamptz',
+    type: 'datetime',
   })
   createdAt: Date
 
@@ -32,7 +32,7 @@ export class BaseAppEntity extends BaseEntity {
   })
   @UpdateDateColumn({
     name: 'updated_at',
-    type: 'timestamptz',
+    type: 'datetime',
   })
   updatedAt: Date
 }

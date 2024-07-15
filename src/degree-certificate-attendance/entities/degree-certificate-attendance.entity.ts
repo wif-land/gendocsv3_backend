@@ -6,34 +6,14 @@ import { DEGREE_ATTENDANCE_ROLES } from '../../shared/enums/degree-certificates'
 
 @Entity('degree_certificate_attendance')
 export class DegreeCertificateAttendanceEntity extends BaseAppEntity {
-  @ManyToOne(() => DegreeCertificateEntity, {
-    eager: true,
-  })
-  @JoinColumn({
-    name: 'degree_certificate_id',
-    referencedColumnName: 'id',
-  })
-  degreeCertificate: DegreeCertificateEntity
-
-  @ManyToOne(() => FunctionaryEntity, {
-    eager: true,
-  })
-  @JoinColumn({
-    name: 'functionary_id',
-    referencedColumnName: 'id',
-  })
-  functionary: FunctionaryEntity
-
   @Column({
     name: 'role',
-    type: 'enum',
     enum: DEGREE_ATTENDANCE_ROLES,
   })
   role: DEGREE_ATTENDANCE_ROLES
 
   @Column({
     name: 'details',
-    type: 'varchar',
   })
   details: string
 
@@ -56,4 +36,22 @@ export class DegreeCertificateAttendanceEntity extends BaseAppEntity {
     default: false,
   })
   hasBeenNotified: boolean
+
+  @ManyToOne(() => DegreeCertificateEntity, {
+    eager: true,
+  })
+  @JoinColumn({
+    name: 'degree_certificate_id',
+    referencedColumnName: 'id',
+  })
+  degreeCertificate: DegreeCertificateEntity
+
+  @ManyToOne(() => FunctionaryEntity, {
+    eager: true,
+  })
+  @JoinColumn({
+    name: 'functionary_id',
+    referencedColumnName: 'id',
+  })
+  functionary: FunctionaryEntity
 }

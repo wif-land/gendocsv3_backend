@@ -25,7 +25,6 @@ export class NumerationDocumentEntity extends BaseAppEntity {
   })
   @Column({
     name: 'state',
-    type: 'enum',
     enum: NumerationState,
     default: NumerationState.USED,
   })

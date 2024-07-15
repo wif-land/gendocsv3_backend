@@ -23,7 +23,7 @@ export class DegreeEntity extends BaseAppEntity {
 
   @Column({
     name: 'degree_type',
-    type: 'char',
+    type: 'varchar',
     length: 1,
   })
   degreeLevel: string

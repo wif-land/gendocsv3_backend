@@ -59,7 +59,6 @@ export class FunctionaryEntity extends BasePerson {
   @Column({
     name: 'gender',
     enum: GENDER,
-    type: 'enum',
     nullable: true,
   })
   gender: GENDER
