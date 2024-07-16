@@ -17,7 +17,6 @@ export class NotificationEntity extends BaseAppEntity {
 
   @Column({
     name: 'status',
-    type: 'enum',
     enum: NotificationStatus,
     nullable: false,
   })

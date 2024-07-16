@@ -36,7 +36,7 @@ const testDataSourceConfig = {
   autoLoadEntities: true,
   synchronize: true,
   dropSchema: true,
-  logging: true,
+  logging: false,
   keepConnectionAlive: true,
 }
 
