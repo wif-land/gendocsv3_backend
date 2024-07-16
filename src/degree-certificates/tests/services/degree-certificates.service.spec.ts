@@ -12,8 +12,16 @@ import { DegreeAttendanceService } from '../../../degree-certificate-attendance/
 import { GradesSheetService } from '../../services/grades-sheet.service'
 import { CertificateStatusService } from '../../services/certificate-status.service'
 import { CertificateNumerationService } from '../../services/certificate-numeration.service'
+import { CERTIFICATE_QUEUE_NAME, DEGREE_CERTIFICATE } from '../../constants'
+import { GcpService } from '../../../gcp/gcp.service'
+import { FileSystemService } from '../../../files/services/file-system.service'
+import { DocxService } from '../../../files/services/docx.service'
+import { ExcelService } from '../../../files/services/excel.service'
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import configuration from '../../../shared/utils/test/test.config'
+import { MockGcpService } from '../../../gcp/mocks/gcp.service'
+import { BullModule } from '@nestjs/bull'
 import { DegreeCertificateRepository } from '../../repositories/degree-certificate-repository'
-import { DegreeCertificatesModule } from '../../modules/degree-certificates.module'
 
 describe('DegreeAttendanceService tests', () => {
   let service: DegreeCertificatesService
@@ -23,41 +31,43 @@ describe('DegreeAttendanceService tests', () => {
     jest.useFakeTimers()
 
     module = await Test.createTestingModule({
-      imports: [...getTestingTypeOrmModuleImports(), DegreeCertificatesModule],
+      imports: [
+        ...getTestingTypeOrmModuleImports(),
+        ConfigModule.forRoot({ load: [configuration] }),
+        BullModule.forRootAsync({
+          imports: [ConfigModule],
+          useFactory: async () => ({
+            redis: {
+              host: 'localhost',
+              port: 6379,
+            },
+          }),
+          inject: [ConfigService],
+        }),
+        BullModule.registerQueue({
+          name: CERTIFICATE_QUEUE_NAME,
+        }),
+      ],
       providers: [
         DegreeCertificatesService,
-        DegreeCertificateRepository,
+        YearModuleService,
+        FilesService,
+        StudentsService,
+        VariablesService,
+        DegreeAttendanceService,
+        GradesSheetService,
+        CertificateStatusService,
+        CertificateNumerationService,
+        FileSystemService,
+        DocxService,
+        ExcelService,
         {
-          provide: YearModuleService,
-          useValue: {},
+          provide: GcpService,
+          useClass: MockGcpService,
         },
         {
-          provide: FilesService,
-          useValue: {},
-        },
-        {
-          provide: StudentsService,
-          useValue: {},
-        },
-        {
-          provide: VariablesService,
-          useValue: {},
-        },
-        {
-          provide: DegreeAttendanceService,
-          useValue: {},
-        },
-        {
-          provide: GradesSheetService,
-          useValue: {},
-        },
-        {
-          provide: CertificateStatusService,
-          useValue: {},
-        },
-        {
-          provide: CertificateNumerationService,
-          useValue: {},
+          provide: DEGREE_CERTIFICATE.REPOSITORY,
+          useClass: DegreeCertificateRepository,
         },
       ],
     }).compile()

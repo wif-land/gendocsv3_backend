@@ -22,7 +22,7 @@ export class CouncilEntity extends BaseAppEntity implements ICouncil {
     example: '"2024-01-09T16:16:33.591Z"',
   })
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
   })
   date: Date
 

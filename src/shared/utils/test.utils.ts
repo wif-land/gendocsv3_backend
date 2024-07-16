@@ -29,14 +29,20 @@ import { CertificateTypeStatusEntity } from '../../degree-certificates/entities/
 import { CertificateStatusEntity } from '../../degree-certificates/entities/certificate-status.entity'
 import { DegreeModalityEntity } from '../../degree-certificates/entities/degree-modality.entity'
 import { RoomEntity } from '../../degree-certificates/entities/room.entity'
+import { SystemYearEntity } from '../../year-module/entities/system-year.entity'
+import { VariableEntity } from '../../variables/entities/variable.entity'
 
 const testDataSourceConfig = {
-  type: 'sqlite',
-  database: ':memory:',
+  type: 'postgres',
+  database: 'test',
+  host: 'localhost',
+  port: 9006,
+  username: 'test',
+  password: 'test',
   autoLoadEntities: true,
   synchronize: true,
   dropSchema: true,
-  logging: false,
+  logging: true,
   keepConnectionAlive: true,
 }
 
@@ -61,6 +67,8 @@ export const getTestingTypeOrmModuleImports = (): Array<DynamicModule> => [
     UserEntity,
     TemplateProcess,
     DocumentEntity,
+    SystemYearEntity,
+    VariableEntity,
     NumerationDocumentEntity,
     DocumentFunctionaryEntity,
     PositionEntity,

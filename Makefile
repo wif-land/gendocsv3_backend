@@ -14,8 +14,18 @@ REMOTE_BACKUPS_DIR := /var/gendocsv3/backups
 CRON_SCHEDULE := 0 19 * * * # Every day at 19:00 hours
 
 up:
-	docker compose -f $(COMPOSE_DEVELOP_FILE) --env-file $(ENV_FILE) up -d
+	docker compose -f $(COMPOSE_DEVELOP_FILE) --env-file $(ENV_FILE) --profile develop up -d
 	@make run_migrations
+
+up_test_db:
+	if [ $$(docker ps -q -f name=postgres_test) ]; then \
+		make down_test_db; \
+	fi
+
+	docker compose -f $(COMPOSE_DEVELOP_FILE) --env-file $(ENV_FILE) --profile test up -d
+
+down_test_db:
+	docker compose -f $(COMPOSE_DEVELOP_FILE) --env-file $(ENV_FILE) -v down postgres_test
 
 run_migrations:
 	npm install

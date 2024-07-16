@@ -11,6 +11,8 @@ services:
       - ${DATABASE_PORT}:5432
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    profiles:
+      - develop
   
   bull_redis:
     container_name: gendocsv3_bull_redis
@@ -20,7 +22,25 @@ services:
       - ${REDIS_PORT}:6379
     volumes:
       - bull-redis-data:/data
+    profiles:
+      - develop
+  
+  postgres_test:
+    container_name: gendocsv3_postgres_test
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - 9006:5432
+    environment:
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_USER=test
+      - POSTGRES_DB=test
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    profiles:
+      - test
 
 volumes:
   postgres-data:
   bull-redis-data:
+  postgres-test-data:

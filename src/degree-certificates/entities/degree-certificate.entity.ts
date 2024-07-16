@@ -35,7 +35,7 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   @Column({
     name: 'presentation_date',
     nullable: true,
-    type: 'datetime',
+    type: 'timestamp',
   })
   presentationDate?: Date
 
@@ -137,7 +137,7 @@ export class DegreeCertificateEntity extends BaseAppEntity {
 
   @Column({
     name: 'deleted_at',
-    type: 'datetime',
+    type: 'timestamp',
     nullable: true,
   })
   deletedAt: Date
