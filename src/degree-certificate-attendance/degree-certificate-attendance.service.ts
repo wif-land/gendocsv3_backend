@@ -21,10 +21,15 @@ export class DegreeAttendanceService {
   ) {}
 
   async create(data: CreateDegreeCertificateAttendanceDto) {
-    await this.validateDehreeCertificateAttendanceExists(
+    await this.validateDegreeCertificateAttendanceExists(
       data.degreeCertificateId,
       data.functionaryId,
     )
+
+    await new DegreeAttendanceThatOverlapValidator(this.dataSource).validate({
+      degreeId: data.degreeCertificateId,
+      functionaryId: data.functionaryId,
+    })
 
     const degreeCertificateAttendance = this.degreeAttendanceRepository.create({
       ...data,
@@ -132,8 +137,7 @@ export class DegreeAttendanceService {
     if (existsMemberToBeUpdated) {
       await new DegreeAttendanceThatOverlapValidator(this.dataSource).validate({
         degreeId: degreeCertificateAttendance.degreeCertificate.id,
-        functionaryId: degreeCertificateAttendance.functionary.id,
-        role: degreeCertificateAttendance.role,
+        functionaryId: updateAttendanceDto.functionaryId,
       })
 
       delete toUpdate.functionaryId
@@ -223,7 +227,7 @@ export class DegreeAttendanceService {
     })
   }
 
-  private async validateDehreeCertificateAttendanceExists(
+  private async validateDegreeCertificateAttendanceExists(
     degreeCertificateId: number,
     functionaryId: number,
   ) {

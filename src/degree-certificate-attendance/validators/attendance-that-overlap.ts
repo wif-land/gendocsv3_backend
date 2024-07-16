@@ -1,10 +1,13 @@
 import { DataSource } from 'typeorm'
 import { Validator } from '../../core/validator'
+import { DegreeCertificateAttendanceEntity } from '../entities/degree-certificate-attendance.entity'
+import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
+import { addMinutesToDate } from '../../shared/utils/date'
+import { DegreeCertificateBadRequestError } from '../../degree-certificates/errors/degree-certificate-bad-request'
 
 export interface IDegreeThatOverlapValidator {
   degreeId: number
   functionaryId: number
-  role: string
 }
 
 /**
@@ -24,15 +27,53 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
    * @param {boolean} data.validateNewPresentationDate - true if the degree certificate will have a new presentation date
    * @param {Date} data.intendedPresentationDate - Intended presentation date
    */
-  public async validate({ degreeId }: IDegreeThatOverlapValidator) {
-    console.log({ degreeId })
-    // regla de negocio
+  public async validate({
+    degreeId,
+    functionaryId,
+  }: IDegreeThatOverlapValidator) {
     // si un miembro del acta entra como miembro supplete en la acta actual, se debe validar que no esté en otra acta en la misma fecha con cualquier rol
+    // en realidad deberia validar en cualquier rol, se hará así para simplificar
+    const degreeCertificate = await this.dataSource
+      .createQueryBuilder(DegreeCertificateEntity, 'degreeCertificate')
+      .where('degreeCertificate.id = :degreeId', { degreeId })
+      .getOne()
 
-    // if (attendanceAlreadyMarked.length > 0) {
-    //   throw new DegreeCertificateBadRequestError(
-    //     'Uno o más miembros del acta de grado se encuentran en otro consejo en la misma fecha. Por favor, verifique los datos e intente nuevamente.',
-    //   )
-    // }
+    const startDate = degreeCertificate.presentationDate
+    const endDate = addMinutesToDate(startDate, degreeCertificate.duration)
+
+    const attendance = await this.dataSource
+      .createQueryBuilder(DegreeCertificateAttendanceEntity, 'attendance')
+      .innerJoin('attendance.degreeCertificate', 'degreeCertificate')
+      .innerJoin('attendance.functionary', 'functionary')
+      .where('functionary.id = :functionaryId', { functionaryId })
+      .andWhere('degreeCertificate.id != :degreeId', { degreeId })
+      .andWhere('degreeCertificate.deletedAt IS NULL')
+      .andWhere('degreeCertificate.isClosed = :isClosed', { isClosed: false })
+      .andWhere(
+        "degreeCertificate.presentationDate < :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :start",
+        {
+          start: startDate,
+        },
+      )
+      .orWhere(
+        "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :end AND degreeCertificate.presentationDate < :end",
+        {
+          end: endDate,
+        },
+      )
+      .orWhere(
+        "degreeCertificate.presentationDate > :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') < :end",
+        {
+          start: startDate,
+          end: endDate,
+        },
+      )
+      .getCount()
+
+    if (attendance > 0) {
+      throw new DegreeCertificateBadRequestError(
+        'El funcionario ya se encuentra en otra acta de grado en el mismo horario',
+      )
+    }
   }
 }
