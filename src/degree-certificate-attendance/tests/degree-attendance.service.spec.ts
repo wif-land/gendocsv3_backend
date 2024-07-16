@@ -1,8 +1,8 @@
-import { getTestingTypeOrmModuleImports } from '../shared/utils/test.utils'
-import { TypeOrmHelper } from '../shared/utils/test/typeorm-helper'
-import { DegreeAttendanceService } from './degree-certificate-attendance.service'
+import { getTestingTypeOrmModuleImports } from '../../shared/utils/test.utils'
+import { TypeOrmHelper } from '../../shared/utils/test/typeorm-helper'
+import { DegreeAttendanceService } from '../degree-certificate-attendance.service'
 import { Test, TestingModule } from '@nestjs/testing'
-import { DegreeCertificateAttendanceTestData } from './fixtures/data'
+import { DegreeCertificateAttendanceTestData } from '../fixtures/data'
 import { DataSource } from 'typeorm'
 
 describe('DegreeAttendanceService tests', () => {
