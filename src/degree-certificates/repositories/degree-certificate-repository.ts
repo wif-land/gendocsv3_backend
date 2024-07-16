@@ -237,18 +237,38 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
     startDate: Date,
     endDate: Date,
     roomId: number,
+    certificateId?: number,
   ): Promise<number> {
-    return this.qb
-      .where(
-        'degreeCertificate.presentationDate BETWEEN :startDate AND :endDate',
-        {
-          startDate,
-          endDate,
-        },
-      )
+    const baseQuery = this.qb
+      .where('degreeCertificate.room_id = :roomId', { roomId })
       .andWhere('degreeCertificate.deletedAt IS NULL')
       .andWhere('degreeCertificate.isClosed = :isClosed', { isClosed: false })
-      .andWhere('degreeCertificate.room = :roomId', { roomId })
-      .getCount()
+      .andWhere(
+        "degreeCertificate.presentationDate < :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :start",
+        {
+          start: startDate,
+        },
+      )
+      .orWhere(
+        "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :end AND degreeCertificate.presentationDate < :end",
+        {
+          end: endDate,
+        },
+      )
+      .orWhere(
+        "degreeCertificate.presentationDate > :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') < :end",
+        {
+          start: startDate,
+          end: endDate,
+        },
+      )
+
+    if (certificateId) {
+      baseQuery.andWhere('degreeCertificate.id != :certificateId', {
+        certificateId,
+      })
+    }
+
+    return baseQuery.getCount()
   }
 }

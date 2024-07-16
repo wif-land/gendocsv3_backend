@@ -28,7 +28,6 @@ import { addMinutesToDate } from '../../shared/utils/date'
 import { DEGREE_CERTIFICATE, IDegreeCertificateFilters } from '../constants'
 import { DegreeCertificateError } from '../errors/degree-certificate-error'
 import { CertificateNumerationService } from './certificate-numeration.service'
-import { DegreeCertificateThatOverlapValidator } from '../../degree-certificate-attendance/validators/degree-that-overlap'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -136,10 +135,12 @@ export class DegreeCertificatesService {
     presentationDate,
     duration,
     roomId,
+    certificateId,
   }: {
     presentationDate?: Date
     duration?: number
     roomId?: number
+    certificateId?: number
   } = {}): Promise<void> {
     if (!presentationDate || !duration || !roomId) {
       return
@@ -150,6 +151,7 @@ export class DegreeCertificatesService {
         presentationDate,
         addMinutesToDate(presentationDate, duration),
         roomId,
+        certificateId,
       )
 
     if (certificatesInRange > 0) {
@@ -486,16 +488,18 @@ export class DegreeCertificatesService {
 
       if (
         dto.presentationDate &&
-        new Date(dto.presentationDate) !==
-          new Date(currentDegreeCertificate.presentationDate)
+        dto.presentationDate !== currentDegreeCertificate.presentationDate
       ) {
-        await new DegreeCertificateThatOverlapValidator(
-          this.datasource,
-        ).validate({
-          degreeId: currentDegreeCertificate.id,
-          intendedPresentationDate: dto.presentationDate,
-          validateNewPresentationDate: true,
+        console.log({
+          date: dto.presentationDate,
+          duration: dto.duration,
           roomId: dto.roomId,
+        })
+        await this.checkPresentationDate({
+          presentationDate: dto.presentationDate,
+          duration: dto.duration,
+          roomId: dto.roomId,
+          certificateId: currentDegreeCertificate.id,
         })
       }
 

@@ -73,7 +73,7 @@ export default connectionSource
     TypeOrmModule.forRoot({
       ...config,
       dropSchema: process.env.DROP_SCHEMA === 'true',
-      logging: true,
+      logging: false,
     } as TypeOrmModuleOptions),
     BullModule.forRoot({
       redis: {
