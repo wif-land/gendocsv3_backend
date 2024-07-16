@@ -7,7 +7,7 @@ import { DataSource, EntityManager, Repository } from 'typeorm'
 import { DegreeCertificateAttendanceAlreadyExists } from './errors/degree-certificate-attendance-already-exists'
 import { DegreeCertificateBadRequestError } from '../degree-certificates/errors/degree-certificate-bad-request'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
-import { DegreeCertificateThatOverlapValidator } from './validators/degree-that-overlap'
+import { DegreeAttendanceThatOverlapValidator } from './validators/attendance-that-overlap'
 
 @Injectable()
 export class DegreeAttendanceService {
@@ -21,10 +21,15 @@ export class DegreeAttendanceService {
   ) {}
 
   async create(data: CreateDegreeCertificateAttendanceDto) {
-    await this.validateDehreeCertificateAttendanceExists(
+    await this.validateDegreeCertificateAttendanceExists(
       data.degreeCertificateId,
       data.functionaryId,
     )
+
+    await new DegreeAttendanceThatOverlapValidator(this.dataSource).validate({
+      degreeId: data.degreeCertificateId,
+      functionaryId: data.functionaryId,
+    })
 
     const degreeCertificateAttendance = this.degreeAttendanceRepository.create({
       ...data,
@@ -115,20 +120,7 @@ export class DegreeAttendanceService {
 
     if (!degreeCertificateAttendance) {
       throw new DegreeCertificateBadRequestError(
-        `No se encontró la asistencia al acta de grado con id ${id}`,
-      )
-    }
-
-    if (
-      'hasAttended' in updateAttendanceDto &&
-      updateAttendanceDto.hasAttended
-    ) {
-      await new DegreeCertificateThatOverlapValidator(this.dataSource).validate(
-        {
-          degreeId: degreeCertificateAttendance.degreeCertificate.id,
-          validateNewPresentationDate: false,
-          roomId: degreeCertificateAttendance.degreeCertificate.room?.id,
-        },
+        `No se encontró la asistencia al acta de grado`,
       )
     }
 
@@ -137,27 +129,16 @@ export class DegreeAttendanceService {
       ...updateAttendanceDto,
     }
 
-    if (
+    const existsMemberToBeUpdated =
       updateAttendanceDto.functionaryId &&
       degreeCertificateAttendance.functionary.id !==
         updateAttendanceDto.functionaryId
-    ) {
-      const alreadyExists = await this.degreeAttendanceRepository.findOne({
-        where: {
-          degreeCertificate: {
-            id: degreeCertificateAttendance.degreeCertificate.id,
-          },
-          functionary: {
-            id: updateAttendanceDto.functionaryId,
-          },
-        },
-      })
 
-      if (alreadyExists) {
-        throw new DegreeCertificateAttendanceAlreadyExists(
-          'Ya existe una asistencia al acta de grado para este funcionario y acta de grado',
-        )
-      }
+    if (existsMemberToBeUpdated) {
+      await new DegreeAttendanceThatOverlapValidator(this.dataSource).validate({
+        degreeId: degreeCertificateAttendance.degreeCertificate.id,
+        functionaryId: updateAttendanceDto.functionaryId,
+      })
 
       delete toUpdate.functionaryId
 
@@ -246,7 +227,7 @@ export class DegreeAttendanceService {
     })
   }
 
-  private async validateDehreeCertificateAttendanceExists(
+  private async validateDegreeCertificateAttendanceExists(
     degreeCertificateId: number,
     functionaryId: number,
   ) {

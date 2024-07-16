@@ -201,7 +201,13 @@ export class StudentsService {
 
   async findByFilters(filters: StudentFiltersDto) {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0, field = '', state = 'true' } = filters
+    const {
+      limit = 5,
+      offset = 0,
+      field = '',
+      state = 'true',
+      careerId,
+    } = filters
 
     const qb = this.studentRepository.createQueryBuilder('students')
 
@@ -215,6 +221,12 @@ export class StudentsService {
         "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', students.firstName, students.secondName, students.firstLastName, students.secondLastName) ILIKE :term OR students.dni ILIKE :term )",
         {
           term: field ? `%${field.trim()}%` : null,
+        },
+      )
+      .andWhere(
+        '( (:careerId :: INT) IS NULL OR students.career_id = (:careerId :: INT) )',
+        {
+          careerId,
         },
       )
       .orderBy('students.id', 'ASC')
