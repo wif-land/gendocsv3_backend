@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -134,5 +135,11 @@ export class DegreeController {
       'Certificado encontrado',
       await this.degreeService.findById(id),
     )
+  }
+
+  @Auth(...RolesThatCanMutate)
+  @Delete(':id')
+  async deleteDegreeCertificate(@Param('id', ParseIntPipe) id: number) {
+    return await this.degreeService.remove(id)
   }
 }
