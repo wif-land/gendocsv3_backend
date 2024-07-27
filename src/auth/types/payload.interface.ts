@@ -8,5 +8,5 @@ export interface IPayload {
   secondLastName: string
   role: string
   isActive: boolean
-  accessModulesIds: number[]
+  accessModules: number[]
 }

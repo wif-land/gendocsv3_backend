@@ -29,7 +29,7 @@ export class AuthService {
       throw new UnauthorizedException(`Credenciales incorrectas`)
     }
 
-    const accessModulesIds = user.accessModules.map(
+    const accessModules = user.accessModules.map(
       (module: ModuleEntity) => module.id,
     )
 
@@ -43,7 +43,7 @@ export class AuthService {
       secondLastName: user.secondLastName,
       role: user.role,
       isActive: user.isActive,
-      accessModulesIds,
+      accessModules,
     }
 
     return new ApiResponseDto(

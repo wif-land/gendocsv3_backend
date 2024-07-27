@@ -24,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secondLastName: payload.secondLastName,
       role: payload.role,
       isActive: payload.isActive,
-      accessModulesIds: payload.accessModulesIds,
+      accessModules: payload.accessModules,
     }
   }
 }

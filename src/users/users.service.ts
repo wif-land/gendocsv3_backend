@@ -264,7 +264,7 @@ export class UsersService {
         }
       }
 
-      const accessModulesIds = userUpdated.accessModules.map(
+      const accessModules = userUpdated.accessModules.map(
         (module: ModuleEntity) => module.id,
       )
 
@@ -278,7 +278,7 @@ export class UsersService {
         secondLastName: userUpdated.secondLastName,
         role: userUpdated.role,
         isActive: userUpdated.isActive,
-        accessModulesIds,
+        accessModules,
       }
 
       if (hasAccessModules) {
