@@ -269,7 +269,7 @@ export class UsersService {
       )
 
       const payload: IPayload = {
-        id,
+        sub: id,
         outlookEmail: userUpdated.outlookEmail,
         googleEmail: userUpdated.googleEmail,
         firstName: userUpdated.firstName,

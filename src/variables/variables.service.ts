@@ -43,6 +43,7 @@ import { ADJECTIVES } from '../shared/enums/adjectives'
 import { CouncilEntity } from '../councils/entities/council.entity'
 import { CouncilAttendanceEntity } from '../councils/entities/council-attendance.entity'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
+import { DegreeCertificateAttendanceBadRequestError } from '../degree-certificate-attendance/errors/degree-certificate-attendance-bad-request'
 
 @Injectable()
 export class VariablesService {
@@ -728,6 +729,12 @@ export class VariablesService {
     const membersHasntAttended = members.filter((member) => !member.hasAttended)
 
     const membersAttended = members.filter((member) => member.hasAttended)
+
+    if (!membersAttended.length || membersAttended.length < 2) {
+      throw new DegreeCertificateAttendanceBadRequestError(
+        'No existen miembros que hayan asistido a la sesión',
+      )
+    }
 
     const presidentData = {}
 

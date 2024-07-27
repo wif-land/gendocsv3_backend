@@ -34,7 +34,7 @@ export class AuthService {
     )
 
     const payload: IPayload = {
-      id: user.id,
+      sub: user.id,
       outlookEmail: user.outlookEmail,
       googleEmail: user.googleEmail,
       firstName: user.firstName,

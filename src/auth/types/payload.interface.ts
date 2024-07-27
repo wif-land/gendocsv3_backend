@@ -1,5 +1,5 @@
 export interface IPayload {
-  id: number
+  sub: number
   outlookEmail: string
   googleEmail: string
   firstName: string
