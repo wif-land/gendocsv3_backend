@@ -66,10 +66,15 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .leftJoinAndSelect('functionary.fourthLevelDegree', 'fourthLevelDegree')
       .where(options.where)
 
+    query.addOrderBy('dca.createdAt', 'DESC')
+
     if (options.order) {
-      query.setFindOptions({
-        order: options.order,
-      })
+      for (const [sortField, sortOrder] of Object.entries(options.order)) {
+        query.addOrderBy(
+          sortField,
+          sortOrder.toString().toUpperCase() as 'ASC' | 'DESC',
+        )
+      }
     }
 
     return query.getOne()

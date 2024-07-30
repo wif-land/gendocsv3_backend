@@ -28,6 +28,7 @@ import { addMinutesToDate } from '../../shared/utils/date'
 import { DEGREE_CERTIFICATE, IDegreeCertificateFilters } from '../constants'
 import { DegreeCertificateError } from '../errors/degree-certificate-error'
 import { CertificateNumerationService } from './certificate-numeration.service'
+import { DegreeCertificateAttendanceError } from '../../degree-certificate-attendance/errors/degree-certificate-attendance-error'
 
 @Injectable()
 export class DegreeCertificatesService {
@@ -490,11 +491,6 @@ export class DegreeCertificatesService {
         dto.presentationDate &&
         dto.presentationDate !== currentDegreeCertificate.presentationDate
       ) {
-        console.log({
-          date: dto.presentationDate,
-          duration: dto.duration,
-          roomId: dto.roomId,
-        })
         await this.checkPresentationDate({
           presentationDate: dto.presentationDate,
           duration: dto.duration,
@@ -568,8 +564,8 @@ export class DegreeCertificatesService {
             currentDegreeCertificate.certificateStatus.id)
       ) {
         if (currentDegreeCertificate.certificateDriveId) {
-          await this.filesService.remove(degreeCertificate.certificateDriveId)
           await this.generateDocument(certificateUpdated.id)
+          await this.filesService.remove(degreeCertificate.certificateDriveId)
         }
 
         await this.studentService.update(certificateUpdated.student.id, {
@@ -583,7 +579,10 @@ export class DegreeCertificatesService {
       )
     } catch (error) {
       await this.degreeCertificateRepository.save(currentDegreeCertificate)
-      if (error instanceof DegreeCertificateError) {
+      if (
+        error instanceof DegreeCertificateError ||
+        error instanceof DegreeCertificateAttendanceError
+      ) {
         throw error
       }
 

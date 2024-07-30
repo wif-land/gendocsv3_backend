@@ -15,9 +15,8 @@ import { UsersService } from './users.service'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UserEntity } from './entities/users.entity'
 import { UserFiltersDto } from './dto/user-filters.dto'
-import { Auth } from '../auth/decorators/auth-decorator'
-import { RolesType } from '../auth/decorators/roles-decorator'
-
+import { Auth } from '../auth/decorators/auth.decorator'
+import { RolesType } from '../shared/constants/roles'
 @ApiTags('users')
 @Controller('users')
 export class UsersController {

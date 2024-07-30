@@ -11,11 +11,11 @@ import { AttendanceService } from './service'
 import { ApiTags } from '@nestjs/swagger'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { CreateEditDefaultMemberDTO } from './dto/create-edit-default-member.dto'
-import { Auth } from '../auth/decorators/auth-decorator'
+import { Auth } from '../auth/decorators/auth.decorator'
 import {
   RolesThatCanQuery,
   RolesThatCanMutate,
-} from '../auth/decorators/roles-decorator'
+} from '../shared/constants/roles'
 
 @ApiTags('Attendance')
 @Controller('attendance')
