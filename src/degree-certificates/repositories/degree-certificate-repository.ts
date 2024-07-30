@@ -66,11 +66,9 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .leftJoinAndSelect('functionary.fourthLevelDegree', 'fourthLevelDegree')
       .where(options.where)
 
-    // Añade orden específico para 'dca' por 'createdAt'
     query.addOrderBy('dca.createdAt', 'DESC')
 
     if (options.order) {
-      // Esto aplicará orden a las otras entidades si es necesario
       for (const [sortField, sortOrder] of Object.entries(options.order)) {
         query.addOrderBy(
           sortField,

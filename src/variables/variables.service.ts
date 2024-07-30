@@ -732,7 +732,7 @@ export class VariablesService {
 
     if (!membersAttended.length || membersAttended.length < 2) {
       throw new DegreeCertificateAttendanceBadRequestError(
-        'No existen miembros que hayan asistido a la sesión',
+        'No se puede generar el acta de grado sin la asistencia de al menos dos miembros',
       )
     }
 
