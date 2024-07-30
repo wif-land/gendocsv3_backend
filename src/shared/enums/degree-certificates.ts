@@ -14,6 +14,8 @@ export enum DEGREE_ATTENDANCE_ROLES {
   MENTOR = 'TUTOR',
 }
 
+export const ATTENDANCE_M_LIMIT = 2
+
 export const GENDER_DESIGNATION = [
   { [GENDER.MALE]: 'el señor', [GENDER.FEMALE]: 'la señorita' },
   {

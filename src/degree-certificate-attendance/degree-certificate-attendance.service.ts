@@ -8,6 +8,7 @@ import { DegreeCertificateAttendanceAlreadyExists } from './errors/degree-certif
 import { DegreeCertificateBadRequestError } from '../degree-certificates/errors/degree-certificate-bad-request'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { DegreeAttendanceThatOverlapValidator } from './validators/attendance-that-overlap'
+import { AttendanceLimitAttendedValidator } from './validators/attendance-limit-attended'
 
 @Injectable()
 export class DegreeAttendanceService {
@@ -147,6 +148,15 @@ export class DegreeAttendanceService {
       }
       toUpdate.hasAttended = false
       toUpdate.hasBeenNotified = false
+    }
+
+    if (updateAttendanceDto.hasAttended != null) {
+      await new AttendanceLimitAttendedValidator(this.dataSource).validate({
+        degreeId: degreeCertificateAttendance.degreeCertificate.id,
+        attendanceId: id,
+        hasAttended: updateAttendanceDto.hasAttended,
+        role: degreeCertificateAttendance.role,
+      })
     }
 
     const updatedDegreeCertificateAttendance =
