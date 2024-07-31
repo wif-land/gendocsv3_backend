@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common'
 import { CreateVariableDto } from './dto/create-variable.dto'
 import { UpdateVariableDto } from './dto/update-variable.dto'
@@ -47,6 +48,7 @@ import { DegreeCertificateAttendanceBadRequestError } from '../degree-certificat
 
 @Injectable()
 export class VariablesService {
+  private readonly logger = new Logger(VariablesService.name)
   constructor(
     @InjectRepository(VariableEntity)
     private readonly variableRepository: Repository<VariableEntity>,
@@ -959,7 +961,7 @@ export class VariablesService {
         },
       )
     } catch (error) {
-      console.log(error)
+      this.logger.log(error)
       throw new InternalServerErrorException(error.message)
     }
   }

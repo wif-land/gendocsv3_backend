@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common'
 import * as util from 'util'
+import { BaseError } from '../../shared/utils/error'
 
 @Catch()
 export class HttpExceptionsMiddleware implements ExceptionFilter {
@@ -18,19 +19,22 @@ export class HttpExceptionsMiddleware implements ExceptionFilter {
     const response = ctx.getResponse()
     const request = ctx.getRequest()
     const { method, url, headers, body } = request
-    this.logger.error(
-      'Request:',
-      util.inspect(
-        {
-          method,
-          url,
-          headers,
-          body,
-          exception,
-        },
-        { depth: null, colors: true },
-      ),
-    )
+
+    if (!(exception instanceof BaseError)) {
+      this.logger.error(
+        'Request:',
+        util.inspect(
+          {
+            method,
+            url,
+            headers,
+            body,
+            exception,
+          },
+          { depth: null, colors: true },
+        ),
+      )
+    }
 
     const status =
       exception instanceof HttpException
