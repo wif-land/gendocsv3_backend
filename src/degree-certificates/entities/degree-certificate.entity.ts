@@ -127,10 +127,10 @@ export class DegreeCertificateEntity extends BaseAppEntity {
 
   @Column({
     name: 'change_university_date',
-    type: 'text',
+    type: 'timestamptz',
     nullable: true,
   })
-  changeUniversityDate?: string
+  changeUniversityDate?: Date
 
   @ManyToOne(
     () => SubmoduleYearModuleEntity,
