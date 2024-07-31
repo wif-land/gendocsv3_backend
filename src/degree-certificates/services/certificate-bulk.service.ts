@@ -30,7 +30,7 @@ import { CertificateStatusEntity } from '../entities/certificate-status.entity'
 import { DegreeModalityEntity } from '../entities/degree-modality.entity'
 import { StudentEntity } from '../../students/entities/student.entity'
 import { GradesSheetService } from './grades-sheet.service'
-import { ErrorsBulkCertificate } from '../errors/errors-bulk-certificate'
+import { ExceptionSimpleDetail } from '../errors/errors-bulk-certificate'
 import { InjectQueue } from '@nestjs/bull'
 import { Queue } from 'bull'
 import { NotificationsService } from '../../notifications/notifications.service'
@@ -98,6 +98,7 @@ export class CertificateBulkService {
       scope: {
         modules: [degreeCertificatesModule.id],
         roles: [RolesType.ADMIN, RolesType.TEMP_ADMIN],
+        id: userId,
       },
       status: NotificationStatus.IN_PROGRESS,
       type: 'createBulkCertificates',
@@ -163,7 +164,7 @@ export class CertificateBulkService {
       savedRootNotification = await rootNotification.save()
     }
 
-    await this.notificationsGateway.handleSendNotification({
+    this.notificationsGateway.handleSendNotification({
       notification: savedRootNotification,
       childs: notifications,
     })
@@ -177,10 +178,10 @@ export class CertificateBulkService {
     | {
         degreeCertificate: DegreeCertificateEntity
         attendance: DegreeCertificateAttendanceEntity[]
-        errors: ErrorsBulkCertificate[]
+        errors: ExceptionSimpleDetail[]
       }
     | {
-        errors: ErrorsBulkCertificate[]
+        errors: ExceptionSimpleDetail[]
         degreeCertificate?: undefined
         attendance?: undefined
       }
@@ -246,7 +247,7 @@ export class CertificateBulkService {
       throw Error('No se pudo crear la notificación')
     }
 
-    const errors: ErrorsBulkCertificate[] = []
+    const errors: ExceptionSimpleDetail[] = []
     // validate certificate student
     const students = await this.validateStudent(
       createCertificateDto.studentDni,
@@ -381,12 +382,10 @@ export class CertificateBulkService {
       if (error.code && error.code === HttpStatus.TOO_MANY_REQUESTS) {
         throw new Error('Temporary Google API error, retrying...')
       }
-      this.logger.log(
-        'Error al crear el certificado de grado asdjflajsdlkfja l;djslk',
-      )
+
       this.logger.error(error)
       errors.push(
-        new ErrorsBulkCertificate(
+        new ExceptionSimpleDetail(
           'No se pudo crear el certificado de grado',
           error.stack,
         ),
@@ -417,10 +416,10 @@ export class CertificateBulkService {
     certificateStatus: CertificateStatusEntity
     degreeModalityEntity: DegreeModalityEntity
     userId: number
-    errors: ErrorsBulkCertificate[]
+    errors: ExceptionSimpleDetail[]
   }): Promise<{
     degreeCertificate?: DegreeCertificateEntity
-    errors: ErrorsBulkCertificate[]
+    errors: ExceptionSimpleDetail[]
   }> {
     let degreeCertificate: DegreeCertificateEntity
 
@@ -446,7 +445,7 @@ export class CertificateBulkService {
 
       if (!degreeCertificate) {
         errors.push(
-          new ErrorsBulkCertificate(
+          new ExceptionSimpleDetail(
             'Los datos del certificado son incorrectos',
             new Error().stack,
           ),
@@ -466,7 +465,7 @@ export class CertificateBulkService {
 
       if (!degreeCertificate) {
         errors.push(
-          new ErrorsBulkCertificate(
+          new ExceptionSimpleDetail(
             'Los datos del certificado son incorrectos',
             new Error().stack,
           ),
@@ -483,7 +482,7 @@ export class CertificateBulkService {
     return { degreeCertificate, errors }
   }
 
-  async validateStudent(studentDni: string, errors: ErrorsBulkCertificate[]) {
+  async validateStudent(studentDni: string, errors: ExceptionSimpleDetail[]) {
     try {
       const { data: students } = await this.studentsService.findByFilters({
         field: studentDni,
@@ -492,7 +491,7 @@ export class CertificateBulkService {
 
       if (!students || students.count === 0) {
         errors.push(
-          new ErrorsBulkCertificate(
+          new ExceptionSimpleDetail(
             `No existe el estudiante con cédula${studentDni}`,
             new Error().stack,
           ),
@@ -510,7 +509,7 @@ export class CertificateBulkService {
         error.message ||
         `No se pudo obtener el estudiante con cédula ${studentDni}`
 
-      errors.push(new ErrorsBulkCertificate(msg, error.stack))
+      errors.push(new ExceptionSimpleDetail(msg, error.stack))
       this.logger.debug(`${msg}`)
     }
   }
@@ -518,7 +517,7 @@ export class CertificateBulkService {
   async validateCertificateType(
     certificateType: string,
     careerId: number,
-    errors: ErrorsBulkCertificate[],
+    errors: ExceptionSimpleDetail[],
   ) {
     let certificateTypeEntity: CertificateTypeEntity
     try {
@@ -529,7 +528,7 @@ export class CertificateBulkService {
         )
     } catch (error) {
       errors.push(
-        new ErrorsBulkCertificate(
+        new ExceptionSimpleDetail(
           `No existe el tipo de certificado ${certificateType}`,
           error.stack,
         ),
@@ -541,7 +540,7 @@ export class CertificateBulkService {
 
   async validateCertificateStatus(
     certificateStatus: string | undefined,
-    errors: ErrorsBulkCertificate[],
+    errors: ExceptionSimpleDetail[],
   ) {
     let certificateStatusEntity
     const certificateTypeStatusCode =
@@ -553,7 +552,7 @@ export class CertificateBulkService {
         )
     } catch (error) {
       errors.push(
-        new ErrorsBulkCertificate(
+        new ExceptionSimpleDetail(
           `No existe el estado de certificado ${certificateStatus}`,
           error.stack,
         ),
@@ -565,7 +564,7 @@ export class CertificateBulkService {
 
   async validateDegreeModality(
     degreeModality: string,
-    errors: ErrorsBulkCertificate[],
+    errors: ExceptionSimpleDetail[],
   ) {
     let degreeModalityEntity
     try {
@@ -575,7 +574,7 @@ export class CertificateBulkService {
         )
     } catch (error) {
       errors.push(
-        new ErrorsBulkCertificate(
+        new ExceptionSimpleDetail(
           `No existe la modalidad de grado ${degreeModality}`,
           error.stack,
         ),
@@ -652,7 +651,7 @@ export class CertificateBulkService {
 
       if (firstMainQualifier.count === 0) {
         errors.push(
-          new ErrorsBulkCertificate(
+          new ExceptionSimpleDetail(
             `No existe el calificador principal con cédula ${createCertificateDto.firstMainQualifierDni}`,
             new Error().stack,
           ),
@@ -678,7 +677,7 @@ export class CertificateBulkService {
 
       if (secondMainQualifier.count === 0) {
         errors.push(
-          new ErrorsBulkCertificate(
+          new ExceptionSimpleDetail(
             `No existe el calificador principal con cédula ${createCertificateDto.secondMainQualifierDni}`,
             new Error().stack,
           ),
@@ -706,7 +705,7 @@ export class CertificateBulkService {
 
         if (firstSecondaryQualifier.count === 0) {
           errors.push(
-            new ErrorsBulkCertificate(
+            new ExceptionSimpleDetail(
               `No existe el calificador secundario con cédula ${createCertificateDto.firstSecondaryQualifierDni}`,
               new Error().stack,
             ),
@@ -735,7 +734,7 @@ export class CertificateBulkService {
 
         if (secondSecondaryQualifier.count === 0) {
           errors.push(
-            new ErrorsBulkCertificate(
+            new ExceptionSimpleDetail(
               `No existe el calificador secundario con cédula ${createCertificateDto.secondSecondaryQualifierDni}`,
               new Error().stack,
             ),
@@ -762,7 +761,7 @@ export class CertificateBulkService {
 
       if (tutor.count === 0) {
         errors.push(
-          new ErrorsBulkCertificate(
+          new ExceptionSimpleDetail(
             `No existe el tutor con cédula ${createCertificateDto.mentorDni}`,
             new Error().stack,
           ),
@@ -783,7 +782,7 @@ export class CertificateBulkService {
       return attendance
     } catch (error) {
       errors.push(
-        new ErrorsBulkCertificate(
+        new ExceptionSimpleDetail(
           error instanceof BaseError
             ? error.detail
             : 'No se pudo actualizar la asistencia al acta de grado',
@@ -796,7 +795,7 @@ export class CertificateBulkService {
   async generateGradesSheet(
     degreeCertificate: DegreeCertificateEntity,
     gradesDetails: string,
-    errors: ErrorsBulkCertificate[],
+    errors: ExceptionSimpleDetail[],
     curriculumGrade?: string,
   ): Promise<boolean> {
     if (degreeCertificate.gradesSheetDriveId != null) {
@@ -805,7 +804,7 @@ export class CertificateBulkService {
       )
       if (!revoked) {
         errors.push(
-          new ErrorsBulkCertificate(
+          new ExceptionSimpleDetail(
             'No se pudo anular la hoja de calificaciones',
             new Error().stack,
           ),
@@ -819,7 +818,7 @@ export class CertificateBulkService {
 
     if (!foundCertificate) {
       errors.push(
-        new ErrorsBulkCertificate(
+        new ExceptionSimpleDetail(
           'No se encontró el certificado de grado',
           new Error().stack,
         ),
@@ -833,7 +832,7 @@ export class CertificateBulkService {
 
     if (!degreeUpdated) {
       errors.push(
-        new ErrorsBulkCertificate(
+        new ExceptionSimpleDetail(
           'No se pudo generar la hoja de calificaciones',
           new Error().stack,
         ),
@@ -860,7 +859,7 @@ export class CertificateBulkService {
 
       if (matchedGradesVariables.length !== processedGradesDetails.length) {
         errors.push(
-          new ErrorsBulkCertificate(
+          new ExceptionSimpleDetail(
             `No se encontraron todas las variables de notas en la hoja de calificaciones: variables encontradas: ${matchedGradesVariables}, variables esperadas: ${processedGradesDetails}, revise las variables de notas en el tipo de acta seleccionado: ${degreeCertificate.certificateType.name}`,
             new Error().stack,
           ),
@@ -884,7 +883,7 @@ export class CertificateBulkService {
 
         if (error) {
           errors.push(
-            new ErrorsBulkCertificate(
+            new ExceptionSimpleDetail(
               'No se pudo reemplazar las variables de notas',
               error.stack,
             ),
@@ -900,7 +899,7 @@ export class CertificateBulkService {
           )
         }
         errors.push(
-          new ErrorsBulkCertificate(
+          new ExceptionSimpleDetail(
             'No se pudo reemplazar las variables de notas',
             error.stack,
           ),
@@ -914,7 +913,7 @@ export class CertificateBulkService {
         )
       }
       errors.push(
-        new ErrorsBulkCertificate(
+        new ExceptionSimpleDetail(
           'No se pudo obtener las variables de notas',
           error.stack,
         ),

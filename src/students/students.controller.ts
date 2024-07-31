@@ -8,6 +8,7 @@ import {
   Delete,
   ParseIntPipe,
   Query,
+  ParseBoolPipe,
 } from '@nestjs/common'
 import { StudentsService } from './students.service'
 import { CreateStudentDto } from './dto/create-student.dto'
@@ -29,8 +30,16 @@ export class StudentsController {
   }
 
   @Patch('bulk')
-  async createBulk(@Body() createStudentsBulkDto: UpdateStudentsBulkItemDto[]) {
-    return await this.studentsService.createUpdateBulk(createStudentsBulkDto)
+  async createBulk(
+    @Body() createStudentsBulkDto: UpdateStudentsBulkItemDto[],
+    @Query('update', ParseBoolPipe) update: boolean,
+    @Query('created_by', ParseIntPipe) createdBy: number,
+  ) {
+    return await this.studentsService.createUpdateBulk(
+      createStudentsBulkDto,
+      update,
+      createdBy,
+    )
   }
 
   @ApiResponse({ isArray: true, type: StudentEntity })
