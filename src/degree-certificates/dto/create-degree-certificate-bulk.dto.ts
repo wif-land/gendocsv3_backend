@@ -16,11 +16,11 @@ export class CreateDegreeCertificateBulkDto {
 
   @IsOptional()
   @IsInt()
-  roomId: number
+  roomId?: number
 
   @IsOptional()
   @IsInt()
-  duration: number
+  duration?: number
 
   @IsNumberString()
   studentDni: string
@@ -30,7 +30,7 @@ export class CreateDegreeCertificateBulkDto {
 
   @IsOptional()
   @IsString()
-  certificateStatus: string
+  certificateStatus?: string
 
   @IsOptional()
   link: string
@@ -43,11 +43,11 @@ export class CreateDegreeCertificateBulkDto {
 
   @IsOptional()
   @IsString()
-  firstSecondaryQualifierDni: string
+  firstSecondaryQualifierDni?: string
 
   @IsOptional()
   @IsString()
-  secondSecondaryQualifierDni: string
+  secondSecondaryQualifierDni?: string
 
   @IsString()
   mentorDni: string
@@ -60,5 +60,17 @@ export class CreateDegreeCertificateBulkDto {
 
   @IsOptional()
   @IsString()
-  gradesDetails: string
+  gradesDetails?: string
+
+  @IsOptional()
+  @IsString()
+  changeUniversityResolution?: string
+
+  @IsOptional()
+  @IsString()
+  changeUniversityName?: string
+
+  @IsOptional()
+  @IsString()
+  changeUniversityDate?: string
 }

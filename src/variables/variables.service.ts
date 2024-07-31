@@ -537,6 +537,20 @@ export class VariablesService {
       ...document.student.career.coordinator,
     } as FunctionaryEntity
 
+    const startStudiesDateVariable: string = document.student.startStudiesDate
+      ? formatDateText(document.student.startStudiesDate)
+      : '*NO POSEE FECHA DE INICIO DE ESTUDIOS'
+
+    if (document.changeUniversityResolution) {
+      const otherUniversity = document.changeUniversityName
+      const otherUniversityResolution = document.changeUniversityResolution
+      const otherUniversityDate = formatDateText(document.changeUniversityDate)
+
+      const addedText = `${otherUniversityDate} en la ${otherUniversity}, realizó el cambio de Universidad según Resolución ${otherUniversityResolution} ingresa el, `
+
+      startStudiesDateVariable.concat(addedText)
+    }
+
     const variables = {
       ...genderVariations,
       [DEFAULT_VARIABLE.ESTUDIANTE]: fullName,
@@ -563,11 +577,8 @@ export class VariablesService {
         .student.startStudiesDate
         ? formatDateText(document.student.startStudiesDate)
         : '*NO POSEE FECHA DE INICIO DE ESTUDIOS',
-      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP]: document.student
-        .startStudiesDate
-        ? formatDateText(document.student.endStudiesDate)
-        : '*NO POSEE FECHA DE FIN DE ESTUDIOS',
-
+      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP]:
+        startStudiesDateVariable,
       [DEFAULT_VARIABLE.COORDINADOR]: getFullName(coordinator),
       [DEFAULT_VARIABLE.CANTON]: document.student.canton.name,
       [DEFAULT_VARIABLE.PROVINCE]: document.student.canton.province.name,

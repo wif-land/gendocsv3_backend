@@ -19,7 +19,7 @@ export class CreateDegreeCertificateDto {
   @IsOptional()
   @IsDate()
   @Type(() => Date)
-  presentationDate: Date
+  presentationDate?: Date
 
   @IsInt()
   studentId: number
@@ -35,19 +35,31 @@ export class CreateDegreeCertificateDto {
 
   @IsOptional()
   @IsInt()
-  roomId: number
+  roomId?: number
 
   @IsOptional()
   @IsInt()
-  duration: number
+  duration?: number
 
   @IsOptional()
-  link: string
+  link?: string
 
   @IsBoolean()
   @IsOptional()
-  isClosed: boolean
+  isClosed?: boolean
 
   @IsInt()
   userId: number
+
+  @IsOptional()
+  @IsString()
+  changeUniversityResolution?: string
+
+  @IsOptional()
+  @IsString()
+  changeUniversityName?: string
+
+  @IsOptional()
+  @IsString()
+  changeUniversityDate?: string
 }
