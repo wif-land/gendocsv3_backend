@@ -147,7 +147,8 @@ export class FunctionariesService {
     try {
       await queryRunner.startTransaction()
 
-      await this.functionaryRepository.upsert(
+      await queryRunner.manager.upsert(
+        FunctionaryEntity,
         updateFunctionariesBulkDto as unknown as Partial<FunctionaryEntity>[],
         {
           conflictPaths: ['dni'],
@@ -175,7 +176,7 @@ export class FunctionariesService {
     const { data: functionary } = await this.findOne(id)
 
     if (!functionary) {
-      throw new FunctionaryNotFoundError('Functionary not found')
+      throw new FunctionaryNotFoundError('Funcionario no encontrado')
     }
 
     functionary.isActive = false
