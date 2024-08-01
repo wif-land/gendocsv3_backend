@@ -9,7 +9,6 @@ import { UserEntity } from '../users/entities/users.entity'
 import { JwtService } from '@nestjs/jwt'
 import { compareSync } from 'bcrypt'
 import { ModuleEntity } from '../modules/entities/modules.entity'
-import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { EmailService } from '../email/services/email.service'
 import { IPayload } from './types/payload.interface'
 
@@ -46,10 +45,7 @@ export class AuthService {
       accessModules,
     }
 
-    return new ApiResponseDto(
-      `Hola de nuevo, ${user.firstName} ${user.firstLastName}!`,
-      this.jwtService.sign(payload),
-    )
+    return this.jwtService.sign(payload)
   }
 
   async forgotPassword(email: string) {
