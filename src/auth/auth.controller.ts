@@ -21,7 +21,7 @@ export class AuthController {
     )
 
     response.cookie('access_token', token, {
-      secure: process.env.NODE_ENV === 'production',
+      // secure: process.env.NODE_ENV === 'production',
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
       maxAge: 1000 * 60 * 60 * 24 * 30,
     })
