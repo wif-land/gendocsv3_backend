@@ -1,4 +1,4 @@
-export class ErrorsBulkCertificate {
+export class ExceptionSimpleDetail {
   detail: string
   instance: string
 

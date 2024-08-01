@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { CreateStudentDto } from './dto/create-student.dto'
 import { UpdateStudentDto } from './dto/update-student.dto'
 import { InjectRepository } from '@nestjs/typeorm'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, In, Repository } from 'typeorm'
 import { StudentEntity } from './entities/student.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { StudentBadRequestError } from './errors/student-bad-request'
@@ -13,14 +13,25 @@ import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
 import { StudentFiltersDto } from './dto/student-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { getEnumGender } from '../shared/enums/genders'
+import { ExceptionSimpleDetail } from '../degree-certificates/errors/errors-bulk-certificate'
+import { BaseError } from '../shared/utils/error'
+import { NotificationsService } from '../notifications/notifications.service'
+import { NotificationStatus } from '../shared/enums/notification-status'
+import { NotificationsGateway } from '../notifications/notifications.gateway'
 
 @Injectable()
 export class StudentsService {
+  private readonly logger = new Logger(StudentsService.name)
+
   constructor(
     @InjectRepository(StudentEntity)
     private readonly studentRepository: Repository<StudentEntity>,
 
     private readonly dataSource: DataSource,
+
+    private readonly notificationsService: NotificationsService,
+
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(createStudentDto: CreateStudentDto) {
@@ -47,17 +58,59 @@ export class StudentsService {
     return new ApiResponseDto('Estudiante creado correctamente', newStudent)
   }
 
-  async createUpdateBulk(createStudentsBulkDto: UpdateStudentsBulkItemDto[]) {
-    const queryRunner =
-      this.studentRepository.manager.connection.createQueryRunner()
-    await queryRunner.connect()
+  async createUpdateBulk(
+    createStudentsBulkDto: UpdateStudentsBulkItemDto[],
+    isUpdate: boolean,
+    createdBy: number,
+  ) {
+    if (createStudentsBulkDto[0].id) {
+      const students = await this.studentRepository.find({
+        where: {
+          id: In(createStudentsBulkDto.map((student) => student.id)),
+        },
+      })
 
-    try {
-      await queryRunner.startTransaction()
+      if (students.length !== createStudentsBulkDto.length) {
+        throw new StudentNotFoundError(
+          'No se encontraron estudiantes con los ids proporcionados',
+        )
+      }
 
-      // do upsert, never will come with id, so we need to do the update with finding dni
+      await this.studentRepository.save(
+        createStudentsBulkDto as unknown as StudentEntity[],
+      )
 
-      const promises = createStudentsBulkDto.map(async (student) => {
+      return new ApiResponseDto('Estudiantes actualizados correctamente', {
+        success: true,
+      })
+    }
+
+    const parentNotification = await this.notificationsService.create({
+      isMain: true,
+      name: `Carga de estudiantes - ${isUpdate ? 'actualización' : 'creación'}`,
+      createdBy,
+      scope: {
+        id: createdBy,
+      },
+      status: NotificationStatus.IN_PROGRESS,
+      type: 'createBulkStudents',
+    })
+
+    if (!parentNotification) {
+      throw new StudentError({
+        detail: 'Error al crear la notificación principal',
+        instance: 'students.errors.StudentsService.createBulk',
+      })
+    }
+
+    this.notificationsGateway.handleSendNotification(parentNotification)
+
+    const errors: ExceptionSimpleDetail[] = []
+
+    // do upsert, never will come with id, so we need to do the update with finding dni
+
+    const promises = createStudentsBulkDto.map(async (student) => {
+      try {
         const studentEntity = await this.dataSource
           .getRepository(StudentEntity)
           .createQueryBuilder('student')
@@ -66,6 +119,12 @@ export class StudentsService {
           .leftJoinAndSelect('canton.province', 'province')
           .where('student.dni = :dni', { dni: student.dni })
           .getOne()
+
+        if (isUpdate && studentEntity == null) {
+          throw new StudentNotFoundError(
+            `Estudiante con cédula ${student.dni} no encontrado`,
+          )
+        }
 
         if (studentEntity) {
           let studentDataToUpdate: object = {
@@ -93,7 +152,7 @@ export class StudentsService {
             }
           }
 
-          const updated = await queryRunner.manager.update(
+          const updated = await this.studentRepository.manager.update(
             StudentEntity,
             studentEntity.id,
             studentDataToUpdate as unknown as Partial<StudentEntity>,
@@ -106,19 +165,19 @@ export class StudentsService {
             })
           }
         } else {
-          const studentEntityCreated = await queryRunner.manager.create(
-            StudentEntity,
-            {
+          const studentEntityCreated =
+            await this.studentRepository.manager.create(StudentEntity, {
               ...student,
               gender: student.gender
                 ? getEnumGender(student.gender)
                 : undefined,
               career: { id: student.career ?? undefined },
               canton: { id: student.canton ?? undefined },
-            },
-          )
+            })
 
-          const saved = await queryRunner.manager.save(studentEntityCreated)
+          const saved = await this.studentRepository.manager.save(
+            studentEntityCreated,
+          )
 
           if (!saved) {
             throw new StudentError({
@@ -127,36 +186,58 @@ export class StudentsService {
             })
           }
         }
-      })
+      } catch (error) {
+        errors.push(
+          new ExceptionSimpleDetail(
+            error.detail ?? error.message,
+            error.stack ?? error.instance ?? new Error().stack,
+          ),
+        )
 
-      await Promise.all(promises)
+        if (!(error instanceof BaseError)) {
+          this.logger.error(error, 'students.errors.StudentsService.createBulk')
+        }
+      }
+    })
 
-      // await this.studentRepository.upsert(
-      //   createStudentsBulkDto as unknown as Partial<StudentEntity>[],
-      //   {
-      //     conflictPaths: ['dni'],
-      //     skipUpdateIfNoValuesChanged: true,
-      //     indexPredicate: {
+    await Promise.all(promises)
 
-      //     }
-      //   },
-      // )
+    const errorMessages = errors.map((error) => error.detail)
 
-      await queryRunner.commitTransaction()
+    const status =
+      errors.length === createStudentsBulkDto.length
+        ? NotificationStatus.FAILURE
+        : errors.length > 0
+        ? NotificationStatus.WITH_ERRORS
+        : NotificationStatus.COMPLETED
 
-      return new ApiResponseDto('Estudiantes creados correctamente', {
-        success: true,
-      })
-    } catch (error) {
-      Logger.error(error)
-      await queryRunner.rollbackTransaction()
-      await queryRunner.release()
+    const childNotification = await this.notificationsService.create({
+      isMain: false,
+      name: `Carga de estudiantes - ${
+        isUpdate ? 'actualización' : 'creación'
+      } ${errorMessages.length > 0 ? ` ${errorMessages.length} errores` : ''}`,
+      createdBy,
+      parentId: parentNotification.id,
+      status,
+      type: 'createBulkStudents',
+      messages: errorMessages.length > 0 ? errorMessages : undefined,
+    })
+
+    if (!childNotification) {
       throw new StudentError({
-        statuscode: 500,
-        detail: error.detail ?? error.message,
+        detail: 'Error al crear la notificación secundaria',
         instance: 'students.errors.StudentsService.createBulk',
       })
     }
+
+    parentNotification.status = status
+    await parentNotification.save()
+
+    this.notificationsGateway.handleSendNotification(parentNotification)
+
+    return new ApiResponseDto('Carga de estudiantes completada', {
+      success: true,
+    })
   }
 
   async findAll(paginationDTO: PaginationDto) {

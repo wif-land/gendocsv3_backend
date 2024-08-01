@@ -172,6 +172,22 @@ export class InitDatabase1704560301619 implements MigrationInterface {
           '1RDaD8Gqu2ppPonTHb0N6J7w_ClMqauQLpZtIw7arXHQ',
       },
       {
+        id: 12,
+        code: 'AUTR-UNI',
+        name: 'AUTOMATIZACIÓN Y ROBÓTICA',
+        isActive: true,
+        hasDocuments: true,
+        driveId:
+          `${process.env.NODE_ENV}` === 'production'
+            ? '1zn_IFlK_u1lp8fGIn-H04hvFSWSvJ_m7'
+            : '1jBkTARMGomTX0Z9NcbIpPytwMAYqUTnA',
+        defaultTemplateDriveId: '1iUw4UWmx5KGWgFrPgSdB-cJAgIB4mntSOwanMU0v3c8',
+        compilationTemplateDriveId:
+          '1Co1nslt-AT3KF9tUExZyuO6YcEMO8datFj-iQIV9pPM',
+        separatorTemplateDriveId:
+          '1RDaD8Gqu2ppPonTHb0N6J7w_ClMqauQLpZtIw7arXHQ',
+      },
+      {
         code: 'ADMIN',
         name: 'ADMINISTRADOR',
         isActive: true,

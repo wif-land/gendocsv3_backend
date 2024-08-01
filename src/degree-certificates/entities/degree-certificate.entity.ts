@@ -111,6 +111,27 @@ export class DegreeCertificateEntity extends BaseAppEntity {
   })
   link?: string
 
+  @Column({
+    name: 'change_university_resolution',
+    type: 'varchar',
+    nullable: true,
+  })
+  changeUniversityResolution?: string
+
+  @Column({
+    name: 'change_university_name',
+    type: 'text',
+    nullable: true,
+  })
+  changeUniversityName?: string
+
+  @Column({
+    name: 'change_university_date',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  changeUniversityDate?: Date
+
   @ManyToOne(
     () => SubmoduleYearModuleEntity,
     (submoduleYearModule) => submoduleYearModule.degreeCertificates,
