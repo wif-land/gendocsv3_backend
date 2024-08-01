@@ -688,10 +688,8 @@ export class VariablesService {
     )
   }
 
-  formatMembersDateText(
-    membersAttendence: DegreeCertificateAttendanceEntity[],
-  ) {
-    const members = membersAttendence.filter(
+  formatMembersDateText(membersAttendend: DegreeCertificateAttendanceEntity[]) {
+    const members = membersAttendend.filter(
       (member) =>
         member.role === DEGREE_ATTENDANCE_ROLES.PRINCIPAL ||
         member.role === DEGREE_ATTENDANCE_ROLES.SUBSTITUTE,
@@ -701,7 +699,25 @@ export class VariablesService {
       (member) => member.details !== members[0].details,
     )
 
+    let membersText: string[] = []
+    const hasDiferentRoles = members.some(
+      (member) => member.role !== members[0].role,
+    )
+
     if (!isDetailsDifferent) {
+      if (hasDiferentRoles) {
+        membersText = members.map(
+          (member) =>
+            `${getFullNameWithTitles(member.functionary)} ${
+              MEMBERS_DESIGNATION[member.role][ADJECTIVES.SINGULAR]
+            } ${member.details} de fecha ${formatDateText(
+              member.assignationDate,
+            )}`,
+        )
+
+        return membersText.join(', ')
+      }
+
       return `${this.formatMembersNames(members)} ${
         members.length === 1
           ? MEMBERS_DESIGNATION[members[0].role][ADJECTIVES.SINGULAR]
@@ -722,7 +738,7 @@ export class VariablesService {
       clasifiedByDetails[member.details].push(member)
     })
 
-    const membersText = Object.entries(clasifiedByDetails).map(
+    membersText = Object.entries(clasifiedByDetails).map(
       ([details, members]) =>
         `${this.formatMembersNames(members)} ${
           members.length === 1
@@ -783,10 +799,12 @@ export class VariablesService {
       ] = getFullNameWithTitles(
         tribunalMembers[tribunalMembers.length - 1].functionary,
       )
-      membersData[DEFAULT_VARIABLE.ASISTIERON] =
-        this.formatMembersNames(membersAttended)
-      membersData[DEFAULT_VARIABLE.NO_ASISTIERON] =
-        this.formatMembersNames(membersHasntAttended)
+      membersData[
+        DEFAULT_VARIABLE.ASISTIERON
+      ] = `Asistieron: ${this.formatMembersNames(membersAttended)}`
+      membersData[
+        DEFAULT_VARIABLE.NO_ASISTIERON
+      ] = `No asistieron: ${this.formatMembersNames(membersHasntAttended)}`
     }
 
     const qb = this.dataSource

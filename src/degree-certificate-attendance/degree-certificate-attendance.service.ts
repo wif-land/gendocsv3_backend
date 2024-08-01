@@ -9,6 +9,7 @@ import { DegreeCertificateBadRequestError } from '../degree-certificates/errors/
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { DegreeAttendanceThatOverlapValidator } from './validators/attendance-that-overlap'
 import { AttendanceLimitAttendedValidator } from './validators/attendance-limit-attended'
+import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 
 @Injectable()
 export class DegreeAttendanceService {
@@ -241,6 +242,9 @@ export class DegreeAttendanceService {
     degreeCertificateId: number,
     functionaryId: number,
   ) {
+    const functionary = await FunctionaryEntity.findOne({
+      where: { id: functionaryId },
+    })
     const alreadyExists = await this.degreeAttendanceRepository.findOne({
       where: {
         degreeCertificate: {
@@ -254,7 +258,7 @@ export class DegreeAttendanceService {
 
     if (alreadyExists) {
       throw new DegreeCertificateAttendanceAlreadyExists(
-        'Ya existe una asistencia al acta de grado para este funcionario y acta de grado',
+        `Ya existe una asistencia al acta de grado para el funcionario con id ${functionary.dni}`,
       )
     }
   }

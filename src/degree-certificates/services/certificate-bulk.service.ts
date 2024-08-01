@@ -223,9 +223,11 @@ export class CertificateBulkService {
 
         if (prevData.entities.degreeCertificate) {
           const degreeCertificate =
-            await this.degreeCertificateRepository.findOne(
-              prevData.entities.degreeCertificate.id,
-            )
+            await this.degreeCertificateRepository.findOne({
+              where: {
+                id: prevData.entities.degreeCertificate.id,
+              },
+            })
 
           if (degreeCertificate) {
             await this.degreeCertificateService.remove(degreeCertificate.id)
@@ -627,6 +629,10 @@ export class CertificateBulkService {
       },
       duration: 60,
       user: { id: userId },
+      changeUniversityResolution:
+        createCertificateDto.changeUniversityResolution,
+      changeUniversityName: createCertificateDto.changeUniversityName,
+      changeUniversityDate: createCertificateDto.changeUniversityDate,
     }
   }
 

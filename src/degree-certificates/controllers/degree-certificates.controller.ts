@@ -103,7 +103,6 @@ export class DegreeController {
       userId,
       retryId ? +retryId : undefined,
     )
-
     return new ApiResponseDto('Proceso de carga en ejecución', true)
   }
 

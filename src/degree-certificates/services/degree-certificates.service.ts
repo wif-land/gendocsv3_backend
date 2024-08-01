@@ -108,7 +108,7 @@ export class DegreeCertificatesService {
 
     if (nonNullableFields.some((field) => field == null)) {
       throw new DegreeCertificateBadRequestError(
-        'Falta información. Revise:, género, fecha de inicio de estudios, horas de pasantias y horas de vinculación, Fecha de nacimiento, Cantón, Folio, Matrícula del estudiante ',
+        'Falta información. Revise:, Género, Fecha de inicio de estudios, Horas de pasantias y horas de vinculación, Fecha de nacimiento, Cantón, Folio, Matrícula del estudiante ',
       )
     }
 
