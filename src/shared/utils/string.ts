@@ -2,7 +2,9 @@ import { FunctionaryEntity } from '../../functionaries/entities/functionary.enti
 import { StudentEntity } from '../../students/entities/student.entity'
 
 export const toFirstUpperCase = (text: string): string =>
-  text.charAt(0).toUpperCase() + text.slice(1)
+  text
+    .toLowerCase()
+    .replace(/(^\w|[\s"']\w|[^\w\s][^\w])/g, (match) => match.toUpperCase())
 
 export const getFullName = (
   entity: FunctionaryEntity | StudentEntity,
@@ -15,9 +17,9 @@ export const getFullName = (
   const secondLastName = clonedObject.secondLastName
 
   return `${toFirstUpperCase(firstName)} ${
-    secondName ? toFirstUpperCase(secondName) : ''
-  } ${toFirstUpperCase(firstLastName)} ${
-    secondLastName ? toFirstUpperCase(secondLastName) : ''
+    secondName ? `${toFirstUpperCase(secondName)} ` : ''
+  }${toFirstUpperCase(firstLastName)}${
+    secondLastName ? ` ${toFirstUpperCase(secondLastName)}` : ''
   }`
 }
 
@@ -39,7 +41,7 @@ export const getFullNameWithTitles = (
 export const capitalizeEachWord = (text: string): string =>
   text
     .split(' ')
-    .map((word) => toFirstUpperCase(word))
+    .map((word) => toFirstUpperCase(word.toLowerCase()))
     .join(' ')
 
 // eslint-disable-next-line no-magic-numbers

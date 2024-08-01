@@ -116,6 +116,17 @@ export class StudentEntity extends BasePerson {
   bachelorDegree: string
 
   @ApiProperty({
+    example: 'Colegio Nacional',
+    description: 'Nombre de la institución de educación secundaria',
+  })
+  @Column({
+    name: 'high_school_name',
+    type: 'varchar',
+    nullable: true,
+  })
+  highSchoolName: string
+
+  @ApiProperty({
     example: '2021-07-07',
     description: 'Fecha de inicio de estudios del estudiante',
   })

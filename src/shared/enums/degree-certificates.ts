@@ -31,6 +31,7 @@ export const GENDER_DESIGNATION = [
     [GENDER.MALE]: 'El mencionado',
     [GENDER.FEMALE]: 'La mencionada',
   },
+  { [GENDER.MALE]: 'El señor', [GENDER.FEMALE]: 'La señorita' },
 ]
 
 export const GENDER_DESIGNATION_VARIABLE = (index: number) =>
@@ -42,8 +43,8 @@ export const MEMBERS_DESIGNATION = {
     [ADJECTIVES.SINGULAR]: 'designado mediante',
   },
   [DEGREE_ATTENDANCE_ROLES.SUBSTITUTE]: {
-    [ADJECTIVES.PLURAL]: 'principalizados mediante',
-    [ADJECTIVES.SINGULAR]: 'principalizado mediante',
+    [ADJECTIVES.PLURAL]: 'principalizados con',
+    [ADJECTIVES.SINGULAR]: 'principalizado con',
   },
 }
 
