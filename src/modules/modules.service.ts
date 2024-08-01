@@ -75,6 +75,7 @@ export class ModulesService {
         where: {
           hasDocuments: true,
           isActive: true,
+          driveId: null,
         },
       })
 
@@ -85,7 +86,7 @@ export class ModulesService {
       for (const module of modules) {
         const { data: folderId } = await this.gcpService.createFolderByParentId(
           module.name,
-          `${process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID_PRODUCTION}`,
+          `${process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID}`,
         )
 
         if (module.hasDocuments) {
