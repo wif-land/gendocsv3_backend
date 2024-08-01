@@ -12,7 +12,7 @@ import { Auth } from '../auth/decorators/auth.decorator'
 import { CareersService } from './careers.service'
 import { CreateCareerDto } from './dto/create-career.dto'
 import { RolesType } from '../shared/constants/roles'
-import { UpdateCareerDto } from './dto/update-carreer.dto'
+import { UpdateCareerDto } from './dto/update-career.dto'
 
 @ApiTags('Careers')
 @Controller('careers')

@@ -237,6 +237,23 @@ export class GcpService {
     }
   }
 
+  async restoreAsset(assetId: string) {
+    try {
+      await this.drive.files.update({
+        fileId: assetId,
+        requestBody: {
+          trashed: false,
+        },
+      })
+
+      return new ApiResponseDto('Documento restaurado con éxito', {
+        success: true,
+      })
+    } catch (error) {
+      Logger.error(new Error(error.message))
+    }
+  }
+
   async removeAssetsFromFolder(folderId: string) {
     try {
       const { data } = await this.drive.files.list({

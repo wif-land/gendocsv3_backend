@@ -3,12 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { ModuleEntity } from './entities/modules.entity'
 import { CreateModuleDTO } from './dto/create-module.dto'
-import { GcpService } from '../gcp/gcp.service'
 import { YearModuleService } from '../year-module/year-module.service'
 import { ModulesNotFound } from './errors/module-not-found'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { ModulesAlreadyExists } from './errors/module-already-exists'
 import { ModulesError } from './errors/module-error'
+import { FilesService } from '../files/services/files.service'
 
 @Injectable()
 export class ModulesService {
@@ -16,7 +16,7 @@ export class ModulesService {
     @InjectRepository(ModuleEntity)
     private moduleRepository: Repository<ModuleEntity>,
 
-    private readonly gcpService: GcpService,
+    private readonly filesService: FilesService,
     private readonly yearModuleService: YearModuleService,
   ) {}
 
@@ -36,6 +36,22 @@ export class ModulesService {
       }
 
       const newModule = await this.moduleRepository.create(module).save()
+
+      const { data: driveId } = await this.filesService.createFolderByParentId(
+        `${module.name} (${module.code})`,
+        process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID,
+      )
+
+      newModule.driveId = driveId
+
+      await this.moduleRepository.save(newModule)
+
+      const systemYear = await this.yearModuleService.getCurrentSystemYear()
+
+      await this.yearModuleService.create({
+        module: newModule,
+        year: systemYear,
+      })
 
       return new ApiResponseDto('Módulo creado exitosamente', newModule)
     } catch (e) {
@@ -84,10 +100,11 @@ export class ModulesService {
       }
 
       for (const module of modules) {
-        const { data: folderId } = await this.gcpService.createFolderByParentId(
-          module.name,
-          `${process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID}`,
-        )
+        const { data: folderId } =
+          await this.filesService.createFolderByParentId(
+            module.name,
+            `${process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID}`,
+          )
 
         if (module.hasDocuments) {
           if (!folderId) {
@@ -108,8 +125,9 @@ export class ModulesService {
             )
           }
 
+          const systemYear = await this.yearModuleService.getCurrentSystemYear()
           await this.yearModuleService.create({
-            year: 2024,
+            year: systemYear,
             module: auxModule,
           })
         }

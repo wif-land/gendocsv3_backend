@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator'
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator'
 
 export class CreateCareerDto {
   @ApiProperty()
@@ -39,4 +45,18 @@ export class CreateCareerDto {
   @IsNotEmpty({ message: 'isActive is required' })
   @IsBoolean({ message: 'isActive must be a boolean' })
   isActive: boolean
+
+  @ApiProperty()
+  @IsNotEmpty({ message: 'El nombre del módulo es requerido' })
+  @IsString({ message: 'moduleName must be a string' })
+  moduleName: string
+
+  @ApiProperty()
+  @IsNotEmpty({ message: 'El código de módulo es requerido' })
+  moduleCode: string
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  predecessorId?: number
 }

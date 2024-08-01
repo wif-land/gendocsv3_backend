@@ -47,6 +47,9 @@ export class InitDatabaseRelations1704569355637 implements MigrationInterface {
       { submoduleId: 9, moduleId: 10 },
       { submoduleId: 8, moduleId: 11 },
       { submoduleId: 4, moduleId: 11 },
+      { submoduleId: 1, moduleId: 12 },
+      { submoduleId: 2, moduleId: 12 },
+      { submoduleId: 3, moduleId: 12 },
     ]
 
     const userAccessModuleToInsert = [
@@ -61,6 +64,7 @@ export class InitDatabaseRelations1704569355637 implements MigrationInterface {
       { userId: 1, moduleId: 9 },
       { userId: 1, moduleId: 10 },
       { userId: 1, moduleId: 11 },
+      { userId: 1, moduleId: 12 },
     ]
 
     const queryRunner2 = connection.createQueryRunner()

@@ -42,9 +42,15 @@ export class CareerEntity extends BaseAppEntity {
 
   @Column({
     name: 'module_name',
-    nullable: true,
+    nullable: false,
   })
   moduleName: string
+
+  @Column({
+    name: 'predecessor_id',
+    nullable: true,
+  })
+  predecessorId: number
 
   @ManyToOne(() => FunctionaryEntity, (functionary) => functionary.careers, {
     eager: true,
