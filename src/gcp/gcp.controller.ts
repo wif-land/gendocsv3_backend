@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Logger, Delete } from '@nestjs/common'
+import {
+  Controller,
+  Post,
+  Body,
+  Logger,
+  Delete,
+  Patch,
+  Param,
+} from '@nestjs/common'
 import { GcpService } from './gcp.service'
 import { Auth } from '../auth/decorators/auth.decorator'
 
@@ -94,6 +102,17 @@ export class GcpController {
   async deleteFromFolder(@Body() { folderId }: { folderId: string }) {
     try {
       const document = await this.gcpService.removeAssetsFromFolder(folderId)
+
+      return document
+    } catch (error) {
+      Logger.error(error)
+    }
+  }
+
+  @Patch('restore/:documentId')
+  async restoreDocument(@Param('documentId') documentId: string) {
+    try {
+      const document = await this.gcpService.restoreAsset(documentId)
 
       return document
     } catch (error) {

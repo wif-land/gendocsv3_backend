@@ -129,6 +129,18 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         isActive: true,
         moduleName: 'SOFTWARE',
       },
+      {
+        id: 8,
+        internshipHours: 240,
+        vinculationHours: 96,
+        coordinator: { id: 1 },
+        name: 'Automatización y Robótica',
+        credits: 135,
+        menDegree: 'Ingeniero en Automatización y Robótica',
+        womenDegree: 'Ingeniera en Automatización y Robótica',
+        isActive: true,
+        moduleName: 'AUTOMATIZACIÓN Y ROBÓTICA',
+      },
     ]
 
     await queryRunner2.manager.save(
@@ -394,6 +406,33 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         },
         career: {
           id: 7,
+        },
+      },
+      // 22
+      {
+        certificateType: {
+          id: 1,
+        },
+        career: {
+          id: 8,
+        },
+      },
+      // 23
+      {
+        certificateType: {
+          id: 2,
+        },
+        career: {
+          id: 8,
+        },
+      },
+      // 24
+      {
+        certificateType: {
+          id: 3,
+        },
+        career: {
+          id: 8,
         },
       },
     ]
@@ -1066,10 +1105,21 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         driveId:
           `${process.env.NODE_ENV}` === 'production'
             ? '1Lw1t8zWeG1sZZ3swNIQJLU2_ddSG24gk'
-            : '1qITJ5A4MrvlNGlY8FSLcAT8jsp2CQpfs',
+            : '1qwsrsSy--lTjeaoyjTVhF911b5YbjXjQ',
         isActive: true,
         module: {
           id: 11,
+        },
+      },
+      {
+        year: 2024,
+        driveId:
+          `${process.env.NODE_ENV}` === 'production'
+            ? '1-e1V1X2x9Ag5moZYqSbeU2zAaQy_WYSe'
+            : '14SN3D9ThTxMVM64unOwcf3IrNaVq5UOZ',
+        isActive: true,
+        module: {
+          id: 12,
         },
       },
     ]
@@ -1229,8 +1279,24 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
         driveId:
           `${process.env.NODE_ENV}` === 'production'
             ? '1UAVwkySFsU79hLGEeJahECSTdKK9d-Yb'
-            : '1EZaatlQsfY0_wc3L0v_P_76uX-u0MHh6',
+            : '1brUexewZ6HON8NYFWR1DbQ4zfmBLxhfU',
         yearModule: { id: 10 },
+      },
+      {
+        name: 'Procesos',
+        driveId:
+          `${process.env.NODE_ENV}` === 'production'
+            ? '1_vBGsHIIxCGTo7V8fuUVphaKX-Yc3qcM'
+            : '1JQaM9HyFDwIuvteeiwnttU5TZ3ajzy8M',
+        yearModule: { id: 11 },
+      },
+      {
+        name: 'Consejos',
+        driveId:
+          `${process.env.NODE_ENV}` === 'production'
+            ? '1_2xDqP4n20xbOjP2MMbh3XnBSNxhJMRa'
+            : '1iVcnqDVyj2CzD4HEQpuG50ad_UuTFGeY',
+        yearModule: { id: 11 },
       },
     ]
 

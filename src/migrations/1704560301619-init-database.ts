@@ -171,22 +171,7 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         separatorTemplateDriveId:
           '1RDaD8Gqu2ppPonTHb0N6J7w_ClMqauQLpZtIw7arXHQ',
       },
-      {
-        id: 12,
-        code: 'AUTR-UNI',
-        name: 'AUTOMATIZACIÓN Y ROBÓTICA',
-        isActive: true,
-        hasDocuments: true,
-        driveId:
-          `${process.env.NODE_ENV}` === 'production'
-            ? '1zn_IFlK_u1lp8fGIn-H04hvFSWSvJ_m7'
-            : '1jBkTARMGomTX0Z9NcbIpPytwMAYqUTnA',
-        defaultTemplateDriveId: '1iUw4UWmx5KGWgFrPgSdB-cJAgIB4mntSOwanMU0v3c8',
-        compilationTemplateDriveId:
-          '1Co1nslt-AT3KF9tUExZyuO6YcEMO8datFj-iQIV9pPM',
-        separatorTemplateDriveId:
-          '1RDaD8Gqu2ppPonTHb0N6J7w_ClMqauQLpZtIw7arXHQ',
-      },
+
       {
         code: 'ADMIN',
         name: 'ADMINISTRADOR',
@@ -201,7 +186,23 @@ export class InitDatabase1704560301619 implements MigrationInterface {
         driveId:
           `${process.env.NODE_ENV}` === 'production'
             ? '1piyr7ZHFgbQH20IfT5jDoVQgZOO-n99x'
-            : '1ehTh21yjrDxs5iRAE-p_eSdnGJZ91ioz',
+            : '1sqYUXFoNpKSVcBt027j2RSPBkwWl70q4',
+      },
+      {
+        id: 12,
+        code: 'AURO-UNI',
+        name: 'AUTOMATIZACIÓN Y ROBÓTICA',
+        isActive: true,
+        hasDocuments: true,
+        driveId:
+          `${process.env.NODE_ENV}` === 'production'
+            ? '1rUYtukt9Cpfiha9tt_3irbW_q-j7SNFk'
+            : '19AA6Y7ioDQS1iR9GCzz1h916urUEfleB',
+        defaultTemplateDriveId: '1n6lAV85y7_XFeNI6EENXPX3BwOxG3HA_n0d3Op5XEGE',
+        compilationTemplateDriveId:
+          '1c8m75uN4fZ35sFZZydRLs3qRN4vkool6f2Uywp-s3bk',
+        separatorTemplateDriveId:
+          '1WuoXCV76OTXxx97WPDFLJmnfxM-ndbu4YuxNjEwahc0',
       },
     ]
 

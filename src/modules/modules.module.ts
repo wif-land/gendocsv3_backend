@@ -3,15 +3,15 @@ import { ModulesService } from './modules.service'
 import { ModulesController } from './modules.controller'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ModuleEntity as ModuleEntity } from './entities/modules.entity'
-import { GcpModule } from '../gcp/gcp.module'
 import { YearModuleModule } from '../year-module/year-module.module'
+import { FilesModule } from '../files/modules/files.module'
 
 @Module({
   providers: [ModulesService],
   controllers: [ModulesController],
   imports: [
     TypeOrmModule.forFeature([ModuleEntity]),
-    GcpModule,
+    FilesModule,
     YearModuleModule,
   ],
   exports: [ModulesService],
