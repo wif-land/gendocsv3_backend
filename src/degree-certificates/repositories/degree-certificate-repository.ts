@@ -10,6 +10,7 @@ import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 import { CreateDegreeCertificateDto } from '../dto/create-degree-certificate.dto'
 import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
 import { CERT_STATUS_CODE } from '../../shared/enums/degree-certificates'
+import { toSnakeCase } from '../../shared/utils/string'
 
 @Injectable()
 export class DegreeCertificateRepository extends Repository<DegreeCertificateEntity> {
@@ -71,7 +72,7 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
     if (options.order) {
       for (const [sortField, sortOrder] of Object.entries(options.order)) {
         query.addOrderBy(
-          sortField,
+          toSnakeCase(sortField),
           sortOrder.toString().toUpperCase() as 'ASC' | 'DESC',
         )
       }

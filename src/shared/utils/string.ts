@@ -21,6 +21,9 @@ export const getFullName = (
   }`
 }
 
+export const toSnakeCase = (text: string): string =>
+  text.replace(/([A-Z])/g, (match) => `_${match.toLowerCase()}`)
+
 export const getFullNameWithTitles = (
   functionary: FunctionaryEntity,
 ): string => {

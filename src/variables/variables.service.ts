@@ -537,7 +537,7 @@ export class VariablesService {
       ...document.student.career.coordinator,
     } as FunctionaryEntity
 
-    const startStudiesDateVariable: string = document.student.startStudiesDate
+    let startStudiesDateVariable: string = document.student.startStudiesDate
       ? formatDateText(document.student.startStudiesDate)
       : '*NO POSEE FECHA DE INICIO DE ESTUDIOS'
 
@@ -548,7 +548,7 @@ export class VariablesService {
 
       const addedText = `${otherUniversityDate} en la ${otherUniversity}, realizó el cambio de Universidad según Resolución ${otherUniversityResolution} ingresa el, `
 
-      startStudiesDateVariable.concat(addedText)
+      startStudiesDateVariable = addedText.concat(startStudiesDateVariable)
     }
 
     const variables = {
@@ -573,12 +573,12 @@ export class VariablesService {
         (document as DegreeCertificateEntity).topic ?? '*NO POSEE TEMA',
       [DEFAULT_VARIABLE.ESTUDIANTE_TITULO_BACHILLER]:
         document.student.bachelorDegree ?? '*NO POSEE TÍTULO BACHILLER',
-      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP]: document
-        .student.startStudiesDate
-        ? formatDateText(document.student.startStudiesDate)
-        : '*NO POSEE FECHA DE INICIO DE ESTUDIOS',
-      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP]:
+      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_INICIO_ESTUDIOS_FECHAUP]:
         startStudiesDateVariable,
+      [DEFAULT_VARIABLE.ESTUDIANTE_FECHA_FIN_ESTUDIOS_FECHAUP]: document.student
+        .endStudiesDate
+        ? formatDateText(document.student.endStudiesDate)
+        : '*NO POSEE FECHA DE FIN DE ESTUDIOS',
       [DEFAULT_VARIABLE.COORDINADOR]: getFullName(coordinator),
       [DEFAULT_VARIABLE.CANTON]: document.student.canton.name,
       [DEFAULT_VARIABLE.PROVINCE]: document.student.canton.province.name,
@@ -733,7 +733,7 @@ export class VariablesService {
         )}`,
     )
 
-    return membersText.join(' ')
+    return membersText.join(', ')
   }
 
   async getDegreeCertificateMemberVariables(

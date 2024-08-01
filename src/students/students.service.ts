@@ -87,7 +87,7 @@ export class StudentsService {
 
     const parentNotification = await this.notificationsService.create({
       isMain: true,
-      name: `Carga de estudiantes - ${isUpdate ? 'actualización' : 'creación'}`,
+      name: `Carga de estudiantes`,
       createdBy,
       scope: {
         id: createdBy,
@@ -213,9 +213,9 @@ export class StudentsService {
 
     const childNotification = await this.notificationsService.create({
       isMain: false,
-      name: `Carga de estudiantes - ${
-        isUpdate ? 'actualización' : 'creación'
-      } ${errorMessages.length > 0 ? ` ${errorMessages.length} errores` : ''}`,
+      name: `Carga de estudiantes ${
+        errorMessages.length > 0 ? ` ${errorMessages.length} errores` : ''
+      }`,
       createdBy,
       parentId: parentNotification.id,
       status,

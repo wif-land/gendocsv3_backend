@@ -411,7 +411,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
       // 22
       {
         certificateType: {
-          id: 1,
+          id: 4,
         },
         career: {
           id: 8,
@@ -420,7 +420,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
       // 23
       {
         certificateType: {
-          id: 2,
+          id: 5,
         },
         career: {
           id: 8,
@@ -429,7 +429,7 @@ export class LoadDriveMainFolders1704786020632 implements MigrationInterface {
       // 24
       {
         certificateType: {
-          id: 3,
+          id: 6,
         },
         career: {
           id: 8,
