@@ -1,4 +1,4 @@
-import { Body, Controller, Logger, Post } from '@nestjs/common'
+import { Body, Controller, Delete, Logger, Param, Post } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { FilesService } from './services/files.service'
 import { Auth } from '../auth/decorators/auth.decorator'
@@ -31,5 +31,19 @@ export class FilesController {
     } catch (error) {
       Logger.error(error)
     }
+  }
+
+  @Post('folder/:id')
+  async createFolder(@Param('id') id: string, @Body() body: { name: string }) {
+    const folder = await this.filesService.createFolderByParentId(body.name, id)
+
+    return folder
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    const result = await this.filesService.remove(id)
+
+    return result
   }
 }

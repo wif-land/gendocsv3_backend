@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { CreateStudentDto } from './dto/create-student.dto'
 import { UpdateStudentDto } from './dto/update-student.dto'
 import { InjectRepository } from '@nestjs/typeorm'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource, In, Repository } from 'typeorm'
 import { StudentEntity } from './entities/student.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { StudentBadRequestError } from './errors/student-bad-request'
@@ -63,6 +63,28 @@ export class StudentsService {
     isUpdate: boolean,
     createdBy: number,
   ) {
+    if (createStudentsBulkDto[0].id) {
+      const students = await this.studentRepository.find({
+        where: {
+          id: In(createStudentsBulkDto.map((student) => student.id)),
+        },
+      })
+
+      if (students.length !== createStudentsBulkDto.length) {
+        throw new StudentNotFoundError(
+          'No se encontraron estudiantes con los ids proporcionados',
+        )
+      }
+
+      await this.studentRepository.save(
+        createStudentsBulkDto as unknown as StudentEntity[],
+      )
+
+      return new ApiResponseDto('Estudiantes actualizados correctamente', {
+        success: true,
+      })
+    }
+
     const parentNotification = await this.notificationsService.create({
       isMain: true,
       name: `Carga de estudiantes - ${isUpdate ? 'actualización' : 'creación'}`,

@@ -1,3 +1,4 @@
+import { Optional } from '@nestjs/common'
 import { IsNotEmpty } from 'class-validator'
 
 export class CreateModuleDTO {
@@ -6,4 +7,19 @@ export class CreateModuleDTO {
 
   @IsNotEmpty()
   code: string
+
+  @IsNotEmpty()
+  hasDocuments: boolean
+
+  @Optional()
+  defaultTemplateDriveId?: string
+
+  @Optional()
+  separatorTemplateDriveId?: string
+
+  @Optional()
+  compilationTemplateDriveId?: string
+
+  @Optional()
+  reportTemplateDriveId?: string
 }
