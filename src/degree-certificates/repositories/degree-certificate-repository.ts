@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectDataSource } from '@nestjs/typeorm'
 import {
+  Brackets,
   DataSource,
   FindManyOptions,
   FindOneOptions,
@@ -250,23 +251,23 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .andWhere('degreeCertificate.deletedAt IS NULL')
       .andWhere('degreeCertificate.isClosed = :isClosed', { isClosed: false })
       .andWhere(
-        "degreeCertificate.presentationDate < :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :start",
-        {
-          start: startDate,
-        },
-      )
-      .orWhere(
-        "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :end AND degreeCertificate.presentationDate < :end",
-        {
-          end: endDate,
-        },
-      )
-      .orWhere(
-        "degreeCertificate.presentationDate > :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') < :end",
-        {
-          start: startDate,
-          end: endDate,
-        },
+        new Brackets((qb) => {
+          qb.where(
+            "degreeCertificate.presentationDate < :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :start",
+            { start: startDate },
+          )
+            .orWhere(
+              "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :end AND degreeCertificate.presentationDate < :end",
+              { end: endDate },
+            )
+            .orWhere(
+              "degreeCertificate.presentationDate > :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') < :end",
+              { start: startDate, end: endDate },
+            )
+            .orWhere('degreeCertificate.presentationDate = :start', {
+              start: startDate,
+            })
+        }),
       )
 
     if (certificateId) {

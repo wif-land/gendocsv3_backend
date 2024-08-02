@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   ParseIntPipe,
   Patch,
@@ -13,6 +14,7 @@ import { CreateDegreeCertificateDto } from '../dto/create-degree-certificate.dto
 import { UpdateDegreeCertificateDto } from '../dto/update-degree-certificate.dto'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { Auth } from '../../auth/decorators/auth.decorator'
+import * as util from 'util'
 import {
   RolesThatCanMutate,
   RolesThatCanQuery,
@@ -27,6 +29,8 @@ import { IDegreeCertificateFilters } from '../constants'
 @ApiTags('degree-certificates')
 @Controller('degree-certificates')
 export class DegreeController {
+  private readonly logger = new Logger(DegreeController.name)
+
   constructor(
     private readonly degreeService: DegreeCertificatesService,
     private readonly certificateBulkService: CertificateBulkService,
@@ -45,6 +49,16 @@ export class DegreeController {
   @Auth(...RolesThatCanMutate)
   @Post()
   async createDegreeCertificate(@Body() dto: CreateDegreeCertificateDto) {
+    this.logger.log(
+      `${DegreeController.name} Request: `,
+      util.inspect(
+        {
+          dto,
+        },
+        { depth: null, colors: true },
+      ),
+    )
+
     return await this.degreeService.create(dto)
   }
 
@@ -54,6 +68,17 @@ export class DegreeController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDegreeCertificateDto,
   ) {
+    this.logger.log(
+      `${DegreeController.name} Request: `,
+      util.inspect(
+        {
+          id,
+          dto,
+        },
+        { depth: null, colors: true },
+      ),
+    )
+
     return await this.degreeService.update(id, dto)
   }
 
