@@ -16,7 +16,11 @@ import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { UserEntity } from './entities/users.entity'
 import { UserFiltersDto } from './dto/user-filters.dto'
 import { Auth } from '../auth/decorators/auth.decorator'
-import { RolesType } from '../shared/constants/roles'
+import {
+  AdminRoles,
+  RolesThatCanQuery,
+  RolesType,
+} from '../shared/constants/roles'
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
@@ -28,7 +32,7 @@ export class UsersController {
     return await this.userService.create(createUserDto)
   }
 
-  @Auth(RolesType.ADMIN)
+  @Auth(...AdminRoles)
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -43,13 +47,13 @@ export class UsersController {
     return await this.userService.delete(id)
   }
 
-  @Auth(RolesType.ADMIN)
+  @Auth(...RolesThatCanQuery)
   @Get()
   async findAll(@Query() paginationDto: PaginationDto) {
     return await this.userService.findAll(paginationDto)
   }
 
-  @Auth(RolesType.ADMIN)
+  @Auth(...RolesThatCanQuery)
   @ApiResponse({ isArray: true, type: UserEntity })
   @Get(`filter`)
   async findByFilters(@Query() filters: UserFiltersDto) {

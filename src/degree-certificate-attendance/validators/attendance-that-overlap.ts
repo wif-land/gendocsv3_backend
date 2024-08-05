@@ -1,4 +1,4 @@
-import { DataSource } from 'typeorm'
+import { Brackets, DataSource } from 'typeorm'
 import { Validator } from '../../core/validator'
 import { DegreeCertificateAttendanceEntity } from '../entities/degree-certificate-attendance.entity'
 import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
@@ -41,34 +41,67 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
     const startDate = degreeCertificate.presentationDate
     const endDate = addMinutesToDate(startDate, degreeCertificate.duration)
 
-    const attendance = await this.dataSource
-      .createQueryBuilder(DegreeCertificateAttendanceEntity, 'attendance')
+    const query = this.dataSource
+      .createQueryBuilder()
+      .select('attendance')
+      .from(DegreeCertificateAttendanceEntity, 'attendance')
       .innerJoin('attendance.degreeCertificate', 'degreeCertificate')
-      .innerJoin('attendance.functionary', 'functionary')
+      .leftJoinAndSelect('attendance.functionary', 'functionary')
       .where('functionary.id = :functionaryId', { functionaryId })
+      .andWhere('attendance.hasAttended IS TRUE')
       .andWhere('degreeCertificate.id != :degreeId', { degreeId })
       .andWhere('degreeCertificate.deletedAt IS NULL')
-      .andWhere('degreeCertificate.isClosed = :isClosed', { isClosed: false })
+      .andWhere('degreeCertificate.isClosed IS FALSE')
       .andWhere(
-        "degreeCertificate.presentationDate < :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :start",
-        {
-          start: startDate,
-        },
+        new Brackets((qb) => {
+          qb.where(
+            new Brackets((qb2) => {
+              qb2
+                .where('degreeCertificate.presentationDate < :start', {
+                  start: startDate,
+                })
+                .andWhere(
+                  "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :start",
+                  { start: startDate },
+                )
+            }),
+          )
+            .orWhere(
+              new Brackets((qb2) => {
+                qb2.where('degreeCertificate.presentationDate = :start', {
+                  start: startDate,
+                })
+              }),
+            )
+            .orWhere(
+              new Brackets((qb2) => {
+                qb2
+                  .where(
+                    "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :end",
+                    { end: endDate },
+                  )
+                  .andWhere('degreeCertificate.presentationDate < :end', {
+                    end: endDate,
+                  })
+              }),
+            )
+            .orWhere(
+              new Brackets((qb2) => {
+                qb2
+                  .where('degreeCertificate.presentationDate > :start', {
+                    start: startDate,
+                  })
+                  .andWhere(
+                    "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') < :end",
+                    { end: endDate },
+                  )
+              }),
+            )
+        }),
       )
-      .orWhere(
-        "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :end AND degreeCertificate.presentationDate < :end",
-        {
-          end: endDate,
-        },
-      )
-      .orWhere(
-        "degreeCertificate.presentationDate > :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') < :end",
-        {
-          start: startDate,
-          end: endDate,
-        },
-      )
-      .getCount()
+
+    console.log(query.clone().getQuery(), await query.clone().getMany())
+    const attendance = await query.getCount()
 
     if (attendance > 0) {
       throw new DegreeCertificateBadRequestError(

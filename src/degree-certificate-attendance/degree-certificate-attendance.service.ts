@@ -10,6 +10,7 @@ import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { DegreeAttendanceThatOverlapValidator } from './validators/attendance-that-overlap'
 import { AttendanceLimitAttendedValidator } from './validators/attendance-limit-attended'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
+import { getFullNameWithTitles } from '../shared/utils/string'
 
 @Injectable()
 export class DegreeAttendanceService {
@@ -126,6 +127,28 @@ export class DegreeAttendanceService {
       )
     }
 
+    const attendanceMembers = await this.findByDegreeCertificate(
+      degreeCertificateAttendance.degreeCertificate.id,
+    )
+
+    if (attendanceMembers.data.length === 0) {
+      throw new DegreeCertificateBadRequestError(
+        `No se encontraron asistencias al acta de grado con id ${id}`,
+      )
+    }
+
+    const sameFunctionary = attendanceMembers.data.find(
+      (attendance) =>
+        attendance.functionary.id === updateAttendanceDto.functionaryId &&
+        attendance.id !== id,
+    )
+
+    if (sameFunctionary) {
+      throw new DegreeCertificateBadRequestError(
+        `El funcionario ya tiene un cargo en esta acta de grado`,
+      )
+    }
+
     const toUpdate: any = {
       id,
       ...updateAttendanceDto,
@@ -152,6 +175,14 @@ export class DegreeAttendanceService {
     }
 
     if (updateAttendanceDto.hasAttended != null) {
+      if (updateAttendanceDto.hasAttended) {
+        await new DegreeAttendanceThatOverlapValidator(
+          this.dataSource,
+        ).validate({
+          degreeId: degreeCertificateAttendance.degreeCertificate.id,
+          functionaryId: degreeCertificateAttendance.functionary.id,
+        })
+      }
       await new AttendanceLimitAttendedValidator(this.dataSource).validate({
         degreeId: degreeCertificateAttendance.degreeCertificate.id,
         attendanceId: id,
@@ -258,7 +289,9 @@ export class DegreeAttendanceService {
 
     if (alreadyExists) {
       throw new DegreeCertificateAttendanceAlreadyExists(
-        `Ya existe una asistencia al acta de grado para el funcionario con id ${functionary.dni}`,
+        `Cargo duplicado para el funcionario con cédula ${
+          functionary.dni
+        } - ${getFullNameWithTitles(functionary)}`,
       )
     }
   }

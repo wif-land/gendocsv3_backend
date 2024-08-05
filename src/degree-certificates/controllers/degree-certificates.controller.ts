@@ -25,6 +25,9 @@ import { CreateDegreeCertificateBulkDto } from '../dto/create-degree-certificate
 import { ApiTags } from '@nestjs/swagger'
 import { CertificateNumerationService } from '../services/certificate-numeration.service'
 import { IDegreeCertificateFilters } from '../constants'
+import { UpdateCertificateService } from '../services/update-certificate.service'
+import { CertificateDocumentService } from '../services/certificate-document.service'
+import { CertificateValidator } from '../validators/certificate-validator'
 
 @ApiTags('degree-certificates')
 @Controller('degree-certificates')
@@ -35,6 +38,9 @@ export class DegreeController {
     private readonly degreeService: DegreeCertificatesService,
     private readonly certificateBulkService: CertificateBulkService,
     private readonly certificateNumerationService: CertificateNumerationService,
+    private readonly updateCertificateService: UpdateCertificateService,
+    private readonly certificateDocumentService: CertificateDocumentService,
+    private readonly validator: CertificateValidator,
   ) {}
 
   // #region DegreeCertificates
@@ -78,8 +84,9 @@ export class DegreeController {
         { depth: null, colors: true },
       ),
     )
+    // extrac cookies token
 
-    return await this.degreeService.update(id, dto)
+    return await this.updateCertificateService.update(id, dto)
   }
 
   @Auth(...RolesThatCanMutate)
@@ -113,7 +120,7 @@ export class DegreeController {
   @Auth(...RolesThatCanMutate)
   @Patch('generate-document/:id')
   async generateDocument(@Param('id', ParseIntPipe) id: number) {
-    return await this.degreeService.generateDocument(id)
+    return await this.certificateDocumentService.generateDocument(id)
   }
 
   @Auth(...RolesThatCanMutate)
@@ -145,7 +152,7 @@ export class DegreeController {
       roomId?: number
     },
   ) {
-    await this.degreeService.checkPresentationDate({
+    await this.validator.checkPresentationDate({
       presentationDate,
       duration,
       roomId,

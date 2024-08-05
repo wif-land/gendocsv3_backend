@@ -11,7 +11,11 @@ import { ApiTags } from '@nestjs/swagger'
 import { Auth } from '../auth/decorators/auth.decorator'
 import { CareersService } from './careers.service'
 import { CreateCareerDto } from './dto/create-career.dto'
-import { RolesType } from '../shared/constants/roles'
+import {
+  AdminRoles,
+  RolesThatCanQuery,
+  RolesType,
+} from '../shared/constants/roles'
 import { UpdateCareerDto } from './dto/update-career.dto'
 
 @ApiTags('Careers')
@@ -25,13 +29,13 @@ export class CareersController {
     return await this.careersService.create(data)
   }
 
-  @Auth(RolesType.ADMIN)
+  @Auth(...RolesThatCanQuery)
   @Get()
   async findAll() {
     return await this.careersService.findAll()
   }
 
-  @Auth(RolesType.ADMIN)
+  @Auth(...AdminRoles)
   @Put()
   async update(
     @Query('id', ParseIntPipe) id: number,

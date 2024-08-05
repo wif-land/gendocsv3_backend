@@ -198,6 +198,51 @@ export class UsersService {
         }
       }
 
+      const willBeActive =
+        user.isActive && user.isActive === true ? true : userGetted.isActive
+      const ischangedEmail =
+        user.googleEmail && user.googleEmail !== userGetted.googleEmail
+
+      if (user.role && userGetted.role !== user.role && willBeActive) {
+        let isChanged = false
+        let role = undefined
+
+        if (
+          user.role === RolesType.READER &&
+          userGetted.role !== RolesType.READER
+        ) {
+          role = 'reader'
+          isChanged = true
+        } else if (
+          user.role !== RolesType.READER &&
+          userGetted.role === RolesType.READER
+        ) {
+          role = 'writer'
+          isChanged = true
+        }
+
+        if (isChanged && role !== undefined) {
+          const email = ischangedEmail
+            ? user.googleEmail
+            : userGetted.googleEmail
+
+          const { error, data: isShared } = await this.filesService.shareAsset(
+            process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID,
+            email,
+            role,
+          )
+
+          if (error || !isShared) {
+            await this.userRepository.update({ id }, currentUser)
+
+            throw new HttpException(
+              'No se pudo otorgar permisos en Google Drive, verifique el correo de gmail del usuario',
+              HttpStatus.CONFLICT,
+            )
+          }
+        }
+      }
+
       await this.userRepository.update(
         {
           id,
@@ -215,22 +260,7 @@ export class UsersService {
         relations: ['accessModules'],
       })
 
-      if (user.googleEmail && user.googleEmail !== currentUser.googleEmail) {
-        const { error, data: isShared } = await this.filesService.shareAsset(
-          `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
-          user.googleEmail,
-          userUpdated.role === RolesType.READER ? 'reader' : 'writer',
-        )
-
-        if (error || !isShared) {
-          await this.userRepository.update({ id }, currentUser)
-
-          throw new HttpException(
-            'No se pudo otorgar permisos en Google Drive, verifique el correo de gmail del usuario',
-            HttpStatus.CONFLICT,
-          )
-        }
-
+      if (ischangedEmail) {
         const { error: unsharedError, data: isUnshared } =
           await this.filesService.unshareAsset(
             `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
@@ -280,21 +310,20 @@ export class UsersService {
         isActive: userUpdated.isActive,
         accessModules,
       }
-
-      if (hasAccessModules) {
-        this.usersGateway.handleChangeAccessModules({
-          id,
-          accessModules: userUpdated.accessModules.map((module) => module.id),
-        })
+      const userUpdatedPayload = {
+        ...userUpdated,
+        accessModules: userUpdated.accessModules.map((module) => module.id),
       }
+
+      this.usersGateway.handleChangeUser({
+        id,
+        user: userUpdatedPayload,
+      })
 
       return new ApiResponseDto(
         'Usuario actualizado, tome en cuenta que la habilitación de permisos de documentos tardará 10-15 minutos en aplicarse',
         {
-          user: {
-            ...userUpdated,
-            accessModules: userUpdated.accessModules.map((module) => module.id),
-          },
+          user: userUpdatedPayload,
           accessToken: this.jwtService.sign(payload),
         },
       )

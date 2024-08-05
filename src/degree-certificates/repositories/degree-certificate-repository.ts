@@ -134,6 +134,60 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
     }
   }
 
+  async findManyForWithAttendance(
+    options: FindManyOptions<DegreeCertificateEntity>,
+    field?: string,
+  ) {
+    const query = this.qb
+      .leftJoinAndSelect('degreeCertificate.student', 'student')
+      .leftJoinAndSelect('student.career', 'studentCareer')
+      .leftJoinAndSelect('student.canton', 'canton')
+      .leftJoinAndSelect('canton.province', 'province')
+      .leftJoinAndSelect('degreeCertificate.certificateType', 'certificateType')
+      .leftJoinAndSelect('degreeCertificate.degreeModality', 'degreeModality')
+      .leftJoinAndSelect(
+        'degreeCertificate.certificateStatus',
+        'certificateStatus',
+      )
+      .leftJoinAndSelect('degreeCertificate.career', 'career')
+      .leftJoinAndSelect(
+        'degreeCertificate.submoduleYearModule',
+        'submoduleYearModule',
+      )
+      .leftJoinAndSelect('degreeCertificate.room', 'room')
+      .leftJoinAndSelect('degreeCertificate.user', 'user')
+      .leftJoinAndSelect('degreeCertificate.attendances', 'dca')
+      .leftJoinAndSelect('dca.functionary', 'functionary')
+      .where(options.where)
+
+    if (field) {
+      query.andWhere(
+        "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', student.firstName, student.secondName, student.firstLastName, student.secondLastName) ILIKE :term OR student.dni ILIKE :term )",
+        {
+          term: field ? `%${field.trim()}%` : null,
+        },
+      )
+    }
+
+    const countQuery = await query.getCount()
+
+    if (options.order) {
+      query.setFindOptions({
+        order: options.order,
+      })
+    }
+
+    if (options.take && options.skip) {
+      query.take(options.take)
+      query.skip(options.skip)
+    }
+
+    return {
+      degreeCertificates: await query.getMany(),
+      count: countQuery,
+    }
+  }
+
   async findStrictReplicate(
     dto: CreateDegreeCertificateDto,
     subModuleYearModule: SubmoduleYearModuleEntity,

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { CreateStudentDto } from './dto/create-student.dto'
 import { UpdateStudentDto } from './dto/update-student.dto'
 import { InjectRepository } from '@nestjs/typeorm'
-import { DataSource, In, Repository } from 'typeorm'
+import { DataSource, In, Not, Repository } from 'typeorm'
 import { StudentEntity } from './entities/student.entity'
 import { PaginationDto } from '../shared/dtos/pagination.dto'
 import { StudentBadRequestError } from './errors/student-bad-request'
@@ -18,6 +18,8 @@ import { BaseError } from '../shared/utils/error'
 import { NotificationsService } from '../notifications/notifications.service'
 import { NotificationStatus } from '../shared/enums/notification-status'
 import { NotificationsGateway } from '../notifications/notifications.gateway'
+import { CareerEntity } from '../careers/entites/careers.entity'
+import { formatDateTime } from '../shared/utils/date'
 
 @Injectable()
 export class StudentsService {
@@ -41,10 +43,19 @@ export class StudentsService {
       )
     }
 
+    const career = await CareerEntity.findOne({
+      where: { id: createStudentDto.career },
+    })
+
+    if (career == null) {
+      throw new StudentBadRequestError('La carrera no existe')
+    }
+
     const student = this.studentRepository.create({
       ...createStudentDto,
       career: { id: createStudentDto.career },
       canton: { id: createStudentDto.canton },
+      approvedCredits: createStudentDto.approvedCredits ?? career.credits,
     })
 
     if (!student) {
@@ -87,7 +98,7 @@ export class StudentsService {
 
     const parentNotification = await this.notificationsService.create({
       isMain: true,
-      name: `Carga de estudiantes`,
+      name: `Carga de estudiantes ${formatDateTime(new Date())}`,
       createdBy,
       scope: {
         id: createdBy,
@@ -165,6 +176,14 @@ export class StudentsService {
             })
           }
         } else {
+          const career = await CareerEntity.findOne({
+            where: { id: student.career },
+          })
+
+          if (career == null) {
+            throw new StudentBadRequestError('La carrera no existe')
+          }
+
           const studentEntityCreated =
             await this.studentRepository.manager.create(StudentEntity, {
               ...student,
@@ -173,6 +192,7 @@ export class StudentsService {
                 : undefined,
               career: { id: student.career ?? undefined },
               canton: { id: student.canton ?? undefined },
+              approvedCredits: student.approvedCredits ?? career.credits,
             })
 
           const saved = await this.studentRepository.manager.save(
@@ -336,6 +356,19 @@ export class StudentsService {
 
   async update(id: number, updateStudentDto: UpdateStudentDto) {
     try {
+      if (updateStudentDto.dni) {
+        const student = await this.studentRepository.findOneBy({
+          dni: updateStudentDto.dni,
+          id: Not(id),
+        })
+
+        if (student && student.id !== id) {
+          throw new StudentAlreadyExists(
+            `El estudiante con cédula ${updateStudentDto.dni} ya existe`,
+          )
+        }
+      }
+
       let student = await this.studentRepository.preload({
         ...updateStudentDto,
         id,

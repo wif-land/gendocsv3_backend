@@ -9,10 +9,10 @@ export const TIMES = {
 }
 
 export const formatDate = (date: Date): string =>
-  format(date, 'dd/mm/yyyy', { locale: es })
+  format(date, 'dd/MM/yyyy', { locale: es })
 
 export const formatDateTime = (date: Date): string =>
-  format(date, 'dd/mm/yyyy HH:mm', { locale: es })
+  format(date, 'dd/MM/yyyy HH:mm', { locale: es })
 
 export const formatTime = (date: Date): string =>
   format(date, 'HH:mm', { locale: es })

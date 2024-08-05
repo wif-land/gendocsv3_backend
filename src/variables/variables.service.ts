@@ -351,9 +351,9 @@ export class VariablesService {
     ]
 
     return new ApiResponseDto('Variables encontradas con éxito', {
-      Posiciones: positionsVariables,
+      Cargos: positionsVariables,
       Estudiantes: studentVariables,
-      Funcionarios: functionariesVariables,
+      Docentes: functionariesVariables,
       Consejos: councilVariables,
       Documentos: documentVariables,
       Actas_de_grado: degreeCertificateVariables,
@@ -772,6 +772,12 @@ export class VariablesService {
     const president = members.find(
       (member) => member.role === DEGREE_ATTENDANCE_ROLES.PRESIDENT,
     )
+
+    if (!president || !president.hasAttended) {
+      throw new DegreeCertificateAttendanceBadRequestError(
+        'No se puede generar el acta de grado sin la asistencia del presidente',
+      )
+    }
 
     if (president) {
       presidentData[DEGREE_CERTIFICATE_VARIABLES.DEGREE_CERTIFICATE_PRESIDENT] =

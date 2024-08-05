@@ -7,6 +7,8 @@ import { DEGREE_MODULES } from '../../shared/enums/degree-certificates'
 import { Not, IsNull } from 'typeorm'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { DegreeCertificateNotFoundError } from '../errors/degree-certificate-not-found'
+import { CertificateDocumentService } from './certificate-document.service'
+import { DEGREE_CERT_CURRENT_NUMERATIONS } from '../../shared/constants/degree-cert-current-numerations'
 
 @Injectable()
 export class CertificateNumerationService {
@@ -16,6 +18,7 @@ export class CertificateNumerationService {
     @Inject(DEGREE_CERTIFICATE.REPOSITORY)
     private readonly degreeCertificateRepository: DegreeCertificateRepository,
     private readonly yearModuleService: YearModuleService,
+    private readonly certificateDocumentService: CertificateDocumentService,
   ) {}
 
   async getLastNumberToRegister(carrerId: number): Promise<number> {
@@ -67,6 +70,12 @@ export class CertificateNumerationService {
     )
 
     if (!degreeCertificate) {
+      const currentSystemYear =
+        await this.yearModuleService.getCurrentSystemYear()
+
+      if (currentSystemYear === 2024) {
+        return DEGREE_CERT_CURRENT_NUMERATIONS[careerId]
+      }
       return 0
     }
 
@@ -104,7 +113,7 @@ export class CertificateNumerationService {
       await this.degreeCertificatesService.getCurrentDegreeSubmoduleYearModule()
 
     const degreeCertificates =
-      await this.degreeCertificatesService.getCertificatesToGenerate(
+      await this.certificateDocumentService.getCertificatesToGenerate(
         careerId,
         submoduleYearModule.id,
       )
