@@ -1,11 +1,11 @@
 // last numeration of degree certificate previosly generated
 export const DEGREE_CERT_CURRENT_NUMERATIONS = {
-  1: 40,
-  2: 46,
-  3: 52,
-  4: 58,
-  5: 64,
-  6: 70,
-  7: 76,
-  8: 82,
+  1: 2,
+  2: 5,
+  3: 6,
+  4: 27,
+  5: 19,
+  6: 53,
+  7: 20,
+  8: 0,
 }
