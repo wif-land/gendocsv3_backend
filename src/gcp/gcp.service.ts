@@ -562,7 +562,6 @@ export class GcpService {
             for (const el of element.content) {
               if (el.type === 'text') {
                 // eslint-disable-next-line no-console
-                console.log(el)
                 const textStyle = el.textRunStyle
                   ? {
                       bold: el.textRunStyle.bold,

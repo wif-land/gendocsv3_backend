@@ -32,6 +32,10 @@ export class AuthService {
       (module: ModuleEntity) => module.id,
     )
 
+    const accessCareersDegCert = user.accessCareersDegCert.map(
+      (career) => career.id,
+    )
+
     const payload: IPayload = {
       sub: user.id,
       outlookEmail: user.outlookEmail,
@@ -43,6 +47,7 @@ export class AuthService {
       role: user.role,
       isActive: user.isActive,
       accessModules,
+      accessCareersDegCert,
     }
 
     return this.jwtService.sign(payload)

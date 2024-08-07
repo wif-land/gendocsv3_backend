@@ -176,6 +176,14 @@ export class DegreeAttendanceService {
 
     if (updateAttendanceDto.hasAttended != null) {
       if (updateAttendanceDto.hasAttended) {
+        if (
+          degreeCertificateAttendance.hasAttended === false &&
+          degreeCertificateAttendance.degreeCertificate.presentationDate == null
+        ) {
+          throw new DegreeCertificateBadRequestError(
+            `No se puede marcar como asistido a la asistencia al acta de grado porque la fecha de presentación no ha sido asignada`,
+          )
+        }
         await new DegreeAttendanceThatOverlapValidator(
           this.dataSource,
         ).validate({

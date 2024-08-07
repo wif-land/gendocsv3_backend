@@ -50,7 +50,6 @@ export class InputFieldsValidator {
     user: UserEntity,
     entityPrototypeName: string,
   ) {
-    console.log('field', mutatedFields)
     for (const field of mutatedFields) {
       if (!canMutateFields.includes(field)) {
         throw new DegreeBadRequestError(

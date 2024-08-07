@@ -8,6 +8,7 @@ import { DocumentEntity } from '../../documents/entities/document.entity'
 import { ApiProperty } from '@nestjs/swagger'
 import { BaseAppEntity } from '../../shared/entities/base-app.entity'
 import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
+import { CareerEntity } from '../../careers/entites/careers.entity'
 
 @Entity('users')
 export class UserEntity extends BaseAppEntity {
@@ -125,6 +126,23 @@ export class UserEntity extends BaseAppEntity {
     default: true,
   })
   isActive: boolean
+
+  @ApiProperty({
+    example: '1',
+    description: 'Carreras de actas de grado a las que tiene acceso el usuario',
+    type: () => CareerEntity,
+  })
+  @ManyToMany(() => CareerEntity, {
+    eager: true,
+    onDelete: 'NO ACTION',
+    onUpdate: 'NO ACTION',
+  })
+  @JoinTable({
+    name: 'users_access_careers_deg_cert',
+    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'career_id', referencedColumnName: 'id' },
+  })
+  accessCareersDegCert?: CareerEntity[]
 
   @ManyToMany(() => ModuleEntity, {
     eager: true,

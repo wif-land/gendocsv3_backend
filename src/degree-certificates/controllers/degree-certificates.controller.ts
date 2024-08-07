@@ -16,6 +16,7 @@ import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { Auth } from '../../auth/decorators/auth.decorator'
 import * as util from 'util'
 import {
+  AdminRoles,
   RolesThatCanMutate,
   RolesThatCanQuery,
 } from '../../shared/constants/roles'
@@ -89,7 +90,7 @@ export class DegreeController {
     return await this.updateCertificateService.update(id, dto)
   }
 
-  @Auth(...RolesThatCanMutate)
+  @Auth(...AdminRoles)
   @Patch('numeration/generate/:careerId')
   async generateNumeration(@Param('careerId', ParseIntPipe) careerId: number) {
     return await this.certificateNumerationService.generateNumeration(careerId)
@@ -123,7 +124,7 @@ export class DegreeController {
     return await this.certificateDocumentService.generateDocument(id)
   }
 
-  @Auth(...RolesThatCanMutate)
+  @Auth(...AdminRoles)
   @Patch('bulk/load/:userId')
   async loadBulk(
     @Body() createCertificatesDtos: CreateDegreeCertificateBulkDto[],
@@ -168,7 +169,7 @@ export class DegreeController {
     )
   }
 
-  @Auth(...RolesThatCanMutate)
+  @Auth(...AdminRoles)
   @Delete(':id')
   async deleteDegreeCertificate(@Param('id', ParseIntPipe) id: number) {
     return await this.degreeService.remove(id)

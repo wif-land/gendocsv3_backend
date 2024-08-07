@@ -9,6 +9,7 @@ import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { DegreeCertificateNotFoundError } from '../errors/degree-certificate-not-found'
 import { CertificateDocumentService } from './certificate-document.service'
 import { DEGREE_CERT_CURRENT_NUMERATIONS } from '../../shared/constants/degree-cert-current-numerations'
+import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 
 @Injectable()
 export class CertificateNumerationService {
@@ -120,7 +121,7 @@ export class CertificateNumerationService {
 
     if (!degreeCertificates) {
       throw new DegreeCertificateNotFoundError(
-        'No se encontraron certificados para generar la numeración',
+        'No se encontraron certificados para generar la numeración, verifique que los certificados tengan fecha de presentación',
       )
     }
 
@@ -130,6 +131,12 @@ export class CertificateNumerationService {
     )
 
     let number = lastNumber
+
+    await this.verifyLastNumberatedAndPresentationDate(
+      careerId,
+      submoduleYearModule.id,
+      degreeCertificates,
+    )
 
     for (const degreeCertificate of degreeCertificates) {
       number += 1
@@ -144,5 +151,60 @@ export class CertificateNumerationService {
       firstGenerated: lastNumber + 1,
       lastGenerated: number,
     })
+  }
+
+  async verifyLastNumberatedAndPresentationDate(
+    careerId: number,
+    submoduleYearModuleId: number,
+    degreeCertificates: DegreeCertificateEntity[],
+  ) {
+    const lastNumber = await this.getLastNumberGenerated(
+      careerId,
+      submoduleYearModuleId,
+    )
+
+    if (lastNumber === 0) {
+      return
+    }
+
+    const degreeCertificate = await this.degreeCertificateRepository.findOneFor(
+      {
+        where: {
+          career: { id: careerId },
+          submoduleYearModule: { id: submoduleYearModuleId },
+          number: lastNumber,
+        },
+      },
+    )
+
+    if (!degreeCertificate) {
+      return
+    }
+
+    if (!degreeCertificate.presentationDate) {
+      throw new DegreeCertificateNotFoundError(
+        'La fecha de presentación del acta de grado no ha sido registrada',
+      )
+    }
+
+    const lastPresentationDate = degreeCertificate.presentationDate
+
+    for (const degreeCertificate of degreeCertificates) {
+      const sameMonthAndYear =
+        new Date(degreeCertificate.presentationDate).getMonth() ===
+          new Date(lastPresentationDate).getMonth() &&
+        new Date(degreeCertificate.presentationDate).getFullYear() ===
+          new Date(lastPresentationDate).getFullYear()
+
+      if (
+        sameMonthAndYear &&
+        new Date(degreeCertificate.presentationDate).getDate() <
+          new Date(lastPresentationDate).getDate()
+      ) {
+        throw new DegreeCertificateNotFoundError(
+          `La fecha de presentación del acta para estudiante con cédula: ${degreeCertificate.student.dni} es menor a la fecha de presentación de la última acta numerada`,
+        )
+      }
+    }
   }
 }

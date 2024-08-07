@@ -99,6 +99,6 @@ export const getSTATUS_CODE_BY_CERT_STATUS = (
   } else if (status?.includes(CERT_STATUS_CODE.REPR)) {
     return CERT_STATUS_CODE.REPR
   } else {
-    return CERT_STATUS_CODE.NO_PRESENTED
+    return CERT_STATUS_CODE.APRO
   }
 }

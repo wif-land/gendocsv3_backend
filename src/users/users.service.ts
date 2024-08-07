@@ -80,6 +80,7 @@ export class UsersService {
       ...user,
       accessModules: [],
       password,
+      accessCareersDegCert: [],
     })
 
     if (!userEntity) {
@@ -104,6 +105,16 @@ export class UsersService {
     }
 
     userEntity.accessModules = data.modules
+
+    if (user.accessCareersDegCert && user.accessCareersDegCert.length > 0) {
+      const { data: careersAccess } =
+        await this.userAccessModulesService.createCareerAccessDegCert({
+          userId: userSaved.id,
+          careerIds: user.accessCareersDegCert,
+        })
+
+      userSaved.accessCareersDegCert = careersAccess.careers
+    }
 
     userSaved = await this.userRepository.save(userEntity)
 
@@ -144,6 +155,7 @@ export class UsersService {
       let password = ''
       const hasNewPassword = user.password !== undefined
       const hasAccessModules = !!user.accessModules
+      const hasCareersAccess = !!user.accessCareersDegCert
       const userFound = await this.userRepository.findOne({
         where: {
           id,
@@ -175,11 +187,30 @@ export class UsersService {
         )
       }
 
+      if (hasCareersAccess) {
+        const result =
+          await this.userAccessModulesService.updateCareerAccessDegCert({
+            userId: id,
+            careerIds: user.accessCareersDegCert,
+          })
+
+        if (result.data.careers.length === 0) {
+          throw new HttpException(
+            'No se pudo actualizar los modulos del usuario',
+            HttpStatus.CONFLICT,
+          )
+        }
+        userToUpdate.accessCareersDegCert = result.data.careers.map(
+          (module) => module.id,
+        )
+      }
       const userGetted = await this.userRepository.findOne({
         where: {
           id,
         },
-        relations: ['accessModules'],
+        relations: {
+          accessCareersDegCert: true,
+        },
       })
 
       if (!userGetted) {
@@ -250,6 +281,7 @@ export class UsersService {
         {
           ...userToUpdate,
           accessModules: undefined,
+          accessCareersDegCert: undefined,
         },
       )
 
@@ -257,7 +289,10 @@ export class UsersService {
         where: {
           id,
         },
-        relations: ['accessModules'],
+        relations: {
+          accessModules: true,
+          accessCareersDegCert: true,
+        },
       })
 
       if (ischangedEmail) {
@@ -298,6 +333,10 @@ export class UsersService {
         (module: ModuleEntity) => module.id,
       )
 
+      const accessCareersDegCert = userUpdated.accessCareersDegCert.map(
+        (career) => career.id,
+      )
+
       const payload: IPayload = {
         sub: id,
         outlookEmail: userUpdated.outlookEmail,
@@ -309,6 +348,7 @@ export class UsersService {
         role: userUpdated.role,
         isActive: userUpdated.isActive,
         accessModules,
+        accessCareersDegCert,
       }
       const userUpdatedPayload = {
         ...userUpdated,
@@ -395,6 +435,9 @@ export class UsersService {
       const usersFound = users.map((user) => ({
         ...user,
         accessModules: user.accessModules.map((module) => module.id),
+        accessCareersDegCert: user.accessCareersDegCert.map(
+          (career) => career.id,
+        ),
       }))
 
       if (!users) {

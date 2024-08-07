@@ -1,6 +1,7 @@
-import { ModuleEntity } from '../../modules/entities/modules.entity'
+import { CareerEntity } from '../../careers/entites/careers.entity'
 import { UserEntity } from '../../users/entities/users.entity'
 import {
+  BaseEntity,
   CreateDateColumn,
   Entity,
   JoinColumn,
@@ -9,17 +10,17 @@ import {
   UpdateDateColumn,
 } from 'typeorm'
 
-@Entity('users_access_modules')
-export class UserAccessModuleEntity {
+@Entity('users_access_careers_deg_cert')
+export class UserAccessCareerDegCertEntity extends BaseEntity {
   @PrimaryColumn({
     name: 'user_id',
   })
   userId: number
 
   @PrimaryColumn({
-    name: 'module_id',
+    name: 'career_id',
   })
-  moduleId: number
+  careerId: number
 
   @ManyToOne(() => UserEntity, {
     onDelete: 'NO ACTION',
@@ -31,15 +32,15 @@ export class UserAccessModuleEntity {
   })
   user: UserEntity[]
 
-  @ManyToOne(() => ModuleEntity, {
+  @ManyToOne(() => CareerEntity, {
     onDelete: 'NO ACTION',
     onUpdate: 'NO ACTION',
   })
   @JoinColumn({
-    name: 'module_id',
+    name: 'career_id',
     referencedColumnName: 'id',
   })
-  module: ModuleEntity[]
+  career: CareerEntity[]
 
   @CreateDateColumn({
     name: 'created_at',

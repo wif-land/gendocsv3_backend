@@ -100,7 +100,6 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
         }),
       )
 
-    console.log(query.clone().getQuery(), await query.clone().getMany())
     const attendance = await query.getCount()
 
     if (attendance > 0) {

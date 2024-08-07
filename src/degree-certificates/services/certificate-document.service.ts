@@ -8,7 +8,7 @@ import { DegreeCertificateBadRequestError } from '../errors/degree-certificate-b
 import { DegreeCertificateNotFoundError } from '../errors/degree-certificate-not-found'
 import { DEGREE_CERTIFICATE } from '../constants'
 import { DegreeCertificateRepository } from '../repositories/degree-certificate-repository'
-import { IsNull } from 'typeorm'
+import { IsNull, Not } from 'typeorm'
 import { VariablesService } from '../../variables/variables.service'
 import { CertificateStatusService } from './certificate-status.service'
 import { DegreeAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
@@ -47,7 +47,7 @@ export class CertificateDocumentService {
       )
     ) {
       throw new DegreeCertificateBadRequestError(
-        'Se deben generar los números de registro antes de generar los documentos',
+        'Se deben generar los números de acta antes de generar los documentos',
       )
     }
 
@@ -216,10 +216,11 @@ export class CertificateDocumentService {
         where: {
           submoduleYearModule: { id: submoduleYearModuleId },
           career: { id: careerId },
+          presentationDate: Not(IsNull()),
           deletedAt: IsNull(),
           number: IsNull(),
         },
-        order: { createdAt: 'ASC' },
+        order: { presentationDate: 'ASC' },
       })
 
     if (!degreeCertificates || degreeCertificates.length === 0) {
