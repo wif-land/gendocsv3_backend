@@ -184,6 +184,30 @@ export class StudentsService {
             throw new StudentBadRequestError('La carrera no existe')
           }
 
+          if (student.dni == null) {
+            throw new StudentBadRequestError('La cédula del estudiante es nula')
+          }
+
+          const alreadyHaveThatDni = await this.studentRepository.findOneBy({
+            dni: student.dni,
+          })
+
+          if (alreadyHaveThatDni != null) {
+            throw new StudentAlreadyExists(
+              `El estudiante ingresado con cédula ${student.dni} posee la misma cédula de otro estudiante`,
+            )
+          }
+
+          const alreadyHaveThatEmail = await this.studentRepository.findOneBy({
+            outlookEmail: student.outlookEmail,
+          })
+
+          if (alreadyHaveThatEmail != null) {
+            throw new StudentAlreadyExists(
+              `El estudiante ingresado con cédula ${student.dni} con correo ${student.outlookEmail} ya existe`,
+            )
+          }
+
           const studentEntityCreated =
             await this.studentRepository.manager.create(StudentEntity, {
               ...student,
