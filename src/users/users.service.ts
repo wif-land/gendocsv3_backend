@@ -35,25 +35,18 @@ export class UsersService {
   ) {}
 
   async getByEmail(email: string) {
-    try {
-      const user = await this.userRepository.findOne({
-        where: {
-          outlookEmail: email,
-          isActive: true,
-        },
-      })
+    const user = await this.userRepository.findOne({
+      where: {
+        outlookEmail: email,
+        isActive: true,
+      },
+    })
 
-      if (!user) {
-        throw new HttpException(
-          'No se encontró el usuario',
-          HttpStatus.NOT_FOUND,
-        )
-      }
-
-      return new ApiResponseDto('Usuario encontrado', user)
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR)
+    if (!user || user == null) {
+      throw new HttpException('No se encontró el usuario', HttpStatus.NOT_FOUND)
     }
+
+    return new ApiResponseDto('Usuario encontrado', user)
   }
 
   async create(user: CreateUserDTO) {

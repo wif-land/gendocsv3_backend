@@ -51,6 +51,7 @@ export class NotificationsGateway {
   async handleUserNotifications(
     @MessageBody() { userId, limit = 10 }: { userId: number; limit?: number },
   ) {
+    if (userId === 0) return
     const notifications =
       await this.notificationsService.findAllAvailableForUser(userId, limit)
     this.server.emit('user-notifications', notifications)
