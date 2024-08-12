@@ -59,6 +59,18 @@ export class UpdateCertificateService {
       user.sub,
     )
 
+    if (dto.isClosed && dto.isClosed === true) {
+      if (
+        !degreeCertificate.presentationDate ||
+        !degreeCertificate.room ||
+        !degreeCertificate.certificateDriveId
+      ) {
+        throw new DegreeCertificateBadRequestError(
+          'No se puede cerrar un certificado que no tiene fecha de presentación o documento de certificado',
+        )
+      }
+    }
+
     const currentDegreeCertificate = { ...degreeCertificate }
     try {
       if (

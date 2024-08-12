@@ -200,12 +200,12 @@ export class CertificateBulkService {
     }
       ${studentToFillName != null ? getFullName(studentToFillName) : ''}`
 
-    let prev: NotificationEntity
     let childNotification: NotificationEntity
+    const prev: NotificationEntity = retries?.find((r) =>
+      r.name.includes(notificationBaseName),
+    )
 
     if (notification.retryId) {
-      prev = retries.find((r) => r.name.includes(notificationBaseName))
-
       if (prev) {
         childNotification = await this.notificationsService.create({
           createdBy: notification.createdBy.id,
@@ -244,7 +244,10 @@ export class CertificateBulkService {
           }
         }
       }
-    } else {
+    } else if (
+      !notification.retryId ||
+      prev.status === NotificationStatus.FAILURE
+    ) {
       childNotification = await this.notificationsService.create({
         createdBy: notification.createdBy.id,
         name: notificationBaseName,

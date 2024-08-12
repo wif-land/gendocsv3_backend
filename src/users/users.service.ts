@@ -290,9 +290,10 @@ export class UsersService {
 
       if (ischangedEmail) {
         const { error: unsharedError, data: isUnshared } =
-          await this.filesService.unshareAsset(
+          await this.filesService.shareAsset(
             `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
             currentUser.googleEmail,
+            'reader',
           )
 
         if (!isUnshared || unsharedError) {
@@ -306,14 +307,23 @@ export class UsersService {
       }
 
       if (user.isActive !== undefined && user.isActive === false) {
-        const { error, data: isUnshared } =
-          await this.filesService.unshareAsset(
-            `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
-            user.googleEmail,
-          )
+        const { error, data: isUnshared } = await this.filesService.shareAsset(
+          `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
+          currentUser.googleEmail,
+          'reader',
+        )
 
         if (error || !isUnshared) {
-          await this.userRepository.update({ id }, currentUser)
+          await this.userRepository.update(
+            { id },
+            {
+              ...currentUser,
+              accessModules: undefined,
+              accessCareersDegCert: undefined,
+            },
+          )
+
+          console.log('error', error, isUnshared)
 
           throw new HttpException(
             'No se pudo revocar permisos en Google Drive',
@@ -376,9 +386,10 @@ export class UsersService {
       throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND)
     }
 
-    const { error, data: isUnshared } = await this.filesService.unshareAsset(
+    const { error, data: isUnshared } = await this.filesService.shareAsset(
       `${process.env.GOOGLE_DRIVE_SHARABLE_FOLDER_ID}`,
       user.googleEmail,
+      'reader',
     )
 
     if (error || !isUnshared) {
