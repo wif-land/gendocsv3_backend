@@ -76,7 +76,6 @@ export class UserEntity extends BaseAppEntity {
   })
   @Column({
     name: 'google_email',
-    unique: true,
     type: 'varchar',
     length: 255,
   })
