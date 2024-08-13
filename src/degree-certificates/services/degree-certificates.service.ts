@@ -42,7 +42,8 @@ export class DegreeCertificatesService {
     }>
   > {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 10, offset = 0 } = paginationDto
+    const { limit = 5, page = 1 } = paginationDto
+    const offset = limit * (page - 1)
 
     const { degreeCertificates, count } =
       await this.degreeCertificateRepository.findManyFor(

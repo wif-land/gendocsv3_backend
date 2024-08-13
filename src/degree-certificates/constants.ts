@@ -1,4 +1,5 @@
 import { NotificationEntity } from '../notifications/entities/notification.entity'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { CreateDegreeCertificateBulkDto } from './dto/create-degree-certificate-bulk.dto'
 
 export enum DEGREE_CERTIFICATE {
@@ -18,12 +19,10 @@ export interface CertificateBulkCreation {
   retries?: NotificationEntity[]
 }
 
-export interface IDegreeCertificateFilters {
+export interface IDegreeCertificateFilters extends PaginationDTO {
   careerId?: number
   startDate?: Date
   endDate?: Date
   isEnd?: boolean
-  limit?: number
-  offset?: number
   field?: string
 }

@@ -123,7 +123,7 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       })
     }
 
-    if (options.take && options.skip) {
+    if (options.take && (options.skip || options.skip === 0)) {
       query.take(options.take)
       query.skip(options.skip)
     }
@@ -177,7 +177,7 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       })
     }
 
-    if (options.take && options.skip) {
+    if (options.take && (options.skip || options.skip === 0)) {
       query.take(options.take)
       query.skip(options.skip)
     }
