@@ -22,6 +22,7 @@ export interface IDegreeCertificateFilters {
   careerId?: number
   startDate?: Date
   endDate?: Date
+  isEnd?: boolean
   limit?: number
   offset?: number
   field?: string

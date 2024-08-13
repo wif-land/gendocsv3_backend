@@ -22,10 +22,8 @@ export class CertificateReportsService {
     private readonly certificateAttendanceService: DegreeAttendanceService,
   ) {}
 
-  async getCertificatesReport(
-    degreeCertificateFilters: IDegreeCertificateFilters,
-  ) {
-    const { careerId, startDate, endDate } = degreeCertificateFilters
+  async getCertificatesReport(filters: IDegreeCertificateFilters) {
+    const { careerId, startDate, endDate } = filters
 
     const subModuleYearModule =
       await this.degreeCertificateService.getCurrentDegreeSubmoduleYearModule()
@@ -34,7 +32,7 @@ export class CertificateReportsService {
         {
           where: {
             career: { id: +careerId },
-            presentationDate: endDate
+            presentationDate: filters.isEnd
               ? Between(
                   new Date(new Date(startDate).setHours(0, 0, 0, 0)),
                   new Date(new Date(endDate).setHours(23, 59, 59, 999)),
@@ -48,7 +46,7 @@ export class CertificateReportsService {
 
           order: { createdAt: 'ASC' },
         },
-        degreeCertificateFilters.field,
+        filters.field,
       )
 
     const filteredAttendance = certificates.degreeCertificates.filter(
@@ -60,7 +58,9 @@ export class CertificateReportsService {
 
     return {
       ...certificates,
-      degreeCertificates: filteredAttendance,
+      degreeCertificates: filters.isEnd
+        ? filteredAttendance
+        : certificates.degreeCertificates,
     }
   }
 
