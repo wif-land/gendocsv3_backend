@@ -135,9 +135,11 @@ export class DegreeCertificatesService {
       throw new DegreeCertificateBadRequestError(error.message)
     }
 
-    await this.studentService.update(student.id, {
-      endStudiesDate: dto.presentationDate,
-    })
+    if (!student.endStudiesDate || student.endStudiesDate == null) {
+      await this.studentService.update(student.id, {
+        endStudiesDate: dto.presentationDate,
+      })
+    }
 
     return new ApiResponseDto(
       'Certificado creado correctamente',
