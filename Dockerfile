@@ -32,7 +32,7 @@ COPY --from=build /app/storage /app/storage
 
 COPY ./scripts/start.sh /app/start.sh
 
-RUN chown node:node /app/start.sh && chmod +x /app/start.sh
+RUN chmod +x /app/start.sh
 
 USER node
 
