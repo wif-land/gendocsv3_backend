@@ -13,7 +13,7 @@ import { FunctionariesService } from './functionaries.service'
 import { CreateFunctionaryDto } from './dto/create-functionary.dto'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { FunctionaryEntity } from './entities/functionary.entity'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { UpdateFunctionaryDto } from './dto/update-functionary.dto'
 import { UpdateFunctionariesBulkItemDto } from './dto/update-functionaries-bulk.dto'
 import { FunctionaryFiltersDto } from './dto/functionary-filters.dto'
@@ -44,7 +44,7 @@ export class FunctionariesController {
   @Auth(...RolesThatCanQuery)
   @ApiResponse({ isArray: true, type: FunctionaryEntity })
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
+  async findAll(@Query() paginationDto: PaginationDTO) {
     return await this.functionariesService.findAll(paginationDto)
   }
 

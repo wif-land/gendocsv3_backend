@@ -3,7 +3,7 @@ import { CreateFunctionaryDto } from './dto/create-functionary.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { In, Repository } from 'typeorm'
 import { FunctionaryEntity } from './entities/functionary.entity'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { UpdateFunctionaryDto } from './dto/update-functionary.dto'
 import { UpdateFunctionariesBulkItemDto } from './dto/update-functionaries-bulk.dto'
 import { FunctionaryAlreadyExists } from './errors/functionary-already-exists'
@@ -49,8 +49,9 @@ export class FunctionariesService {
     return new ApiResponseDto('Funcionario creado con éxito', newFuncionary)
   }
 
-  async findAll(paginationDto: PaginationDto) {
-    const { limit = 5, offset = 0 } = paginationDto
+  async findAll(paginationDto: PaginationDTO) {
+    const { limit, page } = paginationDto
+    const offset = limit * (page - 1)
 
     const functionaries = await this.functionaryRepository.find({
       order: {
@@ -83,8 +84,8 @@ export class FunctionariesService {
   }
 
   async findByFilters(filters: FunctionaryFiltersDto) {
-    // eslint-disable-next-line no-magic-numbers
-    const { limit = 10, offset = 0, field = '', state = 'true' } = filters
+    const { limit, page, field = '', state = 'true' } = filters
+    const offset = limit * (page - 1)
 
     const qb = this.functionaryRepository.createQueryBuilder('functionaries')
 

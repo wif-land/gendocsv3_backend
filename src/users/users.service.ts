@@ -11,7 +11,7 @@ import { CreateUserDTO } from './dto/create-user.dto'
 import { genSalt, hash } from 'bcrypt'
 import { JwtService } from '@nestjs/jwt'
 import { UserAccessModulesService } from '../users-access-modules/users-access-modules.service'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { UserFiltersDto } from './dto/user-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
 import { FilesService } from '../files/services/files.service'
@@ -413,9 +413,10 @@ export class UsersService {
     })
   }
 
-  async findAll(paginationDto: PaginationDto) {
-    // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = paginationDto
+  async findAll(paginationDto: PaginationDTO) {
+    const { limit, page } = paginationDto
+    const offset = (page - 1) * limit
+
     try {
       const users = await this.userRepository.find({
         select: {
@@ -460,8 +461,8 @@ export class UsersService {
   }
 
   async findByFilters(filters: UserFiltersDto) {
-    // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = filters
+    const { limit, page } = filters
+    const offset = (page - 1) * limit
 
     const qb = this.userRepository.createQueryBuilder('users')
 

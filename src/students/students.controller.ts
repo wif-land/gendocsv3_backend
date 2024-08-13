@@ -15,7 +15,7 @@ import { CreateStudentDto } from './dto/create-student.dto'
 import { UpdateStudentDto } from './dto/update-student.dto'
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { StudentEntity } from './entities/student.entity'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
 import { StudentFiltersDto } from './dto/student-filters.dto'
 import { Auth } from '../auth/decorators/auth.decorator'
@@ -49,7 +49,7 @@ export class StudentsController {
   @Auth(...RolesThatCanQuery)
   @ApiResponse({ isArray: true, type: StudentEntity })
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
+  async findAll(@Query() paginationDto: PaginationDTO) {
     return await this.studentsService.findAll(paginationDto)
   }
 

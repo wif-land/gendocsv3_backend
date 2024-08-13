@@ -12,7 +12,7 @@ import {
 import { PositionsService } from './positions.service'
 import { CreatePositionDto } from './dto/create-position.dto'
 import { UpdatePositionDto } from './dto/update-position.dto'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { Auth } from '../auth/decorators/auth.decorator'
 import { AdminRoles, RolesThatCanQuery } from '../shared/constants/roles'
 
@@ -34,7 +34,7 @@ export class PositionsController {
 
   @Auth(...RolesThatCanQuery)
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
+  async findAll(@Query() paginationDto: PaginationDTO) {
     return await this.positionsService.findAll(paginationDto)
   }
 
@@ -48,7 +48,7 @@ export class PositionsController {
   @Get('filter/:field')
   async findByField(
     @Param('field') field: string,
-    @Query() paginationDto: PaginationDto,
+    @Query() paginationDto: PaginationDTO,
   ) {
     return await this.positionsService.findByField(field, paginationDto)
   }

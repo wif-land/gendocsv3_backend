@@ -16,7 +16,7 @@ import { SubmodulesNames } from '../shared/enums/submodules-names'
 import { ResponseCouncilsDto } from './dto/response-councils.dto'
 import { UpdateCouncilDto } from './dto/update-council.dto'
 import { UpdateCouncilBulkItemDto } from './dto/update-councils-bulk.dto'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { CouncilFiltersDto, DATE_TYPES } from './dto/council-filters.dto'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
@@ -163,8 +163,11 @@ export class CouncilsService {
     }
   }
 
-  async findAllAndCount(paginationDto: PaginationDto) {
-    const { moduleId, limit = 10, offset = 0 } = paginationDto
+  async findAllAndCount(paginationDto: PaginationDTO) {
+    const { moduleId, limit, page } = paginationDto
+
+    const skip = (page - 1) * limit
+
     const councils = await this.dataSource
       .createQueryBuilder(CouncilEntity, 'councils')
       .leftJoinAndSelect('councils.user', 'user')
@@ -175,7 +178,7 @@ export class CouncilsService {
       .where('module.id = :moduleId', { moduleId })
       .orderBy('councils.createdAt', 'DESC')
       .take(limit)
-      .skip(offset)
+      .skip(skip)
       .getMany()
 
     const count = await this.dataSource
@@ -191,7 +194,9 @@ export class CouncilsService {
   }
 
   async findByFilters(filters: CouncilFiltersDto) {
-    const { moduleId = 0, limit = 10, offset = 0 } = filters
+    const { moduleId = 0, limit, page } = filters
+
+    const offset = (page - 1) * limit
 
     const qb = this.dataSource.createQueryBuilder(CouncilEntity, 'councils')
 

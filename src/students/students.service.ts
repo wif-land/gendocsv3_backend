@@ -4,7 +4,7 @@ import { UpdateStudentDto } from './dto/update-student.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, In, Not, Repository } from 'typeorm'
 import { StudentEntity } from './entities/student.entity'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { StudentBadRequestError } from './errors/student-bad-request'
 import { StudentAlreadyExists } from './errors/student-already-exists'
 import { StudentError } from './errors/student-error'
@@ -284,9 +284,10 @@ export class StudentsService {
     })
   }
 
-  async findAll(paginationDTO: PaginationDto) {
-    // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, offset = 0 } = paginationDTO
+  async findAll(paginationDTO: PaginationDTO) {
+    const { limit, page } = paginationDTO
+    const offset = (page - 1) * limit
+
     const students = await this.studentRepository.find({
       order: {
         id: 'ASC',
@@ -325,14 +326,8 @@ export class StudentsService {
   }
 
   async findByFilters(filters: StudentFiltersDto) {
-    // eslint-disable-next-line no-magic-numbers
-    const {
-      limit = 5,
-      offset = 0,
-      field = '',
-      state = 'true',
-      careerId,
-    } = filters
+    const { limit, page, field = '', state = 'true', careerId } = filters
+    const offset = (page - 1) * limit
 
     const qb = this.studentRepository.createQueryBuilder('students')
 

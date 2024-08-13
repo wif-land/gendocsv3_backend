@@ -4,9 +4,9 @@ import {
   IsString,
   MinLength,
 } from 'class-validator'
-import { PaginationDto } from '../../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../../shared/dtos/pagination.dto'
 
-export class ProcessFiltersDto extends PaginationDto {
+export class ProcessFiltersDto extends PaginationDTO {
   @IsOptional()
   @IsBooleanString()
   state?: boolean

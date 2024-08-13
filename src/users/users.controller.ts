@@ -12,7 +12,7 @@ import {
 import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { CreateUserDTO } from './dto/create-user.dto'
 import { UsersService } from './users.service'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { UserEntity } from './entities/users.entity'
 import { UserFiltersDto } from './dto/user-filters.dto'
 import { Auth } from '../auth/decorators/auth.decorator'
@@ -49,7 +49,7 @@ export class UsersController {
 
   @Auth(...RolesThatCanQuery)
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
+  async findAll(@Query() paginationDto: PaginationDTO) {
     return await this.userService.findAll(paginationDto)
   }
 

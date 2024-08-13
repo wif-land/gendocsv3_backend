@@ -15,7 +15,7 @@ import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
 import { SubmodulesNames } from '../shared/enums/submodules-names'
 import { ResponseProcessDto } from './dto/response-process.dto'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { UpdateProcessBulkItemDto } from './dto/update-processes-bulk.dto'
 import { ProcessFiltersDto } from './dto/process-filters.dto'
 import { TemplateProcess } from '../templates/entities/template-processes.entity'
@@ -122,9 +122,9 @@ export class ProcessesService {
     }
   }
 
-  async getProcessesByModuleId(paginationDto: PaginationDto) {
-    // eslint-disable-next-line no-magic-numbers
-    const { moduleId, limit = 10, offset = 0 } = paginationDto
+  async getProcessesByModuleId(paginationDto: PaginationDTO) {
+    const { moduleId, limit, page } = paginationDto
+    const offset = (page - 1) * limit
 
     const qb = this.dataSource
       .createQueryBuilder(ProcessEntity, 'processes')
@@ -181,8 +181,8 @@ export class ProcessesService {
   }
 
   async findByFilters(filters: ProcessFiltersDto) {
-    // eslint-disable-next-line no-magic-numbers
-    const { moduleId, limit = 10, offset = 0 } = filters
+    const { moduleId, limit, page } = filters
+    const offset = (page - 1) * limit
 
     const qb = this.dataSource
       .createQueryBuilder(ProcessEntity, 'processes')
