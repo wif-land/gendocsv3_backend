@@ -90,7 +90,7 @@ export class DegreeController {
     return await this.updateCertificateService.update(id, dto)
   }
 
-  @Auth(...AdminRoles)
+  @Auth(...RolesThatCanMutate)
   @Patch('numeration/generate/:careerId')
   async generateNumeration(@Param('careerId', ParseIntPipe) careerId: number) {
     return await this.certificateNumerationService.generateNumeration(careerId)

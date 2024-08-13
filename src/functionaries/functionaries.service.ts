@@ -84,7 +84,7 @@ export class FunctionariesService {
   }
 
   async findByFilters(filters: FunctionaryFiltersDto) {
-    const { limit, page, field = '', state = 'true' } = filters
+    const { limit = 10, page = 1, field = '', state = 'true' } = filters
     const offset = limit * (page - 1)
 
     const qb = this.functionaryRepository.createQueryBuilder('functionaries')

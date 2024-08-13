@@ -356,11 +356,12 @@ export class UsersService {
       const userUpdatedPayload = {
         ...userUpdated,
         accessModules: userUpdated.accessModules.map((module) => module.id),
+        accessCareersDegCert,
       }
 
       this.usersGateway.handleChangeUser({
         id,
-        user: userUpdatedPayload,
+        user: payload,
       })
 
       return new ApiResponseDto(

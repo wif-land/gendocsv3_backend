@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { DEGREE_CERTIFICATE, IDegreeCertificateFilters } from '../constants'
 import { DegreeCertificateRepository } from '../repositories/degree-certificate-repository'
-import { Not, IsNull, Between } from 'typeorm'
+import { IsNull, Between } from 'typeorm'
 import { DegreeCertificatesService } from './degree-certificates.service'
 import { FilesService } from '../../files/services/files.service'
 import { MIMETYPES } from '../../shared/constants/mime-types'
@@ -11,7 +11,6 @@ import { getFullName, getFullNameWithTitles } from '../../shared/utils/string'
 import { DegreeAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
 import { DEGREE_ATTENDANCE_ROLES } from '../../shared/enums/degree-certificates'
 import { formatDate, formatTime } from '../../shared/utils/date'
-import { DATE_TYPES } from '../../councils/dto/council-filters.dto'
 
 @Injectable()
 export class CertificateReportsService {
@@ -26,7 +25,7 @@ export class CertificateReportsService {
   async getCertificatesReport(
     degreeCertificateFilters: IDegreeCertificateFilters,
   ) {
-    const { careerId, startDate, endDate, dateType } = degreeCertificateFilters
+    const { careerId, startDate, endDate } = degreeCertificateFilters
 
     const subModuleYearModule =
       await this.degreeCertificateService.getCurrentDegreeSubmoduleYearModule()
@@ -35,29 +34,22 @@ export class CertificateReportsService {
         {
           where: {
             career: { id: +careerId },
-            presentationDate:
-              dateType === DATE_TYPES.CREATION ? Not(IsNull()) : IsNull(),
+            presentationDate: endDate
+              ? Between(
+                  new Date(new Date(startDate).setHours(0, 0, 0, 0)),
+                  new Date(new Date(endDate).setHours(23, 59, 59, 999)),
+                )
+              : IsNull(),
 
             isClosed: false,
             deletedAt: IsNull(),
             submoduleYearModule: { id: subModuleYearModule.id },
-            createdAt:
-              dateType === DATE_TYPES.CREATION
-                ? Between(
-                    new Date(new Date(startDate).setHours(0, 0, 0, 0)),
-                    new Date(new Date(endDate).setHours(23, 59, 59, 999)),
-                  )
-                : Not(IsNull()),
           },
 
           order: { createdAt: 'ASC' },
         },
         degreeCertificateFilters.field,
       )
-
-    if (dateType !== DATE_TYPES.CREATION) {
-      return certificates
-    }
 
     const filteredAttendance = certificates.degreeCertificates.filter(
       (certificate) =>
@@ -190,7 +182,7 @@ export class CertificateReportsService {
         dni: certificate.student.dni,
         studentName: getFullName(certificate.student),
         representantName,
-        degreeModality: certificate.degreeModality.name.toUpperCase(),
+        degreeModality: certificate.certificateType.name.toUpperCase(),
         mentorName,
         topic: certificate.topic,
         firstMainMemberName,

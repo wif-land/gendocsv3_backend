@@ -167,6 +167,12 @@ export class CertificateBulkService {
       savedRootNotification = await rootNotification.save()
     }
 
+    if (rootNotification.retryId && completedWithoutErrors.length > 0) {
+      await this.notificationsService.update(rootNotification.retryId, {
+        status: NotificationStatus.COMPLETED,
+      })
+    }
+
     this.notificationsGateway.handleSendNotification({
       notification: savedRootNotification,
       childs: notifications,

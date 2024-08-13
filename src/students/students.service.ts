@@ -326,7 +326,13 @@ export class StudentsService {
   }
 
   async findByFilters(filters: StudentFiltersDto) {
-    const { limit, page, field = '', state = 'true', careerId } = filters
+    const {
+      limit = 10,
+      page = 1,
+      field = '',
+      state = 'true',
+      careerId,
+    } = filters
     const offset = (page - 1) * limit
 
     const qb = this.studentRepository.createQueryBuilder('students')
