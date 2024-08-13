@@ -182,7 +182,7 @@ export class CertificateReportsService {
         dni: certificate.student.dni,
         studentName: getFullName(certificate.student),
         representantName,
-        degreeModality: certificate.degreeModality.name.toUpperCase(),
+        degreeModality: certificate.certificateType.name.toUpperCase(),
         mentorName,
         topic: certificate.topic,
         firstMainMemberName,
