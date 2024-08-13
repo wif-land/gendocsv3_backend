@@ -1,37 +1,24 @@
-FROM node:20.16-alpine3.19 AS build
+FROM node:20.10-alpine3.18
 
 WORKDIR /app
 
 RUN apk add --no-cache tzdata
 
 ENV TZ=America/Bogota
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN cp /usr/share/zoneinfo/America/Bogota /etc/localtime
 
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN npm ci --omiy=dev
 
 COPY . .
 
 RUN npm run build
 
-FROM node:20.16-alpine3.19 AS production
-
-ENV NODE_ENV=production \
-    PORT=3001 \
-    TZ=America/Bogota
-
-WORKDIR /app
-
-COPY --from=build --chown=node:node /app/dist ./dist
-COPY --from=build --chown=node:node /app/package.json ./
-COPY --from=build --chown=node:node /app/node_modules ./node_modules
-
 COPY ./scripts/start.sh /app/start.sh
 
-RUN chown node:node /app/start.sh && chmod +x /app/start.sh
-
-USER node
+RUN chmod +x /app/start.sh
 
 EXPOSE 3001
 
