@@ -58,10 +58,20 @@ export class DegreeCertificatesService {
         },
         paginationDto.field,
       )
+    const certificatesWithNumber = degreeCertificates.filter(
+      (certificate) => certificate.number,
+    )
+
+    const certificatesWithoutNumber = degreeCertificates.filter(
+      (certificate) => !certificate.number,
+    )
 
     return new ApiResponseDto('Certificados de grado encontrados', {
       count,
-      degreeCertificates,
+      degreeCertificates: [
+        ...certificatesWithNumber,
+        ...certificatesWithoutNumber,
+      ],
     })
   }
 
@@ -171,6 +181,7 @@ export class DegreeCertificatesService {
       )
     }
 
+    // no se elimina el numero ya que se utiliza para los números encolados
     const degreeCertificateUpdated =
       await this.degreeCertificateRepository.save({
         ...degreeCertificate,

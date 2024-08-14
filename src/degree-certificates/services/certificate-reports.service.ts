@@ -49,18 +49,30 @@ export class CertificateReportsService {
         filters.field,
       )
 
-    const filteredAttendance = certificates.degreeCertificates.filter(
-      (certificate) =>
-        certificate.attendances.find(
-          (item) => item.role === DEGREE_ATTENDANCE_ROLES.PRESIDENT,
-        ),
+    const certificatesWithNumber = certificates.degreeCertificates.filter(
+      (certificate) => certificate.number,
+    )
+
+    const certificatesWithoutNumber = certificates.degreeCertificates.filter(
+      (certificate) => !certificate.number,
+    )
+
+    const certificatesSorted = [
+      ...certificatesWithNumber,
+      ...certificatesWithoutNumber,
+    ]
+
+    const filteredAttendance = certificatesSorted.filter((certificate) =>
+      certificate.attendances.find(
+        (item) => item.role === DEGREE_ATTENDANCE_ROLES.PRESIDENT,
+      ),
     )
 
     return {
       ...certificates,
       degreeCertificates: filters.isEnd
         ? filteredAttendance
-        : certificates.degreeCertificates,
+        : certificatesSorted,
     }
   }
 

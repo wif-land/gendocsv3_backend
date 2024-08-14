@@ -4,7 +4,7 @@ import { DegreeCertificateRepository } from '../repositories/degree-certificate-
 import { DegreeCertificatesService } from './degree-certificates.service'
 import { YearModuleService } from '../../year-module/year-module.service'
 import { DEGREE_MODULES } from '../../shared/enums/degree-certificates'
-import { Not, IsNull } from 'typeorm'
+import { Not, IsNull, MoreThan } from 'typeorm'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { DegreeCertificateNotFoundError } from '../errors/degree-certificate-not-found'
 import { CertificateDocumentService } from './certificate-document.service'
@@ -130,12 +130,17 @@ export class CertificateNumerationService {
       submoduleYearModule.id,
     )
 
-    let number = lastNumber
+    const enqueuedNumbers = await this.getNumerationEnqueued(careerId)
+
+    let number =
+      enqueuedNumbers.length > 0 ? enqueuedNumbers[0] - 1 : lastNumber
 
     await this.verifyLastNumberatedAndPresentationDate(
       careerId,
       submoduleYearModule.id,
       degreeCertificates,
+      enqueuedNumbers.length > 0 ? enqueuedNumbers[0] : lastNumber,
+      enqueuedNumbers.length > 0,
     )
 
     for (const degreeCertificate of degreeCertificates) {
@@ -157,37 +162,54 @@ export class CertificateNumerationService {
     careerId: number,
     submoduleYearModuleId: number,
     degreeCertificates: DegreeCertificateEntity[],
+    number: number,
+    isEnqueued = false,
   ) {
-    const lastNumber = await this.getLastNumberGenerated(
-      careerId,
-      submoduleYearModuleId,
-    )
+    if (isEnqueued) {
+      const nextDegreeCertificateAfterEnqueuedNumber =
+        await this.degreeCertificateRepository.findManyFor({
+          where: {
+            career: { id: careerId },
+            submoduleYearModule: { id: submoduleYearModuleId },
+            number: MoreThan(number),
+          },
+          order: { number: 'ASC' },
+        })
 
-    if (lastNumber === 0) {
-      return
+      const nextDegreeCertificate = nextDegreeCertificateAfterEnqueuedNumber[0]
+
+      if (
+        nextDegreeCertificate &&
+        nextDegreeCertificate.presentationDate &&
+        new Date(nextDegreeCertificate.presentationDate).getDate() <
+          new Date(degreeCertificates[0].presentationDate).getDate()
+      ) {
+        throw new DegreeCertificateNotFoundError(
+          `La fecha de presentación del acta para estudiante con cédula: ${degreeCertificates[0].student.dni} es menor a la fecha de presentación del acta numerada en cola`,
+        )
+      }
     }
 
-    const degreeCertificate = await this.degreeCertificateRepository.findOneFor(
-      {
+    const lastDegreeCertificate =
+      await this.degreeCertificateRepository.findOneFor({
         where: {
           career: { id: careerId },
           submoduleYearModule: { id: submoduleYearModuleId },
-          number: lastNumber,
+          number,
         },
-      },
-    )
+      })
 
-    if (!degreeCertificate) {
+    if (!lastDegreeCertificate) {
       return
     }
 
-    if (!degreeCertificate.presentationDate) {
+    if (!lastDegreeCertificate.presentationDate) {
       throw new DegreeCertificateNotFoundError(
         'La fecha de presentación del acta de grado no ha sido registrada',
       )
     }
 
-    const lastPresentationDate = degreeCertificate.presentationDate
+    const lastPresentationDate = lastDegreeCertificate.presentationDate
 
     for (const degreeCertificate of degreeCertificates) {
       const sameMonthAndYear =
@@ -197,12 +219,24 @@ export class CertificateNumerationService {
           new Date(lastPresentationDate).getFullYear()
 
       if (
+        !lastDegreeCertificate.deletedAt &&
         sameMonthAndYear &&
         new Date(degreeCertificate.presentationDate).getDate() <
           new Date(lastPresentationDate).getDate()
       ) {
         throw new DegreeCertificateNotFoundError(
           `La fecha de presentación del acta para estudiante con cédula: ${degreeCertificate.student.dni} es menor a la fecha de presentación de la última acta numerada`,
+        )
+      }
+
+      if (
+        lastDegreeCertificate.deletedAt != null &&
+        sameMonthAndYear &&
+        new Date(degreeCertificate.presentationDate).getDate() >
+          new Date(lastPresentationDate).getDate()
+      ) {
+        throw new DegreeCertificateNotFoundError(
+          `La fecha de presentación del acta para estudiante con cédula: ${degreeCertificate.student.dni} es mayor a la fecha de presentación de la última acta eliminada, esto puede generar inconsistencias en la numeración`,
         )
       }
     }
