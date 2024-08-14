@@ -52,7 +52,7 @@ export class DegreeCertificatesService {
             career: { id: Number(paginationDto.careerId) || Not(IsNull()) },
             deletedAt: IsNull(),
           },
-          order: { auxNumber: 'ASC' },
+          order: { number: paginationDto.order || 'ASC' },
           take: limit,
           skip: offset,
         },

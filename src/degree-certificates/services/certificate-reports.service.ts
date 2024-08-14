@@ -44,7 +44,7 @@ export class CertificateReportsService {
             submoduleYearModule: { id: subModuleYearModule.id },
           },
 
-          order: { createdAt: 'ASC' },
+          order: { number: filters.order || 'ASC' },
         },
         filters.field,
       )

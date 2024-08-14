@@ -25,4 +25,5 @@ export interface IDegreeCertificateFilters extends PaginationDTO {
   endDate?: Date
   isEnd?: boolean
   field?: string
+  order?: 'ASC' | 'DESC'
 }
