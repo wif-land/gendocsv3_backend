@@ -1,5 +1,6 @@
 import { NotificationEntity } from '../notifications/entities/notification.entity'
 import { PaginationDTO } from '../shared/dtos/pagination.dto'
+import { StudentEntity } from '../students/entities/student.entity'
 import { CreateDegreeCertificateBulkDto } from './dto/create-degree-certificate-bulk.dto'
 
 export enum DEGREE_CERTIFICATE {
@@ -27,3 +28,15 @@ export interface IDegreeCertificateFilters extends PaginationDTO {
   field?: string
   order?: 'ASC' | 'DESC'
 }
+
+export const nonNullableStudentProperties: (keyof StudentEntity)[] = [
+  'gender',
+  'endStudiesDate',
+  'startStudiesDate',
+  'internshipHours',
+  'vinculationHours',
+  'highSchoolName',
+  'birthdate',
+  'canton',
+  'folio',
+]

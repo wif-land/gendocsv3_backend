@@ -1,10 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { DEGREE_CERTIFICATE } from '../constants'
+import { DEGREE_CERTIFICATE, nonNullableStudentProperties } from '../constants'
 import { DegreeCertificateRepository } from '../repositories/degree-certificate-repository'
 import { addMinutesToDate } from '../../shared/utils/date'
 import { StudentEntity } from '../../students/entities/student.entity'
 import { DegreeCertificateAlreadyExists } from '../errors/degree-certificate-already-exists'
 import { DegreeCertificateBadRequestError } from '../errors/degree-certificate-bad-request'
+import { SPANISH_FIELDS } from '../../shared/constants/permissions'
 
 @Injectable()
 export class CertificateValidator {
@@ -18,47 +19,45 @@ export class CertificateValidator {
    *
    * @param {StudentEntity} student Is the student to check if it has a degree certificate
    */
-  public async checkStudent(student: StudentEntity): Promise<void> {
+  public async checkStudent(
+    student: StudentEntity,
+    withoutApproved = false,
+  ): Promise<void> {
     const hasApproved =
       await this.degreeCertificateRepository.findApprovedByStudent(student.id)
 
-    if (hasApproved != null && hasApproved !== undefined) {
+    if (hasApproved != null && hasApproved !== undefined && !withoutApproved) {
       throw new DegreeCertificateAlreadyExists(
         `El estudiante con dni ${student.dni} ya cuenta con un certificado de grado aprobado`,
       )
     }
 
-    if (student.highSchoolName == null || student.bachelorDegree == null) {
+    nonNullableStudentProperties.forEach((property) => {
+      console.log(student[property], student[property] == null)
+      if (student[property] == null || student[property] === '') {
+        throw new DegreeCertificateBadRequestError(
+          `El estudiante no cuenta con ${
+            SPANISH_FIELDS[StudentEntity.name][property]
+          }`,
+        )
+      }
+    })
+
+    if (student.approvedCredits < student.career.credits) {
       throw new DegreeCertificateBadRequestError(
-        'El estudiante no cuenta con título de bachiller o nombre de colegio de procedencia',
+        `El estudiante no cumple con los requisitos para obtener el certificado de grado. Créditos necesarios: ${student.career.credits}`,
       )
     }
 
-    const nonNullableFields = [
-      student.gender,
-      student.startStudiesDate,
-      student.internshipHours,
-      student.vinculationHours,
-      student.approvedCredits,
-      student.birthdate,
-      student.canton,
-      student.folio,
-      student.registration,
-    ]
-
-    if (nonNullableFields.some((field) => field == null)) {
+    if (student.vinculationHours < student.career.vinculationHours) {
       throw new DegreeCertificateBadRequestError(
-        'Falta información. Revise:, Género, Fecha de inicio de estudios, Horas de pasantias y horas de vinculación, Fecha de nacimiento, Cantón, Folio, Matrícula del estudiante ',
+        `El estudiante no cumple con los requisitos para obtener el certificado de grado. Horas de vinculación necesarias: ${student.career.vinculationHours}`,
       )
     }
 
-    if (
-      student.approvedCredits < student.career.credits ||
-      student.vinculationHours < student.career.vinculationHours ||
-      student.internshipHours < student.career.internshipHours
-    ) {
+    if (student.internshipHours < student.career.internshipHours) {
       throw new DegreeCertificateBadRequestError(
-        `El estudiante no cumple con los requisitos para obtener el certificado de grado. Créditos necesarios: ${student.career.credits}, Horas de vinculación necesarias: ${student.career.vinculationHours}, Horas de pasantías necesarias: ${student.career.internshipHours}`,
+        `El estudiante no cumple con los requisitos para obtener el certificado de grado. Horas de pasantías necesarias: ${student.career.internshipHours}`,
       )
     }
   }

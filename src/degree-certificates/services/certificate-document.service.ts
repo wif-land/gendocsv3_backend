@@ -14,6 +14,7 @@ import { CertificateStatusService } from './certificate-status.service'
 import { DegreeAttendanceService } from '../../degree-certificate-attendance/degree-certificate-attendance.service'
 import { GradesSheetService } from './grades-sheet.service'
 import { FilesService } from '../../files/services/files.service'
+import { CertificateValidator } from '../validators/certificate-validator'
 
 @Injectable()
 export class CertificateDocumentService {
@@ -25,6 +26,7 @@ export class CertificateDocumentService {
     private readonly degreeAttendanceService: DegreeAttendanceService,
     private readonly gradesSheetService: GradesSheetService,
     private readonly filesService: FilesService,
+    private readonly validator: CertificateValidator,
   ) {}
 
   async generateDocument(id: number) {
@@ -69,17 +71,7 @@ export class CertificateDocumentService {
       )
     }
 
-    if (
-      degreeCertificate.student.gender == null ||
-      degreeCertificate.student.endStudiesDate == null ||
-      degreeCertificate.student.startStudiesDate == null ||
-      degreeCertificate.student.internshipHours == null ||
-      degreeCertificate.student.vinculationHours == null
-    ) {
-      throw new DegreeCertificateBadRequestError(
-        'El estudiante no cuenta con la información necesaria para generar la acta de grado',
-      )
-    }
+    await this.validator.checkStudent(degreeCertificate.student, true)
 
     if (degreeCertificate.gradesSheetDriveId == null) {
       throw new DegreeCertificateBadRequestError(

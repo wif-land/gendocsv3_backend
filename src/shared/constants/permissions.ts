@@ -1,4 +1,5 @@
 import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
+import { StudentEntity } from '../../students/entities/student.entity'
 import { RolesType } from './roles'
 
 const MUTATE_FIELDS_WRITTER = {
@@ -28,6 +29,19 @@ export const SPANISH_FIELDS = {
     userId: 'Usuario',
     changeUniversityResolution: 'Resolución de cambio de universidad',
     changeUniversityName: 'Nombre universidad anterior',
+  },
+  [StudentEntity.name]: {
+    gender: 'Género',
+    startStudiesDate: 'Fecha de inicio de estudios',
+    internshipHours: 'Horas de pasantías',
+    vinculationHours: 'Horas de vinculación',
+    approvedCredits: 'Créditos aprobados',
+    birthdate: 'Fecha de nacimiento',
+    canton: 'Cantón',
+    folio: 'Folio',
+    registration: 'Matrícula del estudiante',
+    bachellorDegree: 'Título de bachiller',
+    highSchoolName: 'Nombre de colegio de procedencia',
   },
 }
 
