@@ -34,26 +34,10 @@ export class DegreeAttendanceService {
       data.functionaryId,
     )
 
-    try {
-      await new DegreeAttendanceThatOverlapValidator(this.dataSource).validate({
-        degreeId: data.degreeCertificateId,
-        functionaryId: data.functionaryId,
-      })
-    } catch (error) {
-      throw new DegreeCertificateBadRequestError(
-        `El funcionario ${getFullNameWithTitles(
-          await FunctionaryEntity.findOne({
-            where: { id: data.functionaryId },
-          }),
-        )} ya tiene una asistencia registrada en la acta de grado para el estudiante con cédula ${
-          (
-            await this.degreeCertificateRepository.findOneFor({
-              where: { id: data.degreeCertificateId },
-            })
-          ).student.dni
-        } que coincide con la fecha de presentación.`,
-      )
-    }
+    await new DegreeAttendanceThatOverlapValidator(this.dataSource).validate({
+      degreeId: data.degreeCertificateId,
+      functionaryId: data.functionaryId,
+    })
 
     const degreeCertificateAttendance = this.degreeAttendanceRepository.create({
       ...data,
@@ -181,28 +165,10 @@ export class DegreeAttendanceService {
         updateAttendanceDto.functionaryId
 
     if (existsMemberToBeUpdated) {
-      try {
-        await new DegreeAttendanceThatOverlapValidator(
-          this.dataSource,
-        ).validate({
-          degreeId: degreeCertificateAttendance.degreeCertificate.id,
-          functionaryId: updateAttendanceDto.functionaryId,
-        })
-      } catch (error) {
-        throw new DegreeCertificateBadRequestError(
-          `El funcionario ${getFullNameWithTitles(
-            await FunctionaryEntity.findOne({
-              where: { id: updateAttendanceDto.functionaryId },
-            }),
-          )} ya tiene una asistencia registrada en la acta de grado para el estudiante con cédula ${
-            (
-              await this.degreeCertificateRepository.findOneFor({
-                where: { id: degreeCertificateAttendance.degreeCertificate.id },
-              })
-            ).student.dni
-          } que coincide con la fecha de presentación.`,
-        )
-      }
+      await new DegreeAttendanceThatOverlapValidator(this.dataSource).validate({
+        degreeId: degreeCertificateAttendance.degreeCertificate.id,
+        functionaryId: updateAttendanceDto.functionaryId,
+      })
 
       delete toUpdate.functionaryId
 
@@ -223,30 +189,13 @@ export class DegreeAttendanceService {
             `No se puede marcar como asistido a la asistencia al acta de grado porque la fecha de presentación no ha sido asignada`,
           )
         }
-        try {
-          await new DegreeAttendanceThatOverlapValidator(
-            this.dataSource,
-          ).validate({
-            degreeId: degreeCertificateAttendance.degreeCertificate.id,
-            functionaryId: degreeCertificateAttendance.functionary.id,
-          })
-        } catch (error) {
-          throw new DegreeCertificateBadRequestError(
-            `El funcionario ${getFullNameWithTitles(
-              await FunctionaryEntity.findOne({
-                where: { id: updateAttendanceDto.functionaryId },
-              }),
-            )} ya tiene una asistencia registrada en la acta de grado para el estudiante con cédula ${
-              (
-                await this.degreeCertificateRepository.findOneFor({
-                  where: {
-                    id: degreeCertificateAttendance.degreeCertificate.id,
-                  },
-                })
-              ).student.dni
-            } que coincide con la fecha de presentación.`,
-          )
-        }
+
+        await new DegreeAttendanceThatOverlapValidator(
+          this.dataSource,
+        ).validate({
+          degreeId: degreeCertificateAttendance.degreeCertificate.id,
+          functionaryId: degreeCertificateAttendance.functionary.id,
+        })
       }
       await new AttendanceLimitAttendedValidator(this.dataSource).validate({
         degreeId: degreeCertificateAttendance.degreeCertificate.id,

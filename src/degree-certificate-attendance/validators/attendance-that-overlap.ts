@@ -4,6 +4,8 @@ import { DegreeCertificateAttendanceEntity } from '../entities/degree-certificat
 import { DegreeCertificateEntity } from '../../degree-certificates/entities/degree-certificate.entity'
 import { addMinutesToDate } from '../../shared/utils/date'
 import { DegreeCertificateBadRequestError } from '../../degree-certificates/errors/degree-certificate-bad-request'
+import { getFullNameWithTitles } from '../../shared/utils/string'
+import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 
 export interface IDegreeThatOverlapValidator {
   degreeId: number
@@ -43,9 +45,10 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
 
     const query = this.dataSource
       .createQueryBuilder()
-      .select('attendance')
+      .select(['attendance', 'degreeCertificate', 'student'])
       .from(DegreeCertificateAttendanceEntity, 'attendance')
       .innerJoin('attendance.degreeCertificate', 'degreeCertificate')
+      .innerJoin('degreeCertificate.student', 'student')
       .leftJoinAndSelect('attendance.functionary', 'functionary')
       .where('functionary.id = :functionaryId', { functionaryId })
       .andWhere('attendance.hasAttended IS TRUE')
@@ -100,11 +103,17 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
         }),
       )
 
+    const attendanceToDebug = await query.getOne()
+
     const attendance = await query.getCount()
 
     if (attendance > 0) {
       throw new DegreeCertificateBadRequestError(
-        'El funcionario ya se encuentra en otra acta de grado en el mismo horario',
+        `El funcionario ${getFullNameWithTitles(
+          attendanceToDebug.functionary as FunctionaryEntity,
+        )} ya tiene una asistencia registrada en la acta de grado para el estudiante con cédula ${
+          attendanceToDebug.degreeCertificate.student.dni
+        } que coincide con la fecha de presentación.`,
       )
     }
   }
