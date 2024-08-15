@@ -31,7 +31,6 @@ export interface IDegreeCertificateFilters extends PaginationDTO {
 
 export const nonNullableStudentProperties: (keyof StudentEntity)[] = [
   'gender',
-  'endStudiesDate',
   'startStudiesDate',
   'internshipHours',
   'vinculationHours',

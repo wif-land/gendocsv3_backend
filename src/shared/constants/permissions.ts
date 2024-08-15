@@ -33,6 +33,7 @@ export const SPANISH_FIELDS = {
   [StudentEntity.name]: {
     gender: 'Género',
     startStudiesDate: 'Fecha de inicio de estudios',
+    endStudiesDate: 'Fecha de fin de estudios',
     internshipHours: 'Horas de pasantías',
     vinculationHours: 'Horas de vinculación',
     approvedCredits: 'Créditos aprobados',
