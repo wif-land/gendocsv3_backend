@@ -115,7 +115,9 @@ export class UpdateCertificateService {
                 throw new DegreeCertificateBadRequestError(
                   `El funcionario ${getFullNameWithTitles(
                     a.functionary,
-                  )} tiene una asistencia que se cruza con la nueva fecha de presentación`,
+                  )} ya tiene una asistencia registrada en ${
+                    currentDegreeCertificate.student.dni
+                  } que coincide con la nueva fecha de presentación.`,
                 )
               }
             },
