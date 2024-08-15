@@ -48,6 +48,7 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
       .select(['attendance', 'degreeCertificate', 'student'])
       .from(DegreeCertificateAttendanceEntity, 'attendance')
       .innerJoin('attendance.degreeCertificate', 'degreeCertificate')
+      .innerJoin('degreeCertificate.carreer', 'carreer')
       .innerJoin('degreeCertificate.student', 'student')
       .leftJoinAndSelect('attendance.functionary', 'functionary')
       .where('functionary.id = :functionaryId', { functionaryId })
@@ -113,6 +114,8 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
           attendanceToDebug.functionary as FunctionaryEntity,
         )} ya tiene una asistencia registrada en la acta de grado para el estudiante con cédula ${
           attendanceToDebug.degreeCertificate.student.dni
+        } de la carrera ${
+          attendanceToDebug.degreeCertificate.career.name
         } que coincide con la fecha de presentación.`,
       )
     }
