@@ -100,9 +100,11 @@ export class UpdateCertificateService {
 
         await this.validator.checkStudent(student.data)
 
-        await this.studentService.update(student.data.id, {
-          endStudiesDate: dto.presentationDate,
-        })
+        if (student.data.endStudiesDate == null && dto.presentationDate) {
+          await this.studentService.update(student.data.id, {
+            endStudiesDate: dto.presentationDate,
+          })
+        }
 
         Object.defineProperty(dto, 'career', {
           value: { id: student.data.career.id },
