@@ -48,7 +48,7 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
       .select(['attendance', 'degreeCertificate', 'student'])
       .from(DegreeCertificateAttendanceEntity, 'attendance')
       .innerJoin('attendance.degreeCertificate', 'degreeCertificate')
-      .innerJoin('degreeCertificate.carreer', 'carreer')
+      .innerJoin('degreeCertificate.career', 'career')
       .innerJoin('degreeCertificate.student', 'student')
       .leftJoinAndSelect('attendance.functionary', 'functionary')
       .where('functionary.id = :functionaryId', { functionaryId })
