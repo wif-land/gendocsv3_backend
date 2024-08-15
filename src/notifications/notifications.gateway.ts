@@ -47,6 +47,17 @@ export class NotificationsGateway {
     this.server.emit('notification', data)
   }
 
+  @UseFilters(WsAndHttpExceptionFilter)
+  handleSendWarning(
+    @MessageBody()
+    data: {
+      message: string
+      title: string
+    },
+  ): void {
+    this.server.emit('warning', data)
+  }
+
   @SubscribeMessage('user-notifications')
   async handleUserNotifications(
     @MessageBody() { userId, limit = 10 }: { userId: number; limit?: number },

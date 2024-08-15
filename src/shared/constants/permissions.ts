@@ -14,6 +14,7 @@ const MUTATE_FIELDS_WRITTER = {
 
 export const SPANISH_FIELDS = {
   [DegreeCertificateEntity.name]: {
+    number: 'Númeración de acta de grado',
     topic: 'Tema',
     presentationDate: 'Fecha de presentación',
     studentId: 'Estudiante',

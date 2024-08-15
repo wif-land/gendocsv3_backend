@@ -90,5 +90,6 @@ import { CertificateDocumentService } from '../services/certificate-document.ser
     FunctionariesModule,
     NotificationsModule,
   ],
+  exports: [DEGREE_CERTIFICATE.REPOSITORY],
 })
 export class DegreeCertificatesModule {}

@@ -323,8 +323,6 @@ export class UsersService {
             },
           )
 
-          console.log('error', error, isUnshared)
-
           throw new HttpException(
             'No se pudo revocar permisos en Google Drive',
             HttpStatus.CONFLICT,

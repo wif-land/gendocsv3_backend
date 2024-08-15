@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { CreateDegreeCertificateAttendanceDto } from './dto/create-degree-certificate-attendance.dto'
 import { UpdateDegreeCertificateAttendanceDto } from './dto/update-degree-certificate-attendance.dto'
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm'
@@ -11,6 +11,8 @@ import { DegreeAttendanceThatOverlapValidator } from './validators/attendance-th
 import { AttendanceLimitAttendedValidator } from './validators/attendance-limit-attended'
 import { FunctionaryEntity } from '../functionaries/entities/functionary.entity'
 import { getFullNameWithTitles } from '../shared/utils/string'
+import { DEGREE_CERTIFICATE } from '../degree-certificates/constants'
+import { DegreeCertificateRepository } from '../degree-certificates/repositories/degree-certificate-repository'
 
 @Injectable()
 export class DegreeAttendanceService {
@@ -21,6 +23,9 @@ export class DegreeAttendanceService {
     @InjectEntityManager()
     private entityManager: EntityManager,
     private dataSource: DataSource,
+
+    @Inject(DEGREE_CERTIFICATE.REPOSITORY)
+    private readonly degreeCertificateRepository: DegreeCertificateRepository,
   ) {}
 
   async create(data: CreateDegreeCertificateAttendanceDto) {
@@ -29,10 +34,26 @@ export class DegreeAttendanceService {
       data.functionaryId,
     )
 
-    await new DegreeAttendanceThatOverlapValidator(this.dataSource).validate({
-      degreeId: data.degreeCertificateId,
-      functionaryId: data.functionaryId,
-    })
+    try {
+      await new DegreeAttendanceThatOverlapValidator(this.dataSource).validate({
+        degreeId: data.degreeCertificateId,
+        functionaryId: data.functionaryId,
+      })
+    } catch (error) {
+      throw new DegreeCertificateBadRequestError(
+        `El funcionario ${getFullNameWithTitles(
+          await FunctionaryEntity.findOne({
+            where: { id: data.functionaryId },
+          }),
+        )} ya tiene una asistencia registrada en la acta de grado para el estudiante con cédula ${
+          (
+            await this.degreeCertificateRepository.findOneFor({
+              where: { id: data.degreeCertificateId },
+            })
+          ).student.dni
+        } que coincide con la fecha de presentación.`,
+      )
+    }
 
     const degreeCertificateAttendance = this.degreeAttendanceRepository.create({
       ...data,
@@ -160,10 +181,28 @@ export class DegreeAttendanceService {
         updateAttendanceDto.functionaryId
 
     if (existsMemberToBeUpdated) {
-      await new DegreeAttendanceThatOverlapValidator(this.dataSource).validate({
-        degreeId: degreeCertificateAttendance.degreeCertificate.id,
-        functionaryId: updateAttendanceDto.functionaryId,
-      })
+      try {
+        await new DegreeAttendanceThatOverlapValidator(
+          this.dataSource,
+        ).validate({
+          degreeId: degreeCertificateAttendance.degreeCertificate.id,
+          functionaryId: updateAttendanceDto.functionaryId,
+        })
+      } catch (error) {
+        throw new DegreeCertificateBadRequestError(
+          `El funcionario ${getFullNameWithTitles(
+            await FunctionaryEntity.findOne({
+              where: { id: updateAttendanceDto.functionaryId },
+            }),
+          )} ya tiene una asistencia registrada en la acta de grado para el estudiante con cédula ${
+            (
+              await this.degreeCertificateRepository.findOneFor({
+                where: { id: degreeCertificateAttendance.degreeCertificate.id },
+              })
+            ).student.dni
+          } que coincide con la fecha de presentación.`,
+        )
+      }
 
       delete toUpdate.functionaryId
 
@@ -184,12 +223,30 @@ export class DegreeAttendanceService {
             `No se puede marcar como asistido a la asistencia al acta de grado porque la fecha de presentación no ha sido asignada`,
           )
         }
-        await new DegreeAttendanceThatOverlapValidator(
-          this.dataSource,
-        ).validate({
-          degreeId: degreeCertificateAttendance.degreeCertificate.id,
-          functionaryId: degreeCertificateAttendance.functionary.id,
-        })
+        try {
+          await new DegreeAttendanceThatOverlapValidator(
+            this.dataSource,
+          ).validate({
+            degreeId: degreeCertificateAttendance.degreeCertificate.id,
+            functionaryId: degreeCertificateAttendance.functionary.id,
+          })
+        } catch (error) {
+          throw new DegreeCertificateBadRequestError(
+            `El funcionario ${getFullNameWithTitles(
+              await FunctionaryEntity.findOne({
+                where: { id: updateAttendanceDto.functionaryId },
+              }),
+            )} ya tiene una asistencia registrada en la acta de grado para el estudiante con cédula ${
+              (
+                await this.degreeCertificateRepository.findOneFor({
+                  where: {
+                    id: degreeCertificateAttendance.degreeCertificate.id,
+                  },
+                })
+              ).student.dni
+            } que coincide con la fecha de presentación.`,
+          )
+        }
       }
       await new AttendanceLimitAttendedValidator(this.dataSource).validate({
         degreeId: degreeCertificateAttendance.degreeCertificate.id,

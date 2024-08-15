@@ -21,6 +21,8 @@ import { CertificateDocumentService } from './certificate-document.service'
 import { FilesService } from '../../files/services/files.service'
 import { DegreeAttendanceThatOverlapValidator } from '../../degree-certificate-attendance/validators/attendance-that-overlap'
 import { getFullNameWithTitles } from '../../shared/utils/string'
+import { CertificateNumerationService } from './certificate-numeration.service'
+import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 
 @Injectable({ scope: Scope.REQUEST })
 export class UpdateCertificateService {
@@ -32,6 +34,7 @@ export class UpdateCertificateService {
     private readonly certificateTypeRepository: Repository<CertificateTypeEntity>,
     private readonly studentService: StudentsService,
     private readonly validator: CertificateValidator,
+    private readonly numerationService: CertificateNumerationService,
     private readonly gradesSheetService: GradesSheetService,
     private readonly certificateDocumentService: CertificateDocumentService,
     private readonly filesService: FilesService,
@@ -73,6 +76,22 @@ export class UpdateCertificateService {
 
     const currentDegreeCertificate = { ...degreeCertificate }
     try {
+      if (dto.number && dto.number !== currentDegreeCertificate.number) {
+        const degreeCertificateToVerify = dto.presentationDate
+          ? { ...degreeCertificate, presentationDate: dto.presentationDate }
+          : degreeCertificate
+
+        await this.numerationService.verifyLastNumberatedAndPresentationDate({
+          number: dto.number,
+          careerId: degreeCertificate.student.career.id,
+          isEnqueued: true,
+          degreeCertificates: [
+            degreeCertificateToVerify as DegreeCertificateEntity,
+          ],
+          submoduleYearModuleId: degreeCertificate.submoduleYearModule.id,
+        })
+      }
+
       if (
         dto.studentId &&
         dto.studentId !== currentDegreeCertificate.student.id
@@ -115,7 +134,7 @@ export class UpdateCertificateService {
                 throw new DegreeCertificateBadRequestError(
                   `El funcionario ${getFullNameWithTitles(
                     a.functionary,
-                  )} ya tiene una asistencia registrada en ${
+                  )} ya tiene una asistencia registrada en la acta de grado para el estudiante con cédula ${
                     currentDegreeCertificate.student.dni
                   } que coincide con la nueva fecha de presentación.`,
                 )
