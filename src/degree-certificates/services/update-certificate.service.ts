@@ -20,7 +20,6 @@ import { GradesSheetService } from './grades-sheet.service'
 import { CertificateDocumentService } from './certificate-document.service'
 import { FilesService } from '../../files/services/files.service'
 import { DegreeAttendanceThatOverlapValidator } from '../../degree-certificate-attendance/validators/attendance-that-overlap'
-import { getFullNameWithTitles } from '../../shared/utils/string'
 import { CertificateNumerationService } from './certificate-numeration.service'
 import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 
@@ -125,22 +124,12 @@ export class UpdateCertificateService {
         if (currentDegreeCertificate.attendances.length > 0) {
           const promises = currentDegreeCertificate.attendances.map(
             async (a) => {
-              try {
-                await new DegreeAttendanceThatOverlapValidator(
-                  this.dataSource,
-                ).validate({
-                  degreeId: currentDegreeCertificate.id,
-                  functionaryId: a.functionary.id,
-                })
-              } catch (error) {
-                throw new DegreeCertificateBadRequestError(
-                  `El funcionario ${getFullNameWithTitles(
-                    a.functionary,
-                  )} ya tiene una asistencia registrada en la acta de grado para el estudiante con cédula ${
-                    currentDegreeCertificate.student.dni
-                  } que coincide con la nueva fecha de presentación.`,
-                )
-              }
+              await new DegreeAttendanceThatOverlapValidator(
+                this.dataSource,
+              ).validate({
+                degreeId: currentDegreeCertificate.id,
+                functionaryId: a.functionary.id,
+              })
             },
           )
           await Promise.all(promises)

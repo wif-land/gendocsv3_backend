@@ -22,6 +22,14 @@ export const formatDateText = (
   formatStr = "d 'de' MMMM 'de' yyyy",
 ): string => {
   const dateObj = new Date(date)
+
+  // chack if reduces 1 day because of timezone the db stores it as yyyy-MM-dd
+  const day = date.toString().split('-')[2]
+
+  if (day !== dateObj.getDate().toString()) {
+    dateObj.setDate(dateObj.getDate() - 1)
+  }
+
   return format(dateObj, formatStr, { locale: es })
 }
 

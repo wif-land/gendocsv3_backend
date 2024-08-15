@@ -34,7 +34,6 @@ export class CertificateValidator {
 
     nonNullableStudentProperties.forEach((property) => {
       if (student[property] == null || student[property] === '') {
-        console.log(property)
         throw new DegreeCertificateBadRequestError(
           `El estudiante no cuenta con ${
             SPANISH_FIELDS[StudentEntity.name][property]
