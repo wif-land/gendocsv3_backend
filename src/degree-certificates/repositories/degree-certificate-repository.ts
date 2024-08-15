@@ -307,20 +307,48 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .andWhere(
         new Brackets((qb) => {
           qb.where(
-            "degreeCertificate.presentationDate < :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :start",
-            { start: startDate },
+            new Brackets((qb2) => {
+              qb2
+                .where('degreeCertificate.presentationDate < :start', {
+                  start: startDate,
+                })
+                .andWhere(
+                  "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :start",
+                  { start: startDate },
+                )
+            }),
           )
             .orWhere(
-              "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :end AND degreeCertificate.presentationDate < :end",
-              { end: endDate },
+              new Brackets((qb2) => {
+                qb2.where('degreeCertificate.presentationDate = :start', {
+                  start: startDate,
+                })
+              }),
             )
             .orWhere(
-              "degreeCertificate.presentationDate > :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') < :end",
-              { start: startDate, end: endDate },
+              new Brackets((qb2) => {
+                qb2
+                  .where(
+                    "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :end",
+                    { end: endDate },
+                  )
+                  .andWhere('degreeCertificate.presentationDate < :end', {
+                    end: endDate,
+                  })
+              }),
             )
-            .orWhere('degreeCertificate.presentationDate = :start', {
-              start: startDate,
-            })
+            .orWhere(
+              new Brackets((qb2) => {
+                qb2
+                  .where('degreeCertificate.presentationDate > :start', {
+                    start: startDate,
+                  })
+                  .andWhere(
+                    "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') < :end",
+                    { end: endDate },
+                  )
+              }),
+            )
         }),
       )
 
