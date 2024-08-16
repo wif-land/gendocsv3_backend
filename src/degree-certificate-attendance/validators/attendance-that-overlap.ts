@@ -10,6 +10,8 @@ import { FunctionaryEntity } from '../../functionaries/entities/functionary.enti
 export interface IDegreeThatOverlapValidator {
   degreeId: number
   functionaryId: number
+  updatedPresentationDate?: Date
+  updatedDuration?: number
 }
 
 /**
@@ -32,6 +34,8 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
   public async validate({
     degreeId,
     functionaryId,
+    updatedPresentationDate,
+    updatedDuration,
   }: IDegreeThatOverlapValidator) {
     // si un miembro del acta entra como miembro supplete en la acta actual, se debe validar que no esté en otra acta en la misma fecha con cualquier rol
     // en realidad deberia validar en cualquier rol, se hará así para simplificar
@@ -40,8 +44,12 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
       .where('degreeCertificate.id = :degreeId', { degreeId })
       .getOne()
 
-    const startDate = degreeCertificate.presentationDate
-    const endDate = addMinutesToDate(startDate, degreeCertificate.duration)
+    const startDate =
+      updatedPresentationDate ?? degreeCertificate.presentationDate
+    const endDate = addMinutesToDate(
+      startDate,
+      updatedDuration ?? degreeCertificate.duration,
+    )
 
     const query = this.dataSource
       .createQueryBuilder()

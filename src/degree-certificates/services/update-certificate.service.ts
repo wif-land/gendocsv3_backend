@@ -129,6 +129,9 @@ export class UpdateCertificateService {
               ).validate({
                 degreeId: currentDegreeCertificate.id,
                 functionaryId: a.functionary.id,
+                updatedPresentationDate: dto.presentationDate,
+                updatedDuration:
+                  dto.duration ?? currentDegreeCertificate.duration,
               })
             },
           )
@@ -207,9 +210,15 @@ export class UpdateCertificateService {
           await this.filesService.remove(degreeCertificate.certificateDriveId)
         }
 
-        await this.studentService.update(certificateUpdated.student.id, {
-          endStudiesDate: dto.presentationDate,
-        })
+        const student = await this.studentService.findOne(
+          certificateUpdated.student.id,
+        )
+
+        if (student.data.endStudiesDate == null && dto.presentationDate) {
+          await this.studentService.update(certificateUpdated.student.id, {
+            endStudiesDate: dto.presentationDate,
+          })
+        }
       }
 
       const cerUpdated = await this.degreeCertificateRepository.findOneFor({
