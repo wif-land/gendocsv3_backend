@@ -45,7 +45,7 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
 
     const query = this.dataSource
       .createQueryBuilder()
-      .select(['attendance', 'degreeCertificate', 'student'])
+      .select(['attendance', 'degreeCertificate', 'student', 'career'])
       .from(DegreeCertificateAttendanceEntity, 'attendance')
       .innerJoin('attendance.degreeCertificate', 'degreeCertificate')
       .innerJoin('degreeCertificate.career', 'career')
@@ -106,9 +106,7 @@ export class DegreeAttendanceThatOverlapValidator extends Validator<IDegreeThatO
 
     const attendanceToDebug = await query.getOne()
 
-    const attendance = await query.getCount()
-
-    if (attendance > 0) {
+    if (attendanceToDebug) {
       throw new DegreeCertificateBadRequestError(
         `El funcionario ${getFullNameWithTitles(
           attendanceToDebug.functionary as FunctionaryEntity,
