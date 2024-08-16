@@ -19,7 +19,11 @@ import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { UpdateStudentsBulkItemDto } from './dto/update-students-bulk.dto'
 import { StudentFiltersDto } from './dto/student-filters.dto'
 import { Auth } from '../auth/decorators/auth.decorator'
-import { RolesThatCanQuery, RolesType } from '../shared/constants/roles'
+import {
+  RolesThatCanMutate,
+  RolesThatCanQuery,
+  RolesType,
+} from '../shared/constants/roles'
 
 @ApiTags('Students')
 @Controller('students')
@@ -67,7 +71,7 @@ export class StudentsController {
     return await this.studentsService.findOne(id)
   }
 
-  @Auth(RolesType.ADMIN)
+  @Auth(...RolesThatCanMutate)
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
