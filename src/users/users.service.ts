@@ -18,7 +18,7 @@ import { FilesService } from '../files/services/files.service'
 import { RolesType } from '../shared/constants/roles'
 import { UsersGateway } from './users.gateway'
 import { IPayload } from '../auth/types/payload.interface'
-import { ModuleEntity } from '../modules/entities/modules.entity'
+import { ModuleEntity } from '../modules/entities/module.entity'
 
 @Injectable()
 export class UsersService {

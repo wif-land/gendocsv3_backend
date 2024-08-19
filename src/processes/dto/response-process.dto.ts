@@ -10,7 +10,6 @@ export class ResponseProcessDto {
   driveId: string
   userId: number
   moduleId: number
-  submoduleYearModuleId: number
   templateProcesses: ResponseTemplateDto[]
 
   constructor(process: ProcessEntity) {
@@ -22,7 +21,6 @@ export class ResponseProcessDto {
     this.driveId = process.driveId
     this.userId = process.user.id
     this.moduleId = process.module.id
-    this.submoduleYearModuleId = process.submoduleYearModule.id
     this.templateProcesses = process.templateProcesses?.map(
       (templateProcess) => new ResponseTemplateDto(templateProcess),
     )

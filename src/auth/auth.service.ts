@@ -8,7 +8,7 @@ import { UsersService } from '../users/users.service'
 import { UserEntity } from '../users/entities/users.entity'
 import { JwtService } from '@nestjs/jwt'
 import { compareSync } from 'bcrypt'
-import { ModuleEntity } from '../modules/entities/modules.entity'
+import { ModuleEntity } from '../modules/entities/module.entity'
 import { EmailService } from '../email/services/email.service'
 import { IPayload } from './types/payload.interface'
 

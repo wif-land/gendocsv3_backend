@@ -1,6 +1,6 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm'
 import { RolesType } from '../../shared/constants/roles'
-import { ModuleEntity } from '../../modules/entities/modules.entity'
+import { ModuleEntity } from '../../modules/entities/module.entity'
 import { ProcessEntity } from '../../processes/entities/process.entity'
 import { TemplateProcess } from '../../templates/entities/template-processes.entity'
 import { CouncilEntity } from '../../councils/entities/council.entity'

@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { ModuleEntity } from './entities/modules.entity'
+import { ModuleEntity } from './entities/module.entity'
 import { CreateModuleDTO } from './dto/create-module.dto'
 import { YearModuleService } from '../year-module/year-module.service'
 import { ModulesNotFound } from './errors/module-not-found'
