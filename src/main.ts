@@ -5,6 +5,7 @@ import * as bodyParser from 'body-parser'
 import { ConfigService } from '@nestjs/config'
 import { Logger, ValidationPipe } from '@nestjs/common'
 import { HttpExceptionsMiddleware } from './core/middleware/http-exception'
+import LogRocket from 'logrocket'
 
 const buildOptions = () =>
   new DocumentBuilder()
@@ -19,6 +20,7 @@ const bootstrap = async () => {
     logger: ['error', 'warn', 'log', 'debug'],
   })
   const logger = new Logger('Bootstrap')
+  LogRocket.init('kruumk/gendocs-logs')
 
   app.use(bodyParser.json({ limit: '10mb' }))
   app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
