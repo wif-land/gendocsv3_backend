@@ -20,7 +20,6 @@ const bootstrap = async () => {
     logger: ['error', 'warn', 'log', 'debug'],
   })
   const logger = new Logger('Bootstrap')
-  LogRocket.init('kruumk/gendocs-logs')
 
   app.use(bodyParser.json({ limit: '10mb' }))
   app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
@@ -40,9 +39,13 @@ const bootstrap = async () => {
     exposedHeaders: ['Set-Cookie'],
   })
 
-  const options = buildOptions()
-  const document = SwaggerModule.createDocument(app, options)
-  SwaggerModule.setup('api', app, document)
+  if (process.env.NODE_ENV === 'production') {
+    LogRocket.init('kruumk/gendocs-logs')
+  } else {
+    const options = buildOptions()
+    const document = SwaggerModule.createDocument(app, options)
+    SwaggerModule.setup('api', app, document)
+  }
 
   await app.listen(app.get(ConfigService).get('port'))
   logger.log(
