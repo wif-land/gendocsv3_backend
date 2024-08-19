@@ -122,19 +122,21 @@ export class UpdateCertificateService {
         })
 
         if (currentDegreeCertificate.attendances.length > 0) {
-          const promises = currentDegreeCertificate.attendances.map(
-            async (a) => {
-              await new DegreeAttendanceThatOverlapValidator(
-                this.dataSource,
-              ).validate({
-                degreeId: currentDegreeCertificate.id,
-                functionaryId: a.functionary.id,
-                updatedPresentationDate: dto.presentationDate,
-                updatedDuration:
-                  dto.duration ?? currentDegreeCertificate.duration,
-              })
-            },
+          const attendedMembers = currentDegreeCertificate.attendances.filter(
+            (a) => a.hasAttended,
           )
+
+          const promises = attendedMembers.map(async (a) => {
+            await new DegreeAttendanceThatOverlapValidator(
+              this.dataSource,
+            ).validate({
+              degreeId: currentDegreeCertificate.id,
+              functionaryId: a.functionary.id,
+              updatedPresentationDate: dto.presentationDate,
+              updatedDuration:
+                dto.duration ?? currentDegreeCertificate.duration,
+            })
+          })
           await Promise.all(promises)
         }
       }

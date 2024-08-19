@@ -73,7 +73,7 @@ export class CertificateNumerationService {
       },
     )
 
-    if (!degreeCertificate) {
+    if (degreeCertificate == null || !degreeCertificate.number) {
       const currentSystemYear =
         await this.yearModuleService.getCurrentSystemYear()
 
