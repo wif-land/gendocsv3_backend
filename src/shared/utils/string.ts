@@ -38,6 +38,22 @@ export const getFullNameWithTitles = (
   }`
 }
 
+export const getThirdLevelDegree = (functionary: FunctionaryEntity): string =>
+  functionary.thirdLevelDegree?.abbreviation ?? ''
+
+export const getFourthLevelDegree = (functionary: FunctionaryEntity): string =>
+  functionary.fourthLevelDegree?.abbreviation ?? ''
+
+export const getFullNameWithFourthLevelDegreeFirst = (
+  functionary: FunctionaryEntity,
+): string => {
+  const object = { ...functionary }
+  const { fourthLevelDegree } = object
+  return `${
+    fourthLevelDegree ? `${fourthLevelDegree.abbreviation} ` : ''
+  }${getFullName(functionary)}`
+}
+
 export const capitalizeEachWord = (text: string): string =>
   text
     .split(' ')
