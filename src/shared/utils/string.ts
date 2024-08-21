@@ -1,5 +1,6 @@
 import { FunctionaryEntity } from '../../functionaries/entities/functionary.entity'
 import { StudentEntity } from '../../students/entities/student.entity'
+import { ARROGANT_PROFESSORS } from '../enums/degree-certificates'
 
 export const toFirstUpperCase = (text: string): string =>
   text
@@ -31,11 +32,19 @@ export const getFullNameWithTitles = (
 ): string => {
   const object = { ...functionary }
   const { thirdLevelDegree, fourthLevelDegree } = object
-  return `${
+  const name = `${
     thirdLevelDegree ? `${thirdLevelDegree.abbreviation}` : ''
   } ${getFullName(functionary)} ${
     fourthLevelDegree ? `${fourthLevelDegree.abbreviation}` : ''
   }`
+
+  Object.keys(ARROGANT_PROFESSORS).forEach((professor) => {
+    if (name.includes(professor)) {
+      return ARROGANT_PROFESSORS[professor]
+    }
+  })
+
+  return name
 }
 
 export const getThirdLevelDegree = (functionary: FunctionaryEntity): string =>

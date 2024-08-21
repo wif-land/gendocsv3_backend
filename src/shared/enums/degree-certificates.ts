@@ -110,3 +110,7 @@ export const getSTATUS_CODE_BY_CERT_STATUS = (
     return CERT_STATUS_CODE.APRO
   }
 }
+
+export const ARROGANT_PROFESSORS = {
+  'John Paul Reyes Vasquez': 'PhD. John Paul Reyeas Vasquez',
+}
