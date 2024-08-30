@@ -1,6 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 import { SubmoduleModuleEntity } from '../submodules-modules/entities/submodule-module.entity'
 
+/**
+ * This migration adds the submodule-module relations for the automatization
+ *
+ * @author Pablo Villacres
+ */
 export class AddAutomatizationSubmoduleRepresentants1722828497413
   implements MigrationInterface
 {
