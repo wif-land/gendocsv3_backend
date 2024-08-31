@@ -12,9 +12,9 @@ import {
 import { DocumentsService } from './services/documents.service'
 import { CreateDocumentDto } from './dto/create-document.dto'
 import { ApiTags } from '@nestjs/swagger'
-import { PaginationV2Dto } from '../shared/dtos/paginationv2.dto'
 import { DocumentRecopilationService } from './services/document-recopilation.service'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 
 @ApiTags('Documents')
 @Controller('documents')
@@ -30,7 +30,7 @@ export class DocumentsController {
   }
 
   @Get()
-  async findAll(@Query() paginationDto: PaginationV2Dto) {
+  async findAll(@Query() paginationDto: PaginationDTO) {
     return await this.documentsService.findAll(paginationDto)
   }
 
@@ -56,6 +56,7 @@ export class DocumentsController {
         id,
       )
     } catch (error) {
+      // TODO: Implementar un logger para estos errores
       console.error(error)
     }
   }

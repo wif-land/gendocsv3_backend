@@ -5,7 +5,6 @@ import * as bodyParser from 'body-parser'
 import { ConfigService } from '@nestjs/config'
 import { Logger, ValidationPipe } from '@nestjs/common'
 import { HttpExceptionsMiddleware } from './core/middleware/http-exception'
-import LogRocket from 'logrocket'
 
 const buildOptions = () =>
   new DocumentBuilder()
@@ -39,13 +38,9 @@ const bootstrap = async () => {
     exposedHeaders: ['Set-Cookie'],
   })
 
-  if (process.env.NODE_ENV === 'production') {
-    LogRocket.init('kruumk/gendocs-logs')
-  } else {
-    const options = buildOptions()
-    const document = SwaggerModule.createDocument(app, options)
-    SwaggerModule.setup('api', app, document)
-  }
+  const options = buildOptions()
+  const document = SwaggerModule.createDocument(app, options)
+  SwaggerModule.setup('api', app, document)
 
   await app.listen(app.get(ConfigService).get('port'))
   logger.log(
