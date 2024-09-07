@@ -17,7 +17,6 @@ import { StudentEntity } from '../../students/entities/student.entity'
 import { FilesService } from '../../files/services/files.service'
 import { formatNumeration } from '../../shared/utils/string'
 import { ResponseDocumentDto } from '../dto/response-document'
-import { PaginationV2Dto } from '../../shared/dtos/paginationv2.dto'
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { NotificationsService } from '../../notifications/notifications.service'
@@ -28,6 +27,7 @@ import { DOCUMENT_QUEUE_NAME, DocumentRecreation } from '../constants'
 import { Queue } from 'bull'
 import { NotificationEntity } from '../../notifications/entities/notification.entity'
 import { NotificationsGateway } from '../../notifications/notifications.gateway'
+import { PaginationDTO } from '../../shared/dtos/pagination.dto'
 
 @Injectable()
 export class DocumentsService {
@@ -438,18 +438,12 @@ export class DocumentsService {
     }
   }
 
-  async findAll(paginationDto: PaginationV2Dto) {
-    const {
-      // eslint-disable-next-line no-magic-numbers
-      rowsPerPage = 10,
-      order = 'ASC',
-      orderBy = 'id',
-      page = 1,
-      moduleId,
-    } = paginationDto
+  async findAll(pagination: PaginationDTO) {
+    const { moduleId, limit, page } = pagination
+
+    const skip = (page - 1) * limit
 
     try {
-      // Se usa query builder para hacer la consulta por la velocidad de respuesta
       const documents = await this.documentsRepository
         .createQueryBuilder('document')
         .select([
@@ -476,9 +470,8 @@ export class DocumentsService {
         )
         .leftJoinAndSelect('documentFunctionaries.functionary', 'functionarys')
         .where('module.id = :moduleId', { moduleId: Number(moduleId) })
-        .orderBy(`document.${orderBy}`, order.toUpperCase() as 'ASC' | 'DESC')
-        .skip(rowsPerPage * (page - 1))
-        .take(rowsPerPage)
+        .skip(skip)
+        .take(limit)
         .getMany()
 
       if (!documents) {

@@ -58,3 +58,6 @@ export const formatHourMinutesText = (date: Date): string => {
 
 export const addMinutesToDate = (date: Date, minutes: number): Date =>
   new Date(new Date(date).getTime() + minutes * 60000)
+
+export const FIRST_DAY_OF_YEAR = new Date(new Date().getFullYear(), 0, 1)
+export const LAST_DAY_OF_YEAR = new Date(new Date().getFullYear(), 11, 31)

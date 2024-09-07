@@ -248,7 +248,7 @@ export class CouncilsService {
 
     const count = await qb.getCount()
     if (count === 0) {
-      throw new NotFoundException('Consejos no encontrados')
+      return { count: 0, councils: [] }
     }
 
     const councils = await qb
@@ -261,10 +261,10 @@ export class CouncilsService {
       (council) => new ResponseCouncilsDto(council),
     )
 
-    return new ApiResponseDto('Consejos encontrados', {
+    return {
       count,
       councils: mappedCouncils,
-    })
+    }
   }
 
   async getById(id: number) {

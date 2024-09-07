@@ -21,6 +21,9 @@ import {
   concatNames,
   getFullNameWithTitles,
   capitalizeEachWord,
+  getThirdLevelDegree,
+  getFourthLevelDegree,
+  getFullNameWithFourthLevelDegreeFirst,
 } from '../shared/utils/string'
 import { DocumentFunctionaryEntity } from '../documents/entities/document-functionary.entity'
 import { DataSource, Repository } from 'typeorm'
@@ -299,6 +302,30 @@ export class VariablesService {
       {
         variable: DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_DEGREE_CERTIFICATE,
         example: 'Ing. Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_WITHOUTH_DEGREES,
+        example: 'Juan Pérez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_WITHOUTH_DEGREES,
+        example: 'Carlos Lopez',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_THIRDL_DEGREE_ABR,
+        example: 'Ing.',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_THIRDL_DEGREE_ABR,
+        example: 'Lic.',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_FOURTHL_DEGREE,
+        example: 'PhD.',
+      },
+      {
+        variable: DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_FOURTHL_DEGREE,
+        example: 'MSc.',
       },
       {
         variable: DEGREE_CERTIFICATE_VARIABLES.CREATED_BY,
@@ -815,6 +842,29 @@ export class VariablesService {
       membersData[
         DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_DEGREE_CERTIFICATE
       ] = getFullNameWithTitles(tribunalAttendedMembers[1].functionary)
+      membersData[DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_WITHOUTH_DEGREES] =
+        getFullName(tribunalAttendedMembers[0].functionary)
+      membersData[DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_WITHOUTH_DEGREES] =
+        getFullName(tribunalAttendedMembers[1].functionary)
+      membersData[DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_THIRDL_DEGREE_ABR] =
+        getThirdLevelDegree(tribunalAttendedMembers[0].functionary)
+      membersData[
+        DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_THIRDL_DEGREE_ABR
+      ] = getThirdLevelDegree(tribunalAttendedMembers[1].functionary)
+      membersData[DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_FOURTHL_DEGREE] =
+        getFourthLevelDegree(tribunalAttendedMembers[0].functionary)
+      membersData[DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_FOURTHL_DEGREE] =
+        getFourthLevelDegree(tribunalAttendedMembers[1].functionary)
+      membersData[
+        DEGREE_CERTIFICATE_VARIABLES.FIRST_MEMBER_FOURTHL_DEGREE_START
+      ] = getFullNameWithFourthLevelDegreeFirst(
+        tribunalAttendedMembers[0].functionary,
+      )
+      membersData[
+        DEGREE_CERTIFICATE_VARIABLES.SECOND_MEMBER_FOURTHL_DEGREE_START
+      ] = getFullNameWithFourthLevelDegreeFirst(
+        tribunalAttendedMembers[1].functionary,
+      )
       membersData[DEFAULT_VARIABLE.ASISTIERON] = `${this.formatMembersNames(
         membersAttended,
       )}`

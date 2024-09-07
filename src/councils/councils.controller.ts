@@ -64,7 +64,10 @@ export class CouncilsController {
   @Auth(...RolesThatCanQuery)
   @Get('filter/f')
   async findByFilters(@Query() filters: CouncilFiltersDto) {
-    return this.councilsService.findByFilters(filters)
+    return new ApiResponseDto(
+      'Consejos encontrados',
+      await this.councilsService.findByFilters(filters),
+    )
   }
 
   @Auth(...RolesThatCanMutate)

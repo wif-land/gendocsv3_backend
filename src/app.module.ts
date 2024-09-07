@@ -53,7 +53,7 @@ const config = {
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
-  synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
+  synchronize: false,
   entities: [`${__dirname}/**/*.entity{.ts,.js}`],
   keepConnectionAlive: true,
   migrationsRun: false,
@@ -73,8 +73,7 @@ export default connectionSource
     TypeOrmModule.forRoot({
       ...config,
       dropSchema: process.env.DROP_SCHEMA === 'true',
-      logging: true,
-      cache: false,
+      logging: false,
     } as TypeOrmModuleOptions),
     BullModule.forRoot({
       redis: {

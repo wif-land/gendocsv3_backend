@@ -61,6 +61,7 @@
     "exceljs": "^4.4.0",
     "google-auth-library": "^9.4.1",
     "handlebars": "^4.7.8",
+    "logrocket": "^8.1.2",
     "moment-timezone": "^0.5.45",
     "nodemailer": "^6.9.14",
     "passport": "^0.7.0",
