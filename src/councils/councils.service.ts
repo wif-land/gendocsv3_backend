@@ -46,7 +46,7 @@ export class CouncilsService {
     private readonly emailService: EmailService,
     @Inject(DocumentsService)
     private readonly documentsService: DocumentsService,
-  ) {}
+  ) { }
 
   async create(data: CreateCouncilDto) {
     await new CouncilsThatOverlapValidator(this.dataSource).validate(data)
@@ -220,20 +220,16 @@ export class CouncilsService {
         },
       )
 
-    const endDate = new Date(filters.endDate || filters.startDate)
-    endDate.setHours(23, 59, 59, 999)
-
-    if (filters.dateType === DATE_TYPES.CREATION) {
+    if (filters.startDate != null || filters.endDate != null) {
+      const endDate = new Date(filters.endDate || filters.startDate)
+      endDate.setHours(23, 59, 59, 999)
       qb.andWhere(
-        '( (:startDate :: DATE) IS NULL OR councils.createdAt BETWEEN (:startDate :: DATE) AND (:endDate :: DATE) )',
-        {
-          startDate: filters.startDate,
-          endDate,
-        },
-      )
-    } else if (filters.dateType === DATE_TYPES.EJECUTION) {
-      qb.andWhere(
-        '( (:startDate :: DATE) IS NULL OR councils.date BETWEEN (:startDate :: DATE) AND (:endDate :: DATE) )',
+        `( (:startDate :: DATE) IS NULL 
+                OR councils.${filters.dateType === DATE_TYPES.CREATION
+          ? 'date'
+          : 'createdAt'
+        }
+                BETWEEN (:startDate :: DATE) AND (:endDate :: DATE) )`,
         {
           startDate: filters.startDate,
           endDate,
