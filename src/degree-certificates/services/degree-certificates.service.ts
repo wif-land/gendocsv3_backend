@@ -35,28 +35,28 @@ export class DegreeCertificatesService {
     private readonly validator: CertificateValidator,
   ) {}
 
-  async findAll(paginationDto: IDegreeCertificateFilters): Promise<
+  async findAll(filters: IDegreeCertificateFilters): Promise<
     ApiResponseDto<{
       count: number
       degreeCertificates: DegreeCertificateEntity[]
     }>
   > {
     // eslint-disable-next-line no-magic-numbers
-    const { limit = 5, page = 1 } = paginationDto
+    const { limit = 5, page = 1 } = filters
     const offset = limit * (page - 1)
 
     const { degreeCertificates, count } =
       await this.degreeCertificateRepository.findManyFor(
         {
           where: {
-            career: { id: Number(paginationDto.careerId) || Not(IsNull()) },
+            career: { id: Number(filters.careerId) || Not(IsNull()) },
             deletedAt: IsNull(),
           },
-          order: { number: paginationDto.order || 'ASC' },
+          order: { number: filters.order || 'ASC' },
           take: limit,
           skip: offset,
         },
-        paginationDto.field,
+        filters,
       )
     const certificatesWithNumber = degreeCertificates.filter(
       (certificate) => certificate.number,

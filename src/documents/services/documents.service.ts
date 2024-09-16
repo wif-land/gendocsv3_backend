@@ -27,7 +27,7 @@ import { DOCUMENT_QUEUE_NAME, DocumentRecreation } from '../constants'
 import { Queue } from 'bull'
 import { NotificationEntity } from '../../notifications/entities/notification.entity'
 import { NotificationsGateway } from '../../notifications/notifications.gateway'
-import { PaginationDTO } from '../../shared/dtos/pagination.dto'
+import { DocumentFiltersDto } from '../dto/document-filters.dto'
 
 @Injectable()
 export class DocumentsService {
@@ -170,9 +170,7 @@ export class DocumentsService {
           student: { id: student.id },
         })
 
-        studentData = await this.variableService.getStudentVariables(
-          savedDocument,
-        )
+        studentData = this.variableService.getStudentVariables(savedDocument)
       }
 
       const variables = {
@@ -301,7 +299,7 @@ export class DocumentsService {
         return
       }
 
-      await this.notificationsGateway.handleSendNotification({
+      this.notificationsGateway.handleSendNotification({
         notification: rootNotification,
         childs: [childNotification],
       })
@@ -360,7 +358,7 @@ export class DocumentsService {
       savedRootNotification = await rootNotification.save()
     }
 
-    await this.notificationsGateway.handleSendNotification({
+    this.notificationsGateway.handleSendNotification({
       notification: savedRootNotification,
       childs: notifications,
     })
@@ -438,13 +436,13 @@ export class DocumentsService {
     }
   }
 
-  async findAll(pagination: PaginationDTO) {
+  async findAll(pagination: DocumentFiltersDto) {
     const { moduleId, limit, page } = pagination
 
     const skip = (page - 1) * limit
 
     try {
-      const documents = await this.documentsRepository
+      const qb = this.documentsRepository
         .createQueryBuilder('document')
         .select([
           'document.id',
@@ -470,9 +468,41 @@ export class DocumentsService {
         )
         .leftJoinAndSelect('documentFunctionaries.functionary', 'functionarys')
         .where('module.id = :moduleId', { moduleId: Number(moduleId) })
-        .skip(skip)
-        .take(limit)
-        .getMany()
+      if (pagination.field) {
+        qb.andWhere(
+          "( (:field :: VARCHAR ) IS NULL OR CONCAT_WS(' ', student.firstName, student.secondName, student.firstLastName, student.secondLastName) ILIKE :term OR student.dni ILIKE :field )" +
+            // add some functionarie search
+            " OR CONCAT_WS(' ', functionarys.firstName, functionarys.secondName, functionarys.firstLastName, functionarys.secondLastName) ILIKE :field",
+          {
+            field: `%${pagination.field}%`,
+          },
+        )
+      }
+
+      if (pagination.startDate != null && pagination.endDate != null) {
+        if (pagination.startDate && !pagination.endDate) {
+          qb.andWhere('document.createdAt >= :startDate', {
+            startDate: pagination.startDate,
+          })
+        } else if (!pagination.startDate && pagination.endDate) {
+          const endDate = new Date(pagination.endDate)
+          endDate.setHours(23, 59, 59, 999)
+          qb.andWhere('document.createdAt <= :endDate', {
+            endDate,
+          })
+        } else {
+          const endDate = new Date(pagination.endDate)
+          endDate.setHours(23, 59, 59, 999)
+          qb.andWhere('document.createdAt BETWEEN :startDate AND :endDate', {
+            startDate: pagination.startDate,
+            endDate,
+          })
+        }
+      }
+      qb.skip(skip)
+      qb.take(limit)
+
+      const documents = await qb.getMany()
 
       if (!documents) {
         throw new NotFoundException('Documents not found')

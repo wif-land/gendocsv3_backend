@@ -228,19 +228,41 @@ export class CouncilsService {
     if (filters.startDate != null || filters.endDate != null) {
       const endDate = new Date(filters.endDate || filters.startDate)
       endDate.setHours(23, 59, 59, 999)
-      qb.andWhere(
-        `( (:startDate :: DATE) IS NULL 
+      if (filters.startDate && !filters.endDate) {
+        qb.andWhere(
+          `( councils.${
+            filters.dateType === DATE_TYPES.CREATION ? 'date' : 'createdAt'
+          }
+              >= (:startDate :: DATE) )`,
+          {
+            startDate: filters.startDate,
+          },
+        )
+      } else if (!filters.startDate && filters.endDate) {
+        qb.andWhere(
+          `( councils.${
+            filters.dateType === DATE_TYPES.CREATION ? 'date' : 'createdAt'
+          }
+              <= (:endDate :: DATE) )`,
+          {
+            endDate,
+          },
+        )
+      } else {
+        qb.andWhere(
+          `( (:startDate :: DATE) IS NULL 
                 OR councils.${
                   filters.dateType === DATE_TYPES.CREATION
                     ? 'date'
                     : 'createdAt'
                 }
                 BETWEEN (:startDate :: DATE) AND (:endDate :: DATE) )`,
-        {
-          startDate: filters.startDate,
-          endDate,
-        },
-      )
+          {
+            startDate: filters.startDate,
+            endDate,
+          },
+        )
+      }
     }
 
     const count = await qb.getCount()

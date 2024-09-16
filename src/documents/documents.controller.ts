@@ -14,7 +14,7 @@ import { CreateDocumentDto } from './dto/create-document.dto'
 import { ApiTags } from '@nestjs/swagger'
 import { DocumentRecopilationService } from './services/document-recopilation.service'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
-import { PaginationDTO } from '../shared/dtos/pagination.dto'
+import { DocumentFiltersDto } from './dto/document-filters.dto'
 
 @ApiTags('Documents')
 @Controller('documents')
@@ -30,8 +30,8 @@ export class DocumentsController {
   }
 
   @Get()
-  async findAll(@Query() paginationDto: PaginationDTO) {
-    return await this.documentsService.findAll(paginationDto)
+  async findAll(@Query() filters: DocumentFiltersDto) {
+    return await this.documentsService.findAll(filters)
   }
 
   @Get(':id')
