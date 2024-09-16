@@ -35,6 +35,9 @@ import { CERTIFICATE_QUEUE_NAME, DEGREE_CERTIFICATE } from '../constants'
 import { CertificateNumerationService } from '../services/certificate-numeration.service'
 import { CertificateReportsController } from '../controllers/certificate-report.controller'
 import { CertificateReportsService } from '../services/certificate-reports.service'
+import { UpdateCertificateService } from '../services/update-certificate.service'
+import { CertificateValidator } from '../validators/certificate-validator'
+import { CertificateDocumentService } from '../services/certificate-document.service'
 
 @Module({
   controllers: [
@@ -61,6 +64,9 @@ import { CertificateReportsService } from '../services/certificate-reports.servi
     },
     CertificateNumerationService,
     CertificateReportsService,
+    UpdateCertificateService,
+    CertificateValidator,
+    CertificateDocumentService,
   ],
   imports: [
     BullModule.registerQueue({
@@ -84,5 +90,6 @@ import { CertificateReportsService } from '../services/certificate-reports.servi
     FunctionariesModule,
     NotificationsModule,
   ],
+  exports: [DEGREE_CERTIFICATE.REPOSITORY],
 })
 export class DegreeCertificatesModule {}

@@ -15,11 +15,13 @@ import { YearModuleEntity } from '../year-module/entities/year-module.entity'
 import { SubmoduleYearModuleEntity } from '../year-module/entities/submodule-year-module.entity'
 import { SubmodulesNames } from '../shared/enums/submodules-names'
 import { ResponseProcessDto } from './dto/response-process.dto'
-import { PaginationDto } from '../shared/dtos/pagination.dto'
+import { PaginationDTO } from '../shared/dtos/pagination.dto'
 import { UpdateProcessBulkItemDto } from './dto/update-processes-bulk.dto'
 import { ProcessFiltersDto } from './dto/process-filters.dto'
 import { TemplateProcess } from '../templates/entities/template-processes.entity'
 import { ApiResponseDto } from '../shared/dtos/api-response.dto'
+import { SubmoduleEntity } from '../submodules/entities/submodule.entity'
+import { SubmoduleModuleEntity } from '../submodules-modules/entities/submodule-module.entity'
 
 @Injectable()
 export class ProcessesService {
@@ -51,21 +53,22 @@ export class ProcessesService {
         throw new NotFoundException('Year module not found')
       }
 
-      const submoduleYearModule =
-        await this.submoduleYearModuleRepository.findOneBy({
-          name: SubmodulesNames.PROCESSES,
-          yearModule: { id: yearModule.id },
-        })
+      const submodule = await SubmoduleEntity.findOne({
+        where: { name: SubmodulesNames.PROCESSES },
+      })
 
-      if (!submoduleYearModule) {
-        throw new NotFoundException('Submodule year module not found')
-      }
+      const submoduleModule = await SubmoduleModuleEntity.findOne({
+        where: {
+          moduleId: createProcessDto.moduleId,
+          submoduleId: submodule.id,
+        },
+      })
 
       const process = this.processRepository.create({
         ...createProcessDto,
         module: { id: createProcessDto.moduleId },
         user: { id: createProcessDto.userId },
-        submoduleYearModule: { id: submoduleYearModule.id },
+        submodule: { id: submodule.id },
       })
 
       if (!process) {
@@ -75,7 +78,7 @@ export class ProcessesService {
       const { data: processFolderId } =
         await this.fileService.createFolderByParentId(
           process.name,
-          submoduleYearModule.driveId,
+          submoduleModule.driveId,
         )
 
       if (!processFolderId) {
@@ -95,17 +98,18 @@ export class ProcessesService {
     }
   }
 
+  getBaseQuery() {
+    return this.dataSource
+      .createQueryBuilder(ProcessEntity, 'processes')
+      .leftJoinAndSelect('processes.user', 'user')
+      .leftJoinAndSelect('processes.module', 'module')
+      .leftJoinAndSelect('processes.submodule', 'submodule')
+      .leftJoinAndSelect('processes.templateProcesses', 'templates')
+  }
+
   async findAll() {
     try {
-      const qb = this.dataSource
-        .createQueryBuilder(ProcessEntity, 'processes')
-        .leftJoinAndSelect('processes.user', 'user')
-        .leftJoinAndSelect('processes.module', 'module')
-        .leftJoinAndSelect(
-          'processes.submoduleYearModule',
-          'submoduleYearModule',
-        )
-        .orderBy('processes.createdAt', 'DESC')
+      const qb = this.getBaseQuery().orderBy('processes.createdAt', 'DESC')
 
       const processes = await qb.getMany()
 
@@ -122,28 +126,18 @@ export class ProcessesService {
     }
   }
 
-  async getProcessesByModuleId(paginationDto: PaginationDto) {
-    // eslint-disable-next-line no-magic-numbers
-    const { moduleId, limit = 10, offset = 0 } = paginationDto
+  async getProcessesByModuleId(paginationDto: PaginationDTO) {
+    const { moduleId, limit, page } = paginationDto
+    const offset = (page - 1) * limit
 
-    const qb = this.dataSource
-      .createQueryBuilder(ProcessEntity, 'processes')
-      .leftJoinAndSelect('processes.user', 'user')
-      .leftJoinAndSelect('processes.module', 'module')
-      .leftJoinAndSelect('processes.submoduleYearModule', 'submoduleYearModule')
-      .leftJoinAndSelect('processes.templateProcesses', 'templates')
+    const qb = this.getBaseQuery()
       .where('module.id = :moduleId', { moduleId })
       .orderBy('processes.createdAt', 'DESC')
 
+    const count = await qb.clone().getCount()
+
     qb.take(limit)
     qb.skip(offset)
-
-    const countqb = this.dataSource
-      .createQueryBuilder(ProcessEntity, 'processes')
-      .leftJoinAndSelect('processes.module', 'module')
-      .where('module.id = :moduleId', { moduleId })
-
-    const count = await countqb.getCount()
 
     const processes = await qb.getMany()
 
@@ -181,15 +175,10 @@ export class ProcessesService {
   }
 
   async findByFilters(filters: ProcessFiltersDto) {
-    // eslint-disable-next-line no-magic-numbers
-    const { moduleId, limit = 10, offset = 0 } = filters
+    const { moduleId, limit, page } = filters
+    const offset = (page - 1) * limit
 
-    const qb = this.dataSource
-      .createQueryBuilder(ProcessEntity, 'processes')
-      .leftJoinAndSelect('processes.user', 'user')
-      .leftJoinAndSelect('processes.module', 'module')
-      .leftJoinAndSelect('processes.submoduleYearModule', 'submoduleYearModule')
-      .leftJoinAndSelect('processes.templateProcesses', 'templates')
+    const qb = this.getBaseQuery()
       .where('module.id = :moduleId', { moduleId })
       .andWhere(
         '( (:state :: BOOLEAN) IS NULL OR processes.isActive = (:state :: BOOLEAN) )',
@@ -227,15 +216,7 @@ export class ProcessesService {
 
   async findOne(id: number) {
     try {
-      const qb = this.dataSource
-        .createQueryBuilder(ProcessEntity, 'processes')
-        .leftJoinAndSelect('processes.user', 'user')
-        .leftJoinAndSelect('processes.module', 'module')
-        .leftJoinAndSelect(
-          'processes.submoduleYearModule',
-          'submoduleYearModule',
-        )
-        .where('processes.id = :id', { id })
+      const qb = this.getBaseQuery().where('processes.id = :id', { id })
 
       const process = await qb.getOne()
 
@@ -254,14 +235,7 @@ export class ProcessesService {
 
   async update(id: number, updateProcessDto: UpdateProcessDto) {
     try {
-      const qb = this.dataSource
-        .createQueryBuilder(ProcessEntity, 'processes')
-        .leftJoinAndSelect('processes.user', 'user')
-        .leftJoinAndSelect('processes.module', 'module')
-        .leftJoinAndSelect(
-          'processes.submoduleYearModule',
-          'submoduleYearModule',
-        )
+      const qb = this.getBaseQuery()
         .leftJoinAndSelect('processes.templateProcesses', 'templates')
         .where('processes.id = :id', { id })
 

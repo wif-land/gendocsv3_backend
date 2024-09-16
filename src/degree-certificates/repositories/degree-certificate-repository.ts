@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectDataSource } from '@nestjs/typeorm'
 import {
+  Brackets,
   DataSource,
   FindManyOptions,
   FindOneOptions,
@@ -10,6 +11,7 @@ import { DegreeCertificateEntity } from '../entities/degree-certificate.entity'
 import { CreateDegreeCertificateDto } from '../dto/create-degree-certificate.dto'
 import { SubmoduleYearModuleEntity } from '../../year-module/entities/submodule-year-module.entity'
 import { CERT_STATUS_CODE } from '../../shared/enums/degree-certificates'
+import { toSnakeCase } from '../../shared/utils/string'
 
 @Injectable()
 export class DegreeCertificateRepository extends Repository<DegreeCertificateEntity> {
@@ -71,7 +73,7 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
     if (options.order) {
       for (const [sortField, sortOrder] of Object.entries(options.order)) {
         query.addOrderBy(
-          sortField,
+          toSnakeCase(sortField),
           sortOrder.toString().toUpperCase() as 'ASC' | 'DESC',
         )
       }
@@ -121,7 +123,61 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       })
     }
 
-    if (options.take && options.skip) {
+    if (options.take && (options.skip || options.skip === 0)) {
+      query.take(options.take)
+      query.skip(options.skip)
+    }
+
+    return {
+      degreeCertificates: await query.getMany(),
+      count: countQuery,
+    }
+  }
+
+  async findManyForWithAttendance(
+    options: FindManyOptions<DegreeCertificateEntity>,
+    field?: string,
+  ) {
+    const query = this.qb
+      .leftJoinAndSelect('degreeCertificate.student', 'student')
+      .leftJoinAndSelect('student.career', 'studentCareer')
+      .leftJoinAndSelect('student.canton', 'canton')
+      .leftJoinAndSelect('canton.province', 'province')
+      .leftJoinAndSelect('degreeCertificate.certificateType', 'certificateType')
+      .leftJoinAndSelect('degreeCertificate.degreeModality', 'degreeModality')
+      .leftJoinAndSelect(
+        'degreeCertificate.certificateStatus',
+        'certificateStatus',
+      )
+      .leftJoinAndSelect('degreeCertificate.career', 'career')
+      .leftJoinAndSelect(
+        'degreeCertificate.submoduleYearModule',
+        'submoduleYearModule',
+      )
+      .leftJoinAndSelect('degreeCertificate.room', 'room')
+      .leftJoinAndSelect('degreeCertificate.user', 'user')
+      .leftJoinAndSelect('degreeCertificate.attendances', 'dca')
+      .leftJoinAndSelect('dca.functionary', 'functionary')
+      .where(options.where)
+
+    if (field) {
+      query.andWhere(
+        "( (:term :: VARCHAR ) IS NULL OR CONCAT_WS(' ', student.firstName, student.secondName, student.firstLastName, student.secondLastName) ILIKE :term OR student.dni ILIKE :term )",
+        {
+          term: field ? `%${field.trim()}%` : null,
+        },
+      )
+    }
+
+    const countQuery = await query.getCount()
+
+    if (options.order) {
+      query.setFindOptions({
+        order: options.order,
+      })
+    }
+
+    if (options.take && (options.skip || options.skip === 0)) {
       query.take(options.take)
       query.skip(options.skip)
     }
@@ -249,23 +305,51 @@ export class DegreeCertificateRepository extends Repository<DegreeCertificateEnt
       .andWhere('degreeCertificate.deletedAt IS NULL')
       .andWhere('degreeCertificate.isClosed = :isClosed', { isClosed: false })
       .andWhere(
-        "degreeCertificate.presentationDate < :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :start",
-        {
-          start: startDate,
-        },
-      )
-      .orWhere(
-        "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :end AND degreeCertificate.presentationDate < :end",
-        {
-          end: endDate,
-        },
-      )
-      .orWhere(
-        "degreeCertificate.presentationDate > :start AND degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') < :end",
-        {
-          start: startDate,
-          end: endDate,
-        },
+        new Brackets((qb) => {
+          qb.where(
+            new Brackets((qb2) => {
+              qb2
+                .where('degreeCertificate.presentationDate < :start', {
+                  start: startDate,
+                })
+                .andWhere(
+                  "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :start",
+                  { start: startDate },
+                )
+            }),
+          )
+            .orWhere(
+              new Brackets((qb2) => {
+                qb2.where('degreeCertificate.presentationDate = :start', {
+                  start: startDate,
+                })
+              }),
+            )
+            .orWhere(
+              new Brackets((qb2) => {
+                qb2
+                  .where(
+                    "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') > :end",
+                    { end: endDate },
+                  )
+                  .andWhere('degreeCertificate.presentationDate < :end', {
+                    end: endDate,
+                  })
+              }),
+            )
+            .orWhere(
+              new Brackets((qb2) => {
+                qb2
+                  .where('degreeCertificate.presentationDate > :start', {
+                    start: startDate,
+                  })
+                  .andWhere(
+                    "degreeCertificate.presentationDate + (degreeCertificate.duration * interval '1 minute') < :end",
+                    { end: endDate },
+                  )
+              }),
+            )
+        }),
       )
 
     if (certificateId) {
