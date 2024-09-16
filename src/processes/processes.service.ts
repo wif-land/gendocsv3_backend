@@ -176,44 +176,31 @@ export class ProcessesService {
 
   async findByFilters(filters: ProcessFiltersDto) {
     const { moduleId, limit, page } = filters
+
     const offset = (page - 1) * limit
-
-    const qb = this.getBaseQuery()
-      .where('module.id = :moduleId', { moduleId })
-      .andWhere(
-        '( (:state :: BOOLEAN) IS NULL OR processes.isActive = (:state :: BOOLEAN) )',
-        {
-          state: filters.state,
-        },
-      )
-      .andWhere(
-        '( (:name :: VARCHAR) IS NULL OR processes.name ILIKE :name  )',
-        {
-          name: filters.field && `%${filters.field}%`,
-        },
-      )
-
-    const count = await qb.getCount()
-    if (count === 0) {
-      throw new NotFoundException('Processes not found')
+    const qb = this.getBaseQuery().where('module.id = :moduleId', { moduleId })
+    if (filters.state !== undefined && filters.state !== null) {
+      qb.andWhere('processes.isActive = :state', { state: filters.state })
     }
 
+    if (filters.field && filters.field.trim() !== '') {
+      qb.andWhere('processes.name ILIKE :name', { name: `%${filters.field}%` })
+    }
+
+    const count = await qb.getCount()
     const processes = await qb
       .orderBy('processes.createdAt', 'DESC')
       .take(limit)
       .skip(offset)
       .getMany()
-
-    const processesResponse = processes.map(
-      (process) => new ResponseProcessDto(process),
-    )
-
+    // const processesResponse = processes.map(
+    //   (process) => new ResponseProcessDto(process),
+    // )
     return new ApiResponseDto('Procesos encontrados exitosamente', {
       count,
-      processes: processesResponse,
+      processes,
     })
   }
-
   async findOne(id: number) {
     try {
       const qb = this.getBaseQuery().where('processes.id = :id', { id })
