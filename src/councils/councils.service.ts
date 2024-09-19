@@ -194,7 +194,12 @@ export class CouncilsService {
   }
 
   async findByFilters(filters: CouncilFiltersDto) {
-    const { moduleId = 0, limit, page } = filters
+    const {
+      moduleId = 0,
+      limit,
+      page,
+      dateType = DATE_TYPES.EJECUTION,
+    } = filters
 
     const offset = (page - 1) * limit
 
@@ -230,9 +235,7 @@ export class CouncilsService {
       endDate.setHours(23, 59, 59, 999)
       if (filters.startDate && !filters.endDate) {
         qb.andWhere(
-          `( councils.${
-            filters.dateType === DATE_TYPES.CREATION ? 'date' : 'createdAt'
-          }
+          `( councils.${dateType === DATE_TYPES.CREATION ? 'createdAt' : 'date'}
               >= (:startDate :: DATE) )`,
           {
             startDate: filters.startDate,
@@ -240,9 +243,7 @@ export class CouncilsService {
         )
       } else if (!filters.startDate && filters.endDate) {
         qb.andWhere(
-          `( councils.${
-            filters.dateType === DATE_TYPES.CREATION ? 'date' : 'createdAt'
-          }
+          `( councils.${dateType === DATE_TYPES.CREATION ? 'createdAt' : 'date'}
               <= (:endDate :: DATE) )`,
           {
             endDate,
@@ -252,9 +253,7 @@ export class CouncilsService {
         qb.andWhere(
           `( (:startDate :: DATE) IS NULL 
                 OR councils.${
-                  filters.dateType === DATE_TYPES.CREATION
-                    ? 'date'
-                    : 'createdAt'
+                  dateType === DATE_TYPES.CREATION ? 'createdAt' : 'date'
                 }
                 BETWEEN (:startDate :: DATE) AND (:endDate :: DATE) )`,
           {
