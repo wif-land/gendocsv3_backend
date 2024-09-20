@@ -157,4 +157,14 @@ export class YearModuleService {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
+
+  async prepareToRestartingYearModule(year: number) {
+    /* Obtiene el año actual del sistem
+     * el año actual del sistema debe ser menos uno que el año que se desea reiniciar
+     * obtener los modulos activos y las carreras activas
+     * comparar modulos activos con las carreras activas
+     * crear moduleYearModule -> subModuleYearModule -> actualizar systemYear
+     */
+    console.log({ year })
+  }
 }
