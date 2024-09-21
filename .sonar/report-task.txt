@@ -1,0 +1,6 @@
+projectKey=gendocsv3
+serverUrl=http://localhost:9000
+serverVersion=10.6.0.92116
+dashboardUrl=http://localhost:9000/dashboard?id=gendocsv3
+ceTaskId=d62826d7-67d6-4bf3-b8c8-bf5ca0070f56
+ceTaskUrl=http://localhost:9000/api/ce/task?id=d62826d7-67d6-4bf3-b8c8-bf5ca0070f56
