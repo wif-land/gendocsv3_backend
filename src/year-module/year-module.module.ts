@@ -12,6 +12,8 @@ import { CouncilEntity } from '../councils/entities/council.entity'
 import { NumerationDocumentEntity } from '../numeration-document/entities/numeration-document.entity'
 import { CareerEntity } from '../careers/entites/careers.entity'
 import { ModuleEntity } from '../modules/entities/module.entity'
+import { SysYearUpdateValidator } from './validators/sys-year-update-validator'
+import { NotificationsModule } from '../notifications/notifications.module'
 
 @Module({
   controllers: [YearModuleController],
@@ -26,9 +28,10 @@ import { ModuleEntity } from '../modules/entities/module.entity'
       NumerationDocumentEntity,
     ]),
     DegreeCertificatesModule,
+    NotificationsModule,
     GcpModule,
   ],
   exports: [YearModuleService, SysYearUpdateService],
-  providers: [YearModuleService],
+  providers: [YearModuleService, SysYearUpdateValidator, SysYearUpdateService],
 })
 export class YearModuleModule {}

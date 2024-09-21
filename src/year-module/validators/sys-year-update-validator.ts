@@ -4,7 +4,7 @@ import { SystemYearEntity } from '../entities/system-year.entity'
 import { YearModuleAlreadyExists } from '../errors/year-module-already-exists'
 import { DEGREE_CERTIFICATE } from '../../degree-certificates/constants'
 import { DegreeCertificateRepository } from '../../degree-certificates/repositories/degree-certificate-repository'
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, forwardRef } from '@nestjs/common'
 import { CouncilEntity } from '../../councils/entities/council.entity'
 import { NumerationDocumentEntity } from '../../numeration-document/entities/numeration-document.entity'
 import { CouncilsNotClosedError } from '../errors/councils-not-closed'
@@ -30,6 +30,7 @@ export class SysYearUpdateValidator {
     @InjectRepository(NumerationDocumentEntity)
     private readonly numerationDocumentRepository: Repository<NumerationDocumentEntity>,
 
+    @Inject(forwardRef(() => CertificateNumerationService))
     private readonly numDegCertService: CertificateNumerationService,
   ) {}
 
